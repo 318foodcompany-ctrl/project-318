@@ -1,0 +1,12 @@
+Project 318 — Version 0.7
+
+NEW
+- 318 AI owner-assistant preview inside 318 HQ
+- Automatic business opportunity insights
+- Editable AI knowledge base
+- Grounded answers for follow-ups, menu demand, revenue and campaign drafting
+- Customer-facing catering assistant preview (assistant.html)
+
+IMPORTANT
+- This is an offline rules-based preview. It does not call a live AI service.
+- Live AI, cloud data, secure login and email delivery will be connected during production launch.

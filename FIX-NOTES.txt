@@ -1,0 +1,5 @@
+Version 0.4.3
+- Dashboard JavaScript is embedded directly in OPEN-DASHBOARD.html.
+- Removes the file:// external-script problem that can appear only as “Script error.”
+- Replaced one newer JavaScript method for wider browser compatibility.
+- Open OPEN-DASHBOARD.html after extracting the ZIP. PIN: 3180.

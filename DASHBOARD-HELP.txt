@@ -1,0 +1,7 @@
+OPENING 318 HQ
+1. Extract the ZIP completely.
+2. Open OPEN-DASHBOARD.html.
+3. Enter PIN 3180.
+4. Click Load Sample Data to see the dashboard populated.
+
+Your existing Version 0.4 browser data uses the same storage key and should remain available when opened in the same browser.

@@ -1,0 +1,7 @@
+const menuBtn=document.querySelector('.menu-btn');const links=document.querySelector('.links');if(menuBtn){menuBtn.addEventListener('click',()=>links.classList.toggle('open'));}
+const quote=document.querySelector('#quoteForm');
+if(quote){const prices={"Taco Bar":15.99,"Fajita Bar":16.99,"BBQ Bar":16.99,"Deli Sandwich Buffet":15.99,"Pasta Bar":15.99,"Pizza & Salad Bar":15.99};
+const guests=document.querySelector('#guests'),menu=document.querySelector('#menuChoice'),extras=document.querySelector('#extras'),total=document.querySelector('#estimateTotal'),summary=document.querySelector('#estimateSummary');
+function calc(){let g=Math.max(15,Number(guests.value)||15),p=prices[menu.value]||15.99,e=Number(extras.value)||0,t=g*(p+e);total.textContent=t.toLocaleString('en-US',{style:'currency',currency:'USD'});summary.textContent=`Estimated for ${g} guests at $${(p+e).toFixed(2)} per person.`;}
+[guests,menu,extras].forEach(x=>x.addEventListener('input',calc));calc();
+quote.addEventListener('submit',e=>{e.preventDefault();const data=new FormData(quote);let lines=['318 Food Co. Catering Quote Request',''];for(const [k,v] of data.entries())lines.push(`${k}: ${v}`);lines.push('',summary.textContent,`Estimated subtotal: ${total.textContent}`,'Final price is subject to confirmation, delivery, staffing, taxes, and menu selections.');location.href=`mailto:318FoodCompany@gmail.com?subject=${encodeURIComponent('Catering Quote Request')}&body=${encodeURIComponent(lines.join('\n'))}`;});}
