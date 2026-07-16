@@ -38,3 +38,11 @@ cateringPhotos.forEach((img, index) => {
             `${SUPABASE_URL}/storage/v1/object/public/website-images/${cateringFiles[index]}`;
     }
 });
+const galleryImages = document.querySelectorAll("[data-gallery-image]");
+
+galleryImages.forEach((img, index) => {
+  const fileNumber = index + 1;
+
+  img.src =
+    `${SUPABASE_URL}/storage/v1/object/public/website-images/gallery${fileNumber}.jpg?v=${Date.now()}`;
+});
