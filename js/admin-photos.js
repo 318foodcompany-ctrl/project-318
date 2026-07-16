@@ -93,7 +93,7 @@ async function uploadPhoto(id,fileName){
 
     const file=input.files[0];
 
-    const {error}=await supabase.storage
+    const {error}=await supabaseclient.storage
     .from(bucket)
     .upload(fileName,file,{
         upsert:true
