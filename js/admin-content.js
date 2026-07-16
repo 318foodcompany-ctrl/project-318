@@ -3,9 +3,33 @@ const saveContentButton = document.getElementById("saveContentButton");
 const contentMessage = document.getElementById("contentMessage");
 
 const fieldLabels = {
+  hero_eyebrow: "Hero Eyebrow Text",
   hero_heading: "Main Heading",
   hero_text: "Intro Text",
-  hero_button: "Main Button Text"
+  hero_button: "Main Button Text",
+  hero_secondary_button: "Secondary Button Text",
+  minimum_order: "Minimum Order Text",
+
+  trust_1_title: "Trust Item 1 Title",
+  trust_1_text: "Trust Item 1 Description",
+  trust_2_title: "Trust Item 2 Title",
+  trust_2_text: "Trust Item 2 Description",
+  trust_3_title: "Trust Item 3 Title",
+  trust_3_text: "Trust Item 3 Description",
+  trust_4_title: "Trust Item 4 Title",
+  trust_4_text: "Trust Item 4 Description",
+
+  menu_section_heading: "Menu Section Heading",
+  menu_section_text: "Menu Section Description",
+
+  feature_heading: "Feature Section Heading",
+  feature_text: "Feature Section Description",
+
+  cta_heading: "Call-to-Action Heading",
+  cta_text: "Call-to-Action Text",
+  cta_button: "Call-to-Action Button",
+
+  footer_text: "Footer Text"
 };
 
 async function loadWebsiteContent() {

@@ -13,19 +13,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     data.map((item) => [item.content_key, item.content_value])
   );
 
-  const heroHeading = document.querySelector("[data-content='hero_heading']");
-  const heroText = document.querySelector("[data-content='hero_text']");
-  const heroButton = document.querySelector("[data-content='hero_button']");
+  document.querySelectorAll("[data-content]").forEach((element) => {
+    const key = element.dataset.content;
+    const value = content[key];
 
-  if (heroHeading && content.hero_heading) {
-    heroHeading.textContent = content.hero_heading;
-  }
-
-  if (heroText && content.hero_text) {
-    heroText.textContent = content.hero_text;
-  }
-
-  if (heroButton && content.hero_button) {
-    heroButton.textContent = content.hero_button;
-  }
+    if (typeof value === "string" && value.trim() !== "") {
+      element.textContent = value;
+    }
+  });
 });
