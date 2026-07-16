@@ -17,3 +17,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   testImage.src = `${heroUrl}?v=${Date.now()}`;
 });
+const aboutImage = document.querySelector(".feature-photo");
+
+if (aboutImage) {
+    aboutImage.src =
+        `${SUPABASE_URL}/storage/v1/object/public/website-images/about.jpg`;
+}
