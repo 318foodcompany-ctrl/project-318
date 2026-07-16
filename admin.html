@@ -1,0 +1,528 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>318 Website Manager</title>
+
+  <style>
+    :root {
+      --red: #e21b23;
+      --dark: #111111;
+      --muted: #6b6b6b;
+      --background: #f5f5f3;
+      --card: #ffffff;
+      --border: #dddddd;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: var(--background);
+      color: var(--dark);
+    }
+
+    button,
+    input,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    #loading {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    #adminApp {
+      display: none;
+      min-height: 100vh;
+    }
+
+    .layout {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 250px 1fr;
+    }
+
+    .sidebar {
+      padding: 24px 18px;
+      background: var(--dark);
+      color: white;
+    }
+
+    .brand {
+      margin-bottom: 30px;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    .brand p {
+      margin: 6px 0 0;
+      color: #bbbbbb;
+      font-size: 14px;
+    }
+
+    .nav-button {
+      width: 100%;
+      margin-bottom: 8px;
+      padding: 13px 14px;
+      border: 0;
+      border-radius: 10px;
+      background: transparent;
+      color: white;
+      text-align: left;
+      font-weight: 700;
+    }
+
+    .nav-button:hover,
+    .nav-button.active {
+      background: #2a2a2a;
+    }
+
+    .logout-button {
+      width: 100%;
+      margin-top: 24px;
+      padding: 13px;
+      border: 0;
+      border-radius: 10px;
+      background: var(--red);
+      color: white;
+      font-weight: 700;
+    }
+
+    .main {
+      min-width: 0;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      padding: 20px 28px;
+      border-bottom: 1px solid var(--border);
+      background: white;
+    }
+
+    .topbar h2 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    .topbar p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .preview-button {
+      padding: 11px 16px;
+      border: 0;
+      border-radius: 10px;
+      background: var(--dark);
+      color: white;
+      font-weight: 700;
+    }
+
+    .content {
+      width: min(1100px, calc(100% - 40px));
+      margin: 28px auto;
+    }
+
+    .panel {
+      display: none;
+    }
+
+    .panel.active {
+      display: block;
+    }
+
+    .panel-heading {
+      margin-bottom: 20px;
+    }
+
+    .panel-heading h2 {
+      margin: 0 0 6px;
+    }
+
+    .panel-heading p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .card {
+      padding: 24px;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      background: var(--card);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, .05);
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 18px;
+    }
+
+    .dashboard-card {
+      padding: 22px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: white;
+    }
+
+    .dashboard-card h3 {
+      margin-top: 0;
+    }
+
+    .dashboard-card p {
+      min-height: 44px;
+      color: var(--muted);
+    }
+
+    .dashboard-card button {
+      width: 100%;
+      padding: 12px;
+      border: 0;
+      border-radius: 10px;
+      background: var(--dark);
+      color: white;
+      font-weight: 700;
+    }
+
+    .editor-field {
+      margin-bottom: 20px;
+    }
+
+    .editor-field label {
+      display: block;
+      margin-bottom: 7px;
+      font-weight: 700;
+    }
+
+    .editor-field input,
+    .editor-field textarea {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid #cfcfcf;
+      border-radius: 10px;
+      background: white;
+    }
+
+    .editor-field textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    .save-button {
+      padding: 13px 20px;
+      border: 0;
+      border-radius: 10px;
+      background: var(--red);
+      color: white;
+      font-weight: 700;
+    }
+
+    .save-button:disabled {
+      opacity: .6;
+      cursor: wait;
+    }
+
+    .message {
+      min-height: 24px;
+      margin-top: 14px;
+      font-weight: 700;
+    }
+
+    .placeholder {
+      padding: 50px 24px;
+      text-align: center;
+    }
+
+    .placeholder h3 {
+      margin-top: 0;
+    }
+
+    .placeholder p {
+      color: var(--muted);
+    }
+
+    .open-leads-button {
+      display: inline-block;
+      padding: 13px 18px;
+      border-radius: 10px;
+      background: var(--dark);
+      color: white;
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    @media (max-width: 800px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        padding-bottom: 12px;
+      }
+
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="loading">Checking your login…</div>
+
+  <div id="adminApp">
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="brand">
+          <h1>318 Website Manager</h1>
+          <p>No-code website control</p>
+        </div>
+
+        <button class="nav-button active" data-panel="dashboardPanel">
+          Dashboard
+        </button>
+
+        <button class="nav-button" data-panel="textPanel">
+          Edit Website Text
+        </button>
+
+        <button class="nav-button" data-panel="photosPanel">
+          Manage Photos
+        </button>
+
+        <button class="nav-button" data-panel="menuPanel">
+          Menu & Pricing
+        </button>
+
+        <button class="nav-button" data-panel="specialsPanel">
+          Specials
+        </button>
+
+        <button class="nav-button" data-panel="leadsPanel">
+          Catering Leads
+        </button>
+
+        <button id="logoutButton" class="logout-button">
+          Log Out
+        </button>
+      </aside>
+
+      <main class="main">
+        <header class="topbar">
+          <div>
+            <h2>Welcome back</h2>
+            <p id="userEmail"></p>
+          </div>
+
+          <button id="previewButton" class="preview-button">
+            Preview Website
+          </button>
+        </header>
+
+        <div class="content">
+          <section id="dashboardPanel" class="panel active">
+            <div class="panel-heading">
+              <h2>Dashboard</h2>
+              <p>Choose what you want to manage.</p>
+            </div>
+
+            <div class="dashboard-grid">
+              <article class="dashboard-card">
+                <h3>Edit Text</h3>
+                <p>Change your homepage heading, description, and button wording.</p>
+                <button data-open-panel="textPanel">Open Text Editor</button>
+              </article>
+
+              <article class="dashboard-card">
+                <h3>Manage Photos</h3>
+                <p>Replace website photos using the upcoming media manager.</p>
+                <button data-open-panel="photosPanel">Open Photos</button>
+              </article>
+
+              <article class="dashboard-card">
+                <h3>View Leads</h3>
+                <p>Open your catering dashboard and review submitted requests.</p>
+                <button data-open-panel="leadsPanel">Open Leads</button>
+              </article>
+
+              <article class="dashboard-card">
+                <h3>Preview Website</h3>
+                <p>Open the public website in another browser tab.</p>
+                <button id="dashboardPreviewButton">View Website</button>
+              </article>
+            </div>
+          </section>
+
+          <section id="textPanel" class="panel">
+            <div class="panel-heading">
+              <h2>Edit Website Text</h2>
+              <p>Update the homepage without changing HTML or JavaScript.</p>
+            </div>
+
+            <div class="card">
+              <div id="contentEditor"></div>
+
+              <button id="saveContentButton" class="save-button">
+                Save Text Changes
+              </button>
+
+              <p id="contentMessage" class="message"></p>
+            </div>
+          </section>
+
+          <section id="photosPanel" class="panel">
+            <div class="panel-heading">
+              <h2>Manage Photos</h2>
+              <p>Upload and replace website images.</p>
+            </div>
+
+            <div class="card placeholder">
+              <h3>Photo Manager</h3>
+              <p>
+                The layout is ready. Next we will connect image uploads to
+                Supabase Storage.
+              </p>
+            </div>
+          </section>
+
+          <section id="menuPanel" class="panel">
+            <div class="panel-heading">
+              <h2>Menu & Pricing</h2>
+              <p>Edit catering menu items and pricing.</p>
+            </div>
+
+            <div class="card placeholder">
+              <h3>Menu Editor</h3>
+              <p>
+                This section will let you add, edit, hide, and reorder menu
+                items without touching code.
+              </p>
+            </div>
+          </section>
+
+          <section id="specialsPanel" class="panel">
+            <div class="panel-heading">
+              <h2>Specials</h2>
+              <p>Control promotional wording and featured offers.</p>
+            </div>
+
+            <div class="card placeholder">
+              <h3>Specials Manager</h3>
+              <p>
+                This section will let you turn promotions on and off and
+                change their wording.
+              </p>
+            </div>
+          </section>
+
+          <section id="leadsPanel" class="panel">
+            <div class="panel-heading">
+              <h2>Catering Leads</h2>
+              <p>Review requests submitted through your live website.</p>
+            </div>
+
+            <div class="card placeholder">
+              <h3>318 HQ Dashboard</h3>
+              <p>Open your existing dashboard to review and manage leads.</p>
+
+              <a class="open-leads-button" href="dashboard.html">
+                Open Leads Dashboard
+              </a>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js"></script>
+
+  <script>
+    const loading = document.getElementById("loading");
+    const adminApp = document.getElementById("adminApp");
+    const userEmail = document.getElementById("userEmail");
+
+    function showPanel(panelId) {
+      document.querySelectorAll(".panel").forEach((panel) => {
+        panel.classList.toggle("active", panel.id === panelId);
+      });
+
+      document.querySelectorAll(".nav-button").forEach((button) => {
+        button.classList.toggle(
+          "active",
+          button.dataset.panel === panelId
+        );
+      });
+    }
+
+    async function protectAdminPage() {
+      const { data, error } = await supabaseClient.auth.getSession();
+      const session = data?.session;
+
+      if (error || !session) {
+        window.location.replace("login.html");
+        return;
+      }
+
+      userEmail.textContent = `Signed in as ${session.user.email}`;
+      loading.style.display = "none";
+      adminApp.style.display = "block";
+    }
+
+    document.querySelectorAll(".nav-button").forEach((button) => {
+      button.addEventListener("click", () => {
+        showPanel(button.dataset.panel);
+      });
+    });
+
+    document.querySelectorAll("[data-open-panel]").forEach((button) => {
+      button.addEventListener("click", () => {
+        showPanel(button.dataset.openPanel);
+      });
+    });
+
+    document.getElementById("previewButton").addEventListener("click", () => {
+      window.open("index.html", "_blank");
+    });
+
+    document
+      .getElementById("dashboardPreviewButton")
+      .addEventListener("click", () => {
+        window.open("index.html", "_blank");
+      });
+
+    document
+      .getElementById("logoutButton")
+      .addEventListener("click", async () => {
+        await supabaseClient.auth.signOut();
+        window.location.replace("login.html");
+      });
+
+    protectAdminPage();
+  </script>
+
+  <script src="js/admin-content.js"></script>
+</body>
+</html>
