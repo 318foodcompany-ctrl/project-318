@@ -1,48 +1,53 @@
 document.addEventListener("DOMContentLoaded", () => {
   const bucket = "website-images";
+  const cacheVersion = Date.now();
 
-  const heroUrl =
-    `${SUPABASE_URL}/storage/v1/object/public/${bucket}/hero.jpg`;
+  function photoUrl(fileName) {
+    return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${fileName}?v=${cacheVersion}`;
+  }
 
-  const testImage = new Image();
+  // Homepage hero
+  const heroSection = document.querySelector(".hero");
 
-  testImage.onload = () => {
-    const heroSection = document.querySelector(".hero");
+  if (heroSection) {
+    const heroUrl = photoUrl("hero.jpg");
+    const testImage = new Image();
 
-    if (heroSection) {
+    testImage.onload = () => {
       heroSection.style.backgroundImage =
         `linear-gradient(rgba(0,0,0,.45), rgba(0,0,0,.45)), url("${heroUrl}")`;
-    }
-  };
+    };
 
-  testImage.src = `${heroUrl}?v=${Date.now()}`;
-});
-const aboutImage = document.querySelector(".feature-photo");
+    testImage.src = heroUrl;
+  }
 
-if (aboutImage) {
-    aboutImage.src =
-        `${SUPABASE_URL}/storage/v1/object/public/website-images/about.jpg`;
-}
-const cateringPhotos = document.querySelectorAll(".package-photo img");
+  // About page
+  const aboutImage = document.querySelector(".feature-photo");
 
-const cateringFiles = [
+  if (aboutImage) {
+    aboutImage.src = photoUrl("about.jpg");
+  }
+
+  // Catering page
+  const cateringPhotos = document.querySelectorAll(".package-photo img");
+
+  const cateringFiles = [
     "catering.jpg",
     "gallery1.jpg",
     "gallery2.jpg",
     "gallery3.jpg"
-];
+  ];
 
-cateringPhotos.forEach((img, index) => {
+  cateringPhotos.forEach((image, index) => {
     if (cateringFiles[index]) {
-        img.src =
-            `${SUPABASE_URL}/storage/v1/object/public/website-images/${cateringFiles[index]}`;
+      image.src = photoUrl(cateringFiles[index]);
     }
-});
-const galleryImages = document.querySelectorAll("[data-gallery-image]");
+  });
 
-galleryImages.forEach((img, index) => {
-  const fileNumber = index + 1;
+  // Gallery page
+  const galleryImages = document.querySelectorAll("[data-gallery-image]");
 
-  img.src =
-    `${SUPABASE_URL}/storage/v1/object/public/website-images/gallery${fileNumber}.jpg?v=${Date.now()}`;
+  galleryImages.forEach((image, index) => {
+    image.src = photoUrl(`gallery${index + 1}.jpg`);
+  });
 });
