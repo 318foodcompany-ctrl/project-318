@@ -23,3 +23,18 @@ if (aboutImage) {
     aboutImage.src =
         `${SUPABASE_URL}/storage/v1/object/public/website-images/about.jpg`;
 }
+const cateringPhotos = document.querySelectorAll(".package-photo img");
+
+const cateringFiles = [
+    "catering.jpg",
+    "gallery1.jpg",
+    "gallery2.jpg",
+    "gallery3.jpg"
+];
+
+cateringPhotos.forEach((img, index) => {
+    if (cateringFiles[index]) {
+        img.src =
+            `${SUPABASE_URL}/storage/v1/object/public/website-images/${cateringFiles[index]}`;
+    }
+});
