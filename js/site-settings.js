@@ -119,7 +119,7 @@
   }
 
   async function loadWebsiteSettings() {
-    if (!window.supabaseClient) {
+    if (typeof supabaseClient === "undefined" || !supabaseClient) {
       applySettings(fallbackSettings);
       return;
     }
