@@ -6,13 +6,19 @@ const photos = [
   { id: "about", title: "About Section", file: "about.jpg", description: "Main story image on the About page and homepage About section." },
   { id: "corporateHero", title: "Corporate Hero", file: "corporate-hero.jpg", description: "Top banner image for the Corporate Catering page." },
   { id: "corporateSection", title: "Corporate Section", file: "corporate-section.jpg", description: "Main image beside the Corporate Catering section text." },
+  { id: "cateringHero", title: "Catering Hero", file: "catering-hero.jpg", description: "Top banner image for the Catering page." },
+  { id: "taco", title: "Taco Bar", file: "menu-taco.jpg", description: "Taco Bar package image." },
+  { id: "fajita", title: "Fajita Bar", file: "menu-fajita.jpg", description: "Fajita Bar package image." },
+  { id: "bbq", title: "BBQ Bar", file: "menu-bbq.jpg", description: "BBQ Bar package image." },
+  { id: "deli", title: "Deli Buffet", file: "menu-deli.jpg", description: "Deli Buffet package image." },
+  { id: "pasta", title: "Pasta Bar", file: "menu-pasta.jpg", description: "Pasta Bar package image." },
+  { id: "pizza", title: "Pizza & Salad", file: "menu-pizza.jpg", description: "Pizza & Salad package image." },
   { id: "galleryHero", title: "Gallery Hero", file: "gallery-hero.jpg", description: "Top banner image for the Gallery page." },
-  { id: "logo", title: "Logo", file: "logo.jpg", description: "Website logo used in page navigation.", previewFit: "contain" },
-  { id: "favicon", title: "Favicon", file: "favicon.png", description: "Small browser tab icon. PNG works best.", accept: "image/png,image/*", previewFit: "contain" },
-  { id: "catering", title: "Catering Section", file: "catering.jpg", description: "Catering package image." },
   { id: "gallery1", title: "Gallery Image 1", file: "gallery1.jpg" },
   { id: "gallery2", title: "Gallery Image 2", file: "gallery2.jpg" },
-  { id: "gallery3", title: "Gallery Image 3", file: "gallery3.jpg" }
+  { id: "gallery3", title: "Gallery Image 3", file: "gallery3.jpg" },
+  { id: "logo", title: "Logo", file: "logo.jpg", description: "Website logo used in page navigation.", previewFit: "contain" },
+  { id: "favicon", title: "Favicon", file: "favicon.png", description: "Small browser tab icon. PNG works best.", accept: "image/png,image/*", previewFit: "contain" }
 ];
 
 function photoUrl(fileName) {
