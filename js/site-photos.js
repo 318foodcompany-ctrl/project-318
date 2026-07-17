@@ -32,6 +32,8 @@ document.addEventListener('DOMContentLoaded', () => {
     testImage.onload = () => {
       heroSection.style.backgroundImage =
         `linear-gradient(rgba(0,0,0,.45), rgba(0,0,0,.45)), url("${heroUrl}")`;
+      heroSection.style.backgroundSize = "cover";
+      heroSection.style.backgroundPosition = "center";
     };
 
     testImage.src = heroUrl;
