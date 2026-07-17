@@ -23,7 +23,8 @@ async function loadMenuItems() {
   data.forEach((item) => {
     const card = document.createElement("div");
     card.className = "editor-field";
-card.dataset.slug = item.slug;
+    card.dataset.slug = item.slug;
+
     card.innerHTML = `
       <label>Menu Name</label>
       <input data-field="name" data-id="${item.id}" value="${item.name || ""}">
@@ -57,12 +58,12 @@ async function saveMenuItems() {
   inputs.forEach((input) => {
     const id = input.dataset.id;
 
-if (!updatesById[id]) {
-  updatesById[id] = {
-    id,
-    slug: input.closest(".editor-field").dataset.slug
-  };
-}
+    if (!updatesById[id]) {
+      updatesById[id] = {
+        id,
+        slug: input.closest(".editor-field").dataset.slug
+      };
+    }
 
     updatesById[id][input.dataset.field] = input.value.trim();
   });
