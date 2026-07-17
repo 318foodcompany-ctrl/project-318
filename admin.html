@@ -345,6 +345,10 @@
           Homepage Content
         </button>
 
+        <button class="nav-button" data-panel="aboutContentPanel">
+          About Page
+        </button>
+
         <button class="nav-button" data-panel="photosPanel">
           Manage Photos
         </button>
@@ -397,6 +401,12 @@
               </article>
 
               <article class="dashboard-card">
+                <h3>About Page</h3>
+                <p>Edit the About hero, story, mission, values, and call to action.</p>
+                <button data-open-panel="aboutContentPanel">Open About Editor</button>
+              </article>
+
+              <article class="dashboard-card">
                 <h3>Manage Photos</h3>
                 <p>Replace website photos, logos, page hero images, and favicon files.</p>
                 <button data-open-panel="photosPanel">Open Photos</button>
@@ -436,6 +446,22 @@
               </button>
 
               <p id="contentMessage" class="message"></p>
+            </div>
+          </section>
+          <section id="aboutContentPanel" class="panel">
+            <div class="panel-heading">
+              <h2>About Page Content Editor</h2>
+              <p>Update the About page without changing its design or code.</p>
+            </div>
+
+            <div class="card">
+              <div id="aboutContentEditor"></div>
+
+              <button id="saveAboutContentButton" class="save-button">
+                Save About Page Content
+              </button>
+
+              <p id="aboutContentMessage" class="message" role="status" aria-live="polite"></p>
             </div>
           </section>
 <section id="menuPanel" class="panel">
@@ -586,6 +612,7 @@
   </script>
 
   <script src="js/admin-content.js"></script>
+  <script src="js/admin-about-content.js"></script>
   <script src="js/admin-photos.js"></script>
   <script src="js/admin-menu.js"></script>
   <script src="js/admin-settings.js"></script>

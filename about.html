@@ -45,8 +45,8 @@
   <main>
     <section class="page-hero" data-photo-hero="about-hero.jpg">
       <div class="wrap">
-        <h1>About 318 Food Co.</h1>
-        <p>Fresh food, dependable service, and catering designed around your event.</p>
+        <h1 data-about-content="hero_heading">About 318 Food Co.</h1>
+        <p data-about-content="hero_subheading">Fresh food, dependable service, and catering designed around your event.</p>
       </div>
     </section>
 
@@ -60,30 +60,37 @@
         >
 
         <div>
-          <span class="script">Our Story</span>
-          <h2>Catering Made Simple</h2>
-          <p>318 Food Co. helps businesses, families, and organizations serve memorable meals without the stress of handling every detail themselves.</p>
-          <p>From office lunches and corporate meetings to weddings, celebrations, and community events, we focus on fresh food, clear communication, and dependable service.</p>
-          <p>Every event is different. We work with you to choose the right menu, portions, presentation, and service options for your guests and budget.</p>
-          <a class="btn" href="quote-builder.html">Request a Catering Quote</a>
+          <span class="script" data-about-content="story_eyebrow">Our Story</span>
+          <h2 data-about-content="story_heading">Catering Made Simple</h2>
+          <p data-about-content="story_paragraph_1">318 Food Co. helps businesses, families, and organizations serve memorable meals without the stress of handling every detail themselves.</p>
+          <p data-about-content="story_paragraph_2">From office lunches and corporate meetings to weddings, celebrations, and community events, we focus on fresh food, clear communication, and dependable service.</p>
+          <p data-about-content="story_paragraph_3">Every event is different. We work with you to choose the right menu, portions, presentation, and service options for your guests and budget.</p>
+          <a class="btn" href="quote-builder.html" data-about-content="story_button">Request a Catering Quote</a>
         </div>
+      </div>
+    </section>
+
+    <section class="section light">
+      <div class="wrap section-title">
+        <h2 data-about-content="mission_heading">Our Mission</h2>
+        <p data-about-content="mission_text">Make catering simple with fresh food, dependable service, and a plan built around every customer’s occasion.</p>
       </div>
     </section>
 
     <section class="trust-strip">
       <div class="wrap trust-grid">
-        <div class="trust-item"><span class="icon">🍴</span><div><strong>Fresh Food</strong><small>Prepared with care</small></div></div>
-        <div class="trust-item"><span class="icon">🤝</span><div><strong>Dependable Service</strong><small>Clear and professional</small></div></div>
-        <div class="trust-item"><span class="icon">🎉</span><div><strong>Any Occasion</strong><small>Business or celebration</small></div></div>
-        <div class="trust-item"><span class="icon">⭐</span><div><strong>Local Experience</strong><small>Serving the 318 area</small></div></div>
+        <div class="trust-item"><span class="icon">🍴</span><div><strong data-about-content="value_1_heading">Fresh Food</strong><small data-about-content="value_1_text">Prepared with care</small></div></div>
+        <div class="trust-item"><span class="icon">🤝</span><div><strong data-about-content="value_2_heading">Dependable Service</strong><small data-about-content="value_2_text">Clear and professional</small></div></div>
+        <div class="trust-item"><span class="icon">🎉</span><div><strong data-about-content="value_3_heading">Any Occasion</strong><small data-about-content="value_3_text">Business or celebration</small></div></div>
+        <div class="trust-item"><span class="icon">⭐</span><div><strong data-about-content="value_4_heading">Local Experience</strong><small data-about-content="value_4_text">Serving the 318 area</small></div></div>
       </div>
     </section>
 
     <section class="cta-band">
       <div class="wrap">
-        <h2>Ready to Plan Your Event?</h2>
-        <p>Tell us what you need and we’ll help build the right catering plan.</p>
-        <a class="btn" href="quote-builder.html">Plan My Event</a>
+        <h2 data-about-content="cta_heading">Ready to Plan Your Event?</h2>
+        <p data-about-content="cta_text">Tell us what you need and we’ll help build the right catering plan.</p>
+        <a class="btn" href="quote-builder.html" data-about-content="cta_button">Plan My Event</a>
       </div>
     </section>
   </main>
@@ -101,6 +108,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase.js"></script>
   <script src="js/site-settings.js"></script>
+  <script src="js/site-about-content.js"></script>
   <script src="js/site-photos.js?v=4"></script>
 </body>
 </html>
