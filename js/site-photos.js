@@ -1,53 +1,66 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const bucket = "website-images";
+document.addEventListener('DOMContentLoaded', () => {
+  if (typeof SUPABASE_URL === 'undefined') return;
+
+  const bucket = 'website-images';
   const cacheVersion = Date.now();
 
   function photoUrl(fileName) {
     return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${fileName}?v=${cacheVersion}`;
   }
 
-  // Homepage hero
-  const heroSection = document.querySelector(".hero");
-
-  if (heroSection) {
-    const heroUrl = photoUrl("hero.jpg");
+  function loadRemote(fileName, onLoad) {
+    if (!fileName) return;
+    const url = photoUrl(fileName);
     const testImage = new Image();
-
-    testImage.onload = () => {
-      heroSection.style.backgroundImage =
-        `linear-gradient(rgba(0,0,0,.45), rgba(0,0,0,.45)), url("${heroUrl}")`;
-    };
-
-    testImage.src = heroUrl;
+    testImage.onload = () => onLoad(url);
+    testImage.src = url;
   }
 
-  // About page
-  const aboutImage = document.querySelector(".feature-photo");
-
-  if (aboutImage) {
-    aboutImage.src = photoUrl("about.jpg");
+  function replaceImageWhenAvailable(image, fileName) {
+    if (!image || !fileName) return;
+    loadRemote(fileName, (url) => {
+      image.src = url;
+    });
   }
 
-  // Catering page
-  const cateringPhotos = document.querySelectorAll(".package-photo img");
+  function setHeroWhenAvailable(section, fileName) {
+    if (!section || !fileName) return;
+    loadRemote(fileName, (url) => {
+      section.style.backgroundImage =
+        `linear-gradient(rgba(0,0,0,.45), rgba(0,0,0,.45)), url("${url}")`;
+      section.style.backgroundSize = 'cover';
+      section.style.backgroundPosition = 'center';
+    });
+  }
 
-  const cateringFiles = [
-    "catering.jpg",
-    "gallery1.jpg",
-    "gallery2.jpg",
-    "gallery3.jpg"
-  ];
+  setHeroWhenAvailable(document.querySelector('.hero'), 'hero.jpg');
 
-  cateringPhotos.forEach((image, index) => {
-    if (cateringFiles[index]) {
-      image.src = photoUrl(cateringFiles[index]);
-    }
+  document.querySelectorAll('[data-photo-hero]').forEach((section) => {
+    setHeroWhenAvailable(section, section.dataset.photoHero);
   });
 
-  // Gallery page
-  const galleryImages = document.querySelectorAll("[data-gallery-image]");
+  document.querySelectorAll('[data-photo-image]').forEach((image) => {
+    replaceImageWhenAvailable(image, image.dataset.photoImage);
+  });
 
-  galleryImages.forEach((image, index) => {
-    image.src = photoUrl(`gallery${index + 1}.jpg`);
+  const aboutImage = document.querySelector('.feature-photo:not([data-photo-image])');
+  replaceImageWhenAvailable(aboutImage, 'about.jpg');
+
+  document.querySelectorAll('[data-gallery-image]').forEach((image, index) => {
+    replaceImageWhenAvailable(image, `gallery${index + 1}.jpg`);
+  });
+
+  document.querySelectorAll('.brand img, .footer img').forEach((logo) => {
+    replaceImageWhenAvailable(logo, 'logo.jpg');
+  });
+
+  loadRemote('favicon.png', (url) => {
+    let favicon = document.querySelector('link[rel="icon"]');
+    if (!favicon) {
+      favicon = document.createElement('link');
+      favicon.rel = 'icon';
+      document.head.appendChild(favicon);
+    }
+    favicon.href = url;
   });
 });
