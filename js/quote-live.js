@@ -15,7 +15,7 @@ function calculateEstimate(form) {
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('quoteBuilder');
 
-    if (!form) return;
+    if (!form || !supabaseClient) return;
 
     form.addEventListener('submit', async () => {
         const data = new FormData(form);
