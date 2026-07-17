@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>318 Website Manager</title>
+  <link rel="stylesheet" href="booking-calendar.css">
 <style>
     :root {
   --red: #e21b23;
@@ -559,6 +560,10 @@
           Quote Management
         </button>
 
+        <button class="nav-button" data-panel="bookingsPanel">
+          Booking Calendar
+        </button>
+
         <button id="logoutButton" class="logout-button">
           Log Out
         </button>
@@ -624,6 +629,12 @@
                 <h3>Quote Management</h3>
                 <p>Search, review, and update submitted catering quotes.</p>
                 <button data-open-panel="leadsPanel">Manage Quotes</button>
+              </article>
+
+              <article class="dashboard-card">
+                <h3>Booking Calendar</h3>
+                <p>Schedule and manage confirmed catering events.</p>
+                <button data-open-panel="bookingsPanel">Open Calendar</button>
               </article>
 
               <article class="dashboard-card">
@@ -796,6 +807,90 @@
               </div>
             </div>
           </section>
+
+          <section id="bookingsPanel" class="panel">
+            <div class="booking-panel-heading">
+              <div>
+                <h2>Booking Calendar</h2>
+                <p>Schedule, review, and manage catering bookings.</p>
+              </div>
+              <button id="newBookingButton" class="save-button" type="button">New Booking</button>
+            </div>
+
+            <div class="booking-summary-grid">
+              <div class="booking-summary-card"><span>Today’s Bookings</span><strong id="bookingTodayCount">0</strong></div>
+              <div class="booking-summary-card"><span>This Week</span><strong id="bookingWeekCount">0</strong></div>
+              <div class="booking-summary-card"><span>This Month</span><strong id="bookingMonthCount">0</strong></div>
+              <div class="booking-summary-card"><span>Pending</span><strong id="bookingPendingCount">0</strong></div>
+              <div class="booking-summary-card"><span>Confirmed</span><strong id="bookingConfirmedCount">0</strong></div>
+              <div class="booking-summary-card"><span>Cancelled</span><strong id="bookingCancelledCount">0</strong></div>
+            </div>
+
+            <div class="booking-card">
+              <div class="booking-filters" aria-label="Booking filters">
+                <label><span>Search</span><input id="bookingSearch" type="search" placeholder="Customer, company, event, or venue"></label>
+                <label><span>Status</span><select id="bookingStatusFilter"><option value="">All statuses</option></select></label>
+                <label><span>Event type</span><select id="bookingEventTypeFilter"><option value="">All event types</option></select></label>
+                <label><span>Event month</span><input id="bookingMonthFilter" type="month"></label>
+                <button id="clearBookingFilters" class="booking-secondary-button" type="button">Clear Filters</button>
+              </div>
+
+              <div class="booking-calendar-toolbar">
+                <div class="booking-date-navigation">
+                  <button id="bookingPrevious" class="booking-icon-button" type="button" aria-label="Previous date range">‹</button>
+                  <button id="bookingToday" class="booking-secondary-button" type="button">Today</button>
+                  <button id="bookingNext" class="booking-icon-button" type="button" aria-label="Next date range">›</button>
+                </div>
+                <h3 id="bookingRangeHeading" aria-live="polite"></h3>
+                <div class="booking-view-switcher" role="group" aria-label="Calendar view">
+                  <button type="button" data-booking-view="month" class="active">Month</button>
+                  <button type="button" data-booking-view="week">Week</button>
+                  <button type="button" data-booking-view="day">Day</button>
+                </div>
+              </div>
+
+              <p id="bookingMessage" class="message" role="status" aria-live="polite"></p>
+              <div id="bookingCalendar" class="booking-calendar" aria-busy="true"></div>
+            </div>
+
+            <div id="bookingModal" class="booking-modal" hidden>
+              <div class="booking-modal-card" role="dialog" aria-modal="true" aria-labelledby="bookingModalTitle">
+                <button id="bookingModalClose" class="booking-modal-close" type="button" aria-label="Close booking form">×</button>
+                <h2 id="bookingModalTitle">New Booking</h2>
+                <p id="bookingModalDescription" class="booking-help">Add the customer and event details below.</p>
+
+                <form id="bookingForm" novalidate>
+                  <input id="bookingId" type="hidden">
+                  <input id="bookingQuoteId" type="hidden">
+                  <div class="booking-form-grid">
+                    <label>Customer name *<input id="bookingCustomerName" name="customer_name" required></label>
+                    <label>Company name<input id="bookingCompanyName" name="company_name"></label>
+                    <label>Email<input id="bookingEmail" name="email" type="email"></label>
+                    <label>Phone<input id="bookingPhone" name="phone" type="tel"></label>
+                    <label class="wide">Event title *<input id="bookingEventTitle" name="event_title" required></label>
+                    <label>Event type *<input id="bookingEventType" name="event_type" required></label>
+                    <label>Event date *<input id="bookingEventDate" name="event_date" type="date" required></label>
+                    <label>Start time *<input id="bookingStartTime" name="start_time" type="time" required></label>
+                    <label>End time *<input id="bookingEndTime" name="end_time" type="time" required></label>
+                    <label>Guest count<input id="bookingGuestCount" name="guest_count" type="number" min="0" step="1"></label>
+                    <label>Quote amount<input id="bookingQuoteAmount" name="quote_amount" type="number" min="0" step="0.01"></label>
+                    <label>Status *<select id="bookingStatus" name="status" required></select></label>
+                    <label>Venue name<input id="bookingVenueName" name="venue_name"></label>
+                    <label class="wide">Venue address<textarea id="bookingVenueAddress" name="venue_address" rows="2"></textarea></label>
+                    <label class="wide">Internal notes<textarea id="bookingInternalNotes" name="internal_notes" rows="4"></textarea></label>
+                  </div>
+
+                  <div id="bookingConflictWarning" class="booking-conflict-warning" hidden></div>
+                  <p id="bookingFormMessage" class="booking-form-message" role="status" aria-live="polite"></p>
+                  <div class="booking-form-actions">
+                    <button id="bookingSaveButton" class="save-button" type="submit">Save Booking</button>
+                    <button id="bookingCancelButton" class="booking-secondary-button" type="button">Cancel</button>
+                    <button id="bookingDeleteButton" class="booking-danger-button" type="button" hidden>Delete Booking</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </section>
         </div>
       </main>
     </div>
@@ -876,5 +971,7 @@
   <script src="js/admin-menu.js"></script>
   <script src="js/admin-settings.js"></script>
   <script src="js/admin-quotes.js"></script>
+  <script src="js/booking-time.js"></script>
+  <script src="js/admin-bookings.js"></script>
 </body>
 </html>
