@@ -64,6 +64,7 @@ if (quote) {
       'Final price is subject to confirmation, delivery, staffing, taxes, and menu selections.'
     );
 
-    location.href = `mailto:318FoodCompany@gmail.com?subject=${encodeURIComponent('Catering Quote Request')}&body=${encodeURIComponent(lines.join('\n'))}`;
+    const destinationEmail = window.websiteSettings?.email || '318FoodCompany@gmail.com';
+    location.href = `mailto:${destinationEmail}?subject=${encodeURIComponent('Catering Quote Request')}&body=${encodeURIComponent(lines.join('\n'))}`;
   });
 }

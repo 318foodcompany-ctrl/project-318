@@ -353,6 +353,10 @@
           Menu & Pricing
         </button>
 
+        <button class="nav-button" data-panel="settingsPanel">
+          Website Settings
+        </button>
+
         <button class="nav-button" data-panel="specialsPanel">
           Specials
         </button>
@@ -396,6 +400,12 @@
                 <h3>Manage Photos</h3>
                 <p>Replace website photos, logos, page hero images, and favicon files.</p>
                 <button data-open-panel="photosPanel">Open Photos</button>
+              </article>
+
+              <article class="dashboard-card">
+                <h3>Website Settings</h3>
+                <p>Manage company contact details, hours, and social media links.</p>
+                <button data-open-panel="settingsPanel">Open Settings</button>
               </article>
 
               <article class="dashboard-card">
@@ -444,6 +454,22 @@
     <p id="menuMessage" class="message"></p>
   </div>
 </section>
+          <section id="settingsPanel" class="panel">
+            <div class="panel-heading">
+              <h2>Website Settings</h2>
+              <p>Update company information used throughout the public website.</p>
+            </div>
+
+            <div class="card">
+              <div id="settingsEditor"></div>
+
+              <button id="saveSettingsButton" class="save-button">
+                Save Website Settings
+              </button>
+
+              <p id="settingsMessage" class="message" role="status" aria-live="polite"></p>
+            </div>
+          </section>
           <section id="photosPanel" class="panel">
             <div class="panel-heading">
               <h2>Manage Photos</h2>
@@ -562,5 +588,6 @@
   <script src="js/admin-content.js"></script>
   <script src="js/admin-photos.js"></script>
   <script src="js/admin-menu.js"></script>
+  <script src="js/admin-settings.js"></script>
 </body>
 </html>
