@@ -388,7 +388,22 @@
               <p id="contentMessage" class="message"></p>
             </div>
           </section>
+<section id="menuPanel" class="panel">
+  <div class="panel-heading">
+    <h2>Edit Catering Menu</h2>
+    <p>Update menu names, subtitles, prices, and buttons.</p>
+  </div>
 
+  <div class="card">
+    <div id="menuEditor"></div>
+
+    <button id="saveMenuButton" class="save-button">
+      Save Menu Changes
+    </button>
+
+    <p id="menuMessage" class="message"></p>
+  </div>
+</section>
           <section id="photosPanel" class="panel">
             <div class="panel-heading">
               <h2>Manage Photos</h2>
@@ -399,20 +414,8 @@
             
           </section>
 
-          <section id="menuPanel" class="panel">
-            <div class="panel-heading">
-              <h2>Menu & Pricing</h2>
-              <p>Edit catering menu items and pricing.</p>
-            </div>
-
-            <div class="card placeholder">
-              <h3>Menu Editor</h3>
-              <p>
-                This section will let you add, edit, hide, and reorder menu
-                items without touching code.
-              </p>
-            </div>
-          </section>
+         
+          
 
           <section id="specialsPanel" class="panel">
             <div class="panel-heading">
@@ -518,5 +521,6 @@
 
   <script src="js/admin-content.js"></script>
   <script src="js/admin-photos.js"></script>
+  <script src="js/admin-menu.js"></script>
 </body>
 </html>
