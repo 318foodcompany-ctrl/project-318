@@ -174,6 +174,7 @@
   function openQuote(id) {
     const quote = quotes.find((item) => String(item.id) === String(id));
     if (!quote) return;
+    const canCreateBooking = ["Proposal Sent", "Booked"].includes(displayStatus(quote.status));
     const internalNotesValue = String(quote.internal_notes || "");
     activeNoteState = {
       quote,
@@ -205,7 +206,8 @@
         <label for="quoteInternalNotes">Private Internal Notes</label>
         <textarea id="quoteInternalNotes" placeholder="Add private follow-up notes for this quote…">${escapeHTML(internalNotesValue)}</textarea>
         <p id="quoteNoteSaveState" class="quote-save-state" role="status" aria-live="polite"></p>
-      </div>`;
+      </div>
+      ${canCreateBooking ? `<div class="quote-booking-action"><button id="quoteCreateBookingButton" class="save-button" type="button">Create Booking</button><p>Create a linked calendar booking using this quote’s customer and event details.</p></div>` : ""}`;
 
     quoteDetailModal.hidden = false;
     const detailStatus = document.getElementById("quoteDetailStatus");
@@ -215,6 +217,17 @@
     });
     internalNotes.addEventListener("input", () => scheduleNoteSave(internalNotes.value));
     internalNotes.addEventListener("blur", () => flushInternalNotes());
+    const createBookingButton = document.getElementById("quoteCreateBookingButton");
+    if (createBookingButton) {
+      createBookingButton.addEventListener("click", async () => {
+        if (!window.bookingCalendar) {
+          setNoteSaveState("Booking Calendar is still loading. Try again in a moment.", true);
+          return;
+        }
+        const closed = await closeQuote();
+        if (closed) window.bookingCalendar.openFromQuote(quote);
+      });
+    }
   }
 
   function setNoteSaveState(message, isError = false) {
@@ -285,10 +298,11 @@
 
   async function closeQuote() {
     const notesSaved = await flushInternalNotes();
-    if (!notesSaved) return;
+    if (!notesSaved) return false;
     activeNoteState = null;
     quoteDetailModal.hidden = true;
     quoteDetailContent.innerHTML = "";
+    return true;
   }
 
   async function loadQuotes() {
