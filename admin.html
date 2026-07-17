@@ -309,6 +309,182 @@
       font-weight: 700;
     }
 
+    .quote-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(150px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .quote-summary-card {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: var(--card);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, .05);
+    }
+
+    .quote-summary-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .quote-summary-card strong {
+      display: block;
+      margin-top: 6px;
+      font-size: 30px;
+    }
+
+    .quote-toolbar {
+      display: grid;
+      grid-template-columns: minmax(220px, 2fr) repeat(4, minmax(140px, 1fr));
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .quote-toolbar input,
+    .quote-toolbar select,
+    .quote-detail-grid select,
+    .quote-detail-notes textarea {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1px solid #cfcfcf;
+      border-radius: 10px;
+      background: white;
+    }
+
+    .quote-table-wrap {
+      overflow-x: auto;
+    }
+
+    .quote-table {
+      width: 100%;
+      min-width: 1120px;
+      border-collapse: collapse;
+    }
+
+    .quote-table th,
+    .quote-table td {
+      padding: 12px 10px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .quote-table th {
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+    }
+
+    .quote-row-button {
+      border: 0;
+      padding: 0;
+      background: transparent;
+      color: inherit;
+      text-align: left;
+      font-weight: 700;
+    }
+
+    .quote-row-button:hover {
+      color: var(--red);
+    }
+
+    .quote-status {
+      min-width: 132px;
+      padding: 8px;
+      border: 1px solid #cfcfcf;
+      border-radius: 9px;
+      background: white;
+    }
+
+    .quote-empty {
+      padding: 32px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .quote-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: rgba(0, 0, 0, .58);
+    }
+
+    .quote-modal[hidden] {
+      display: none;
+    }
+
+    .quote-modal-card {
+      position: relative;
+      width: min(820px, 100%);
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 26px;
+      border-radius: 20px;
+      background: white;
+    }
+
+    .quote-modal-close {
+      position: absolute;
+      top: 12px;
+      right: 14px;
+      border: 0;
+      background: transparent;
+      font-size: 28px;
+    }
+
+    .quote-detail-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    .quote-detail-grid > div {
+      padding: 13px;
+      border-radius: 12px;
+      background: #f6f6f4;
+    }
+
+    .quote-detail-grid span,
+    .quote-detail-notes label {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .quote-detail-notes {
+      margin-top: 18px;
+    }
+
+    .quote-detail-notes textarea {
+      min-height: 130px;
+      resize: vertical;
+    }
+
+    .quote-customer-notes {
+      padding: 14px;
+      border-radius: 12px;
+      background: #f6f6f4;
+      white-space: pre-wrap;
+    }
+
+    .quote-save-state {
+      min-height: 22px;
+      margin-top: 8px;
+      font-weight: 700;
+    }
+
     @media (max-width: 800px) {
       .layout {
         grid-template-columns: 1fr;
@@ -321,6 +497,12 @@
       .topbar {
         align-items: flex-start;
         flex-direction: column;
+      }
+
+      .quote-summary-grid,
+      .quote-toolbar,
+      .quote-detail-grid {
+        grid-template-columns: 1fr;
       }
     }
   </style>
@@ -374,7 +556,7 @@
         </button>
 
         <button class="nav-button" data-panel="leadsPanel">
-          Catering Leads
+          Quote Management
         </button>
 
         <button id="logoutButton" class="logout-button">
@@ -439,9 +621,9 @@
               </article>
 
               <article class="dashboard-card">
-                <h3>View Leads</h3>
-                <p>Open your catering dashboard and review submitted requests.</p>
-                <button data-open-panel="leadsPanel">Open Leads</button>
+                <h3>Quote Management</h3>
+                <p>Search, review, and update submitted catering quotes.</p>
+                <button data-open-panel="leadsPanel">Manage Quotes</button>
               </article>
 
               <article class="dashboard-card">
@@ -578,17 +760,40 @@
 
           <section id="leadsPanel" class="panel">
             <div class="panel-heading">
-              <h2>Catering Leads</h2>
-              <p>Review requests submitted through your live website.</p>
+              <h2>Quote Management</h2>
+              <p>Search, review, and manage catering requests submitted through the website.</p>
             </div>
 
-            <div class="card placeholder">
-              <h3>318 HQ Dashboard</h3>
-              <p>Open your existing dashboard to review and manage leads.</p>
+            <div class="quote-summary-grid">
+              <div class="quote-summary-card"><span>Total Quotes</span><strong id="quoteTotalCount">0</strong></div>
+              <div class="quote-summary-card"><span>New Quotes</span><strong id="quoteNewCount">0</strong></div>
+              <div class="quote-summary-card"><span>Booked Events</span><strong id="quoteBookedCount">0</strong></div>
+              <div class="quote-summary-card"><span>This Month's Quotes</span><strong id="quoteMonthCount">0</strong></div>
+            </div>
 
-              <a class="open-leads-button" href="dashboard.html">
-                Open Leads Dashboard
-              </a>
+            <div class="card">
+              <div class="quote-toolbar">
+                <input id="quoteSearch" type="search" placeholder="Search name, email, phone, or company">
+                <select id="quoteStatusFilter" aria-label="Filter quotes by status"></select>
+                <input id="quoteMonthFilter" type="month" aria-label="Filter quotes by event month">
+                <select id="quoteEventTypeFilter" aria-label="Filter quotes by event type"></select>
+                <select id="quoteSort" aria-label="Sort quotes">
+                  <option value="newest">Newest</option>
+                  <option value="oldest">Oldest</option>
+                  <option value="event-date">Event date</option>
+                  <option value="customer">Customer name</option>
+                </select>
+              </div>
+
+              <p id="quoteManagerMessage" class="message" role="status" aria-live="polite"></p>
+              <div id="quoteTableWrap" class="quote-table-wrap"></div>
+            </div>
+
+            <div id="quoteDetailModal" class="quote-modal" hidden>
+              <div class="quote-modal-card" role="dialog" aria-modal="true" aria-labelledby="quoteDetailTitle">
+                <button id="quoteDetailClose" class="quote-modal-close" type="button" aria-label="Close quote details">×</button>
+                <div id="quoteDetailContent"></div>
+              </div>
             </div>
           </section>
         </div>
@@ -670,5 +875,6 @@
   <script src="js/admin-photos.js"></script>
   <script src="js/admin-menu.js"></script>
   <script src="js/admin-settings.js"></script>
+  <script src="js/admin-quotes.js"></script>
 </body>
 </html>
