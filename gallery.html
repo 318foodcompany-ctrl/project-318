@@ -1,2 +1,51 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Gallery | 318 Food Co.</title><link rel="stylesheet" href="styles.css"></head><body><header class="topbar"><div class="wrap nav"><a class="brand" href="index.html"><img src="assets/images/logo.jpeg" alt="318 Food Co logo"></a><nav class="links"><a href="index.html">Home</a><a href="catering.html">Catering</a><a href="corporate.html">Corporate</a><a href="about.html">About Us</a><a href="gallery.html">Gallery</a><a href="contact.html">Contact</a></nav><a class="phone" href="tel:3185720137">☎ (318) 572-0137</a><a class="nav-cta" href="quote-builder.html">Plan My Event</a><button class="menu-btn" aria-label="Open menu">☰</button></div></header>
-<section class="page-hero"><div class="wrap"><h1>Food & Events</h1><p>A starter gallery using the current menu artwork. Replace these with real food, setup and event photos as you collect them.</p></div></section><main class="section"><div class="wrap gallery"><img src="assets/images/taco-wordless.jpg" alt="Taco bar"><img src="assets/images/fajita-wordless.jpg" alt="Fajita bar"><img src="assets/images/bbq-wordless.jpg" alt="BBQ catering"><img src="assets/images/deli-wordless.jpg" alt="Deli buffet"><img src="assets/images/pasta-wordless.jpg" alt="Pasta catering"><img src="assets/images/pizza-wordless.jpg" alt="Pizza buffet"></div></main><section class="cta-band"><div class="wrap"><h2>Ready to Feed Your Crowd?</h2><a class="btn alt" href="quote-builder.html">Plan My Event</a></div></section><footer class="footer"><div class="wrap"><p>318 Food Co. · <a href="tel:3185720137">(318) 572-0137</a></p></div></footer><script src="script.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Gallery | 318 Food Co.</title>
+  <link rel="icon" href="assets/images/logo.jpeg">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap nav">
+      <a class="brand" href="index.html"><img src="assets/images/logo.jpeg" alt="318 Food Co logo"></a>
+      <nav class="links">
+        <a href="index.html">Home</a>
+        <a href="catering.html">Catering</a>
+        <a href="corporate.html">Corporate</a>
+        <a href="about.html">About Us</a>
+        <a href="gallery.html">Gallery</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+      <a class="phone" href="tel:3185720137">☎ (318) 572-0137</a>
+      <a class="nav-cta" href="quote-builder.html">Plan My Event</a>
+      <button class="menu-btn" aria-label="Open menu">☰</button>
+    </div>
+  </header>
+
+  <section class="page-hero" data-photo-hero="gallery-hero.jpg">
+    <div class="wrap">
+      <h1>Food & Events</h1>
+      <p>A look at our food, setups and events.</p>
+    </div>
+  </section>
+
+  <main class="section">
+    <div class="wrap gallery">
+      <img data-gallery-image="1" src="assets/images/taco-wordless.jpg" alt="Taco bar">
+      <img data-gallery-image="2" src="assets/images/fajita-wordless.jpg" alt="Fajita bar">
+      <img data-gallery-image="3" src="assets/images/bbq-wordless.jpg" alt="BBQ catering">
+    </div>
+  </main>
+
+  <section class="cta-band"><div class="wrap"><h2>Ready to Feed Your Crowd?</h2><a class="btn alt" href="quote-builder.html">Plan My Event</a></div></section>
+  <footer class="footer"><div class="wrap"><p>318 Food Co. · <a href="tel:3185720137">(318) 572-0137</a></p></div></footer>
+
+  <script src="script.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/site-photos.js?v=4"></script>
+</body>
+</html>
