@@ -49,6 +49,10 @@
   let previousFocus = null;
 
   if (!panel || !calendar || !form) return;
+  if (!window.bookingTimeUtils) {
+    calendar.innerHTML = `<div class="booking-empty">Booking time utilities could not be loaded.</div>`;
+    return;
+  }
 
   function escapeHTML(value) {
     return String(value ?? "")
@@ -498,12 +502,6 @@
     return match ? match[1].trim() : "";
   }
 
-  function addHours(time, hours) {
-    const [hour, minute] = String(time || "11:00").split(":").map(Number);
-    const totalMinutes = Math.min((hour * 60) + (minute || 0) + (hours * 60), (23 * 60) + 59);
-    return `${String(Math.floor(totalMinutes / 60)).padStart(2, "0")}:${String(totalMinutes % 60).padStart(2, "0")}`;
-  }
-
   async function openFromQuote(quote) {
     await ensureBookingsLoaded();
     const existing = bookings.find((booking) => booking.quote_id !== null && String(booking.quote_id) === String(quote.id));
@@ -514,7 +512,8 @@
       return;
     }
 
-    const startTime = extractNoteValue(quote.notes, "Time") || "11:00";
+    const quoteTime = extractNoteValue(quote.notes, "Time");
+    const timeRange = window.bookingTimeUtils.safeQuoteTimeRange(quoteTime);
     const address = extractNoteValue(quote.notes, "Address");
     const customerOrCompany = quote.company || quote.name || "Customer";
     newBooking({
@@ -526,8 +525,8 @@
       event_title: `${quote.event_type || quote.menu || "Catering"} — ${customerOrCompany}`,
       event_type: quote.event_type || "Catering Event",
       event_date: quote.event_date || localISO(cursorDate),
-      start_time: startTime.slice(0, 5),
-      end_time: addHours(startTime, 2),
+      start_time: timeRange.start,
+      end_time: timeRange.end,
       guest_count: quote.guests ?? "",
       venue_address: address,
       quote_amount: quote.budget ?? "",

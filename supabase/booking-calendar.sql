@@ -1,6 +1,10 @@
 -- Project 318 Booking Calendar
 -- Run manually in Supabase Dashboard > SQL Editor after reviewing this migration.
 -- This migration is non-destructive and safe to run more than once.
+-- Before using the calendar, assign app_metadata.role = "admin" to each authorized
+-- administrator with the Supabase Auth Admin API or the Authentication user editor,
+-- then have that user sign out and back in to refresh their access token. Never put
+-- this role in user_metadata because authenticated users can edit their own metadata.
 
 begin;
 
@@ -69,41 +73,50 @@ execute function public.set_bookings_updated_at();
 
 alter table public.bookings enable row level security;
 
+-- Project 318's public Supabase project permits email signups, so merely being
+-- authenticated does not prove administrator access. The immutable app_metadata
+-- claim is set only by a trusted Supabase administrator/service-role operation.
+-- After assigning the claim, the administrator must sign out and back in so the
+-- refreshed JWT contains: { "role": "admin" } in app_metadata.
 drop policy if exists "Authenticated administrators can read bookings" on public.bookings;
-create policy "Authenticated administrators can read bookings"
+drop policy if exists "Booking administrators can read bookings" on public.bookings;
+create policy "Booking administrators can read bookings"
 on public.bookings
 for select
 to authenticated
-using (true);
+using (coalesce(auth.jwt() -> 'app_metadata' ->> 'role', '') = 'admin');
 
 drop policy if exists "Authenticated administrators can create bookings" on public.bookings;
-create policy "Authenticated administrators can create bookings"
+drop policy if exists "Booking administrators can create bookings" on public.bookings;
+create policy "Booking administrators can create bookings"
 on public.bookings
 for insert
 to authenticated
-with check (true);
+with check (coalesce(auth.jwt() -> 'app_metadata' ->> 'role', '') = 'admin');
 
 drop policy if exists "Authenticated administrators can update bookings" on public.bookings;
-create policy "Authenticated administrators can update bookings"
+drop policy if exists "Booking administrators can update bookings" on public.bookings;
+create policy "Booking administrators can update bookings"
 on public.bookings
 for update
 to authenticated
-using (true)
-with check (true);
+using (coalesce(auth.jwt() -> 'app_metadata' ->> 'role', '') = 'admin')
+with check (coalesce(auth.jwt() -> 'app_metadata' ->> 'role', '') = 'admin');
 
 drop policy if exists "Authenticated administrators can delete bookings" on public.bookings;
-create policy "Authenticated administrators can delete bookings"
+drop policy if exists "Booking administrators can delete bookings" on public.bookings;
+create policy "Booking administrators can delete bookings"
 on public.bookings
 for delete
 to authenticated
-using (true);
+using (coalesce(auth.jwt() -> 'app_metadata' ->> 'role', '') = 'admin');
 
 revoke all on table public.bookings from anon;
 grant select, insert, update, delete on table public.bookings to authenticated;
 grant usage, select on sequence public.bookings_id_seq to authenticated;
 
 comment on table public.bookings is
-  'Private catering bookings managed by authenticated Project 318 administrators.';
+  'Private catering bookings restricted by RLS to users with app_metadata.role = admin.';
 
 comment on column public.bookings.quote_id is
   'Optional relationship to the originating public.leads quote request.';
