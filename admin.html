@@ -353,6 +353,10 @@
           Corporate Page
         </button>
 
+        <button class="nav-button" data-panel="contactContentPanel">
+          Contact Page
+        </button>
+
         <button class="nav-button" data-panel="photosPanel">
           Manage Photos
         </button>
@@ -414,6 +418,12 @@
                 <h3>Corporate Page</h3>
                 <p>Edit Corporate page services, benefits, process, and call to action.</p>
                 <button data-open-panel="corporateContentPanel">Open Corporate Editor</button>
+              </article>
+
+              <article class="dashboard-card">
+                <h3>Contact Page</h3>
+                <p>Edit Contact page headings, supporting text, service details, and call to action.</p>
+                <button data-open-panel="contactContentPanel">Open Contact Editor</button>
               </article>
 
               <article class="dashboard-card">
@@ -488,6 +498,22 @@
               </button>
 
               <p id="corporateContentMessage" class="message" role="status" aria-live="polite"></p>
+            </div>
+          </section>
+          <section id="contactContentPanel" class="panel">
+            <div class="panel-heading">
+              <h2>Contact Page Content Editor</h2>
+              <p>Update Contact page marketing text without changing contact details or form behavior.</p>
+            </div>
+
+            <div class="card">
+              <div id="contactContentEditor"></div>
+
+              <button id="saveContactContentButton" class="save-button">
+                Save Contact Page Content
+              </button>
+
+              <p id="contactContentMessage" class="message" role="status" aria-live="polite"></p>
             </div>
           </section>
 <section id="menuPanel" class="panel">
@@ -640,6 +666,7 @@
   <script src="js/admin-content.js"></script>
   <script src="js/admin-about-content.js"></script>
   <script src="js/admin-corporate-content.js"></script>
+  <script src="js/admin-contact-content.js"></script>
   <script src="js/admin-photos.js"></script>
   <script src="js/admin-menu.js"></script>
   <script src="js/admin-settings.js"></script>

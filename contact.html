@@ -1,2 +1,97 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Request a Catering Quote | 318 Food Co.</title><link rel="stylesheet" href="styles.css"></head><body><header class="topbar"><div class="wrap nav"><a class="brand" href="index.html"><img src="assets/images/logo.jpeg" alt="318 Food Co logo"></a><nav class="links"><a href="index.html">Home</a><a href="catering.html">Catering</a><a href="corporate.html">Corporate</a><a href="about.html">About Us</a><a href="gallery.html">Gallery</a><a href="contact.html">Contact</a></nav><a class="phone" href="tel:3185720137">☎ (318) 572-0137</a><a class="nav-cta" href="quote-builder.html">Plan My Event</a><button class="menu-btn" aria-label="Open menu">☰</button></div></header>
-<section class="page-hero"><div class="wrap"><h1>Request a Quote</h1><p>Tell us about your event and get a quick starting estimate. Submitting opens a ready-to-send email on your device.</p></div></section><main class="section" id="quote"><div class="wrap quote-layout"><form class="quote-box" id="quoteForm"><div class="form-grid"><div class="field"><label>Name</label><input name="Name" required></div><div class="field"><label>Company / Organization</label><input name="Company"></div><div class="field"><label>Phone</label><input name="Phone" type="tel" required></div><div class="field"><label>Email</label><input name="Email" type="email" required></div><div class="field"><label>Event Date</label><input name="Event Date" type="date" required></div><div class="field"><label>Event Time</label><input name="Event Time" type="time"></div><div class="field"><label>Guest Count</label><input id="guests" name="Guest Count" type="number" min="15" value="25" required></div><div class="field"><label>Menu</label><select id="menuChoice" name="Menu"><option>Taco Bar</option><option>Fajita Bar</option><option>BBQ Bar</option><option>Deli Sandwich Buffet</option><option>Pasta Bar</option><option>Pizza & Salad Bar</option></select></div><div class="field"><label>Optional Add-On Estimate</label><select id="extras" name="Add-On Estimate"><option value="0">No add-on</option><option value="2">Drinks (+$2/person)</option><option value="3">Enhanced dessert (+$3/person)</option><option value="5">Drinks + enhanced dessert (+$5/person)</option></select></div><div class="field"><label>Service Style</label><select name="Service Style"><option>Delivery only</option><option>Delivery and setup</option><option>Full service requested</option></select></div><div class="field full"><label>Event Address</label><input name="Event Address"></div><div class="field full"><label>Event Details / Special Requests</label><textarea name="Details"></textarea></div><div class="field full"><button class="btn" type="submit">Create Email Quote Request</button></div></div></form><aside class="estimate"><h3>Starting Estimate</h3><div class="estimate-total" id="estimateTotal">$0.00</div><p id="estimateSummary"></p><p class="fine">This estimate is for planning only. Delivery, setup, staffing, taxes, distance, substitutions and custom requests may affect the final quote.</p><hr style="border-color:#444"><p><b>Prefer to talk?</b><br><a href="tel:3185720137">(318) 572-0137</a><br><a href="mailto:318FoodCompany@gmail.com">318FoodCompany@gmail.com</a><br><span data-setting="address">Northwest Louisiana</span><br><span data-setting="hours">By appointment</span><br><a data-setting-social="facebook" href="#" hidden>Facebook</a> <a data-setting-social="instagram" href="#" hidden>Instagram</a></p></aside></div></main><footer class="footer"><div class="wrap"><p>Fresh food. Reliable service. Built for every occasion.</p></div></footer><script src="script.js"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="js/supabase.js"></script><script src="js/site-settings.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Request a Catering Quote | 318 Food Co.</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap nav">
+      <a class="brand" href="index.html"><img src="assets/images/logo.jpeg" alt="318 Food Co logo"></a>
+      <nav class="links">
+        <a href="index.html">Home</a>
+        <a href="catering.html">Catering</a>
+        <a href="corporate.html">Corporate</a>
+        <a href="about.html">About Us</a>
+        <a href="gallery.html">Gallery</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+      <a class="phone" href="tel:3185720137">☎ (318) 572-0137</a>
+      <a class="nav-cta" href="quote-builder.html">Plan My Event</a>
+      <button class="menu-btn" aria-label="Open menu">☰</button>
+    </div>
+  </header>
+
+  <section class="page-hero">
+    <div class="wrap">
+      <h1 data-contact-content="hero_heading">Request a Quote</h1>
+      <p data-contact-content="hero_subheading">Tell us about your event and get a quick starting estimate. Submitting opens a ready-to-send email on your device.</p>
+    </div>
+  </section>
+
+  <main class="section" id="quote">
+    <div class="wrap">
+      <div class="section-title">
+        <h2 data-contact-content="intro_heading">Let’s Plan Your Event</h2>
+        <p data-contact-content="intro_text">Share a few details about your event and we’ll help you choose a catering option that fits your guests, schedule, and budget.</p>
+      </div>
+
+      <div class="section-title">
+        <h2 data-contact-content="form_heading">Tell Us What You Need</h2>
+        <p data-contact-content="form_text">Complete the form below to create your catering quote request.</p>
+      </div>
+
+      <div class="quote-layout">
+        <form class="quote-box" id="quoteForm">
+          <div class="form-grid">
+            <div class="field"><label>Name</label><input name="Name" required></div>
+            <div class="field"><label>Company / Organization</label><input name="Company"></div>
+            <div class="field"><label>Phone</label><input name="Phone" type="tel" required></div>
+            <div class="field"><label>Email</label><input name="Email" type="email" required></div>
+            <div class="field"><label>Event Date</label><input name="Event Date" type="date" required></div>
+            <div class="field"><label>Event Time</label><input name="Event Time" type="time"></div>
+            <div class="field"><label>Guest Count</label><input id="guests" name="Guest Count" type="number" min="15" value="25" required></div>
+            <div class="field"><label>Menu</label><select id="menuChoice" name="Menu"><option>Taco Bar</option><option>Fajita Bar</option><option>BBQ Bar</option><option>Deli Sandwich Buffet</option><option>Pasta Bar</option><option>Pizza & Salad Bar</option></select></div>
+            <div class="field"><label>Optional Add-On Estimate</label><select id="extras" name="Add-On Estimate"><option value="0">No add-on</option><option value="2">Drinks (+$2/person)</option><option value="3">Enhanced dessert (+$3/person)</option><option value="5">Drinks + enhanced dessert (+$5/person)</option></select></div>
+            <div class="field"><label>Service Style</label><select name="Service Style"><option>Delivery only</option><option>Delivery and setup</option><option>Full service requested</option></select></div>
+            <div class="field full"><label>Event Address</label><input name="Event Address"></div>
+            <div class="field full"><label>Event Details / Special Requests</label><textarea name="Details"></textarea></div>
+            <div class="field full"><button class="btn" type="submit">Create Email Quote Request</button></div>
+          </div>
+        </form>
+
+        <aside class="estimate">
+          <h3>Starting Estimate</h3>
+          <div class="estimate-total" id="estimateTotal">$0.00</div>
+          <p id="estimateSummary"></p>
+          <p class="fine">This estimate is for planning only. Delivery, setup, staffing, taxes, distance, substitutions and custom requests may affect the final quote.</p>
+          <hr style="border-color:#444">
+          <p data-contact-content="service_area_text">Proudly serving Northwest Louisiana and surrounding communities.</p>
+          <p data-contact-content="response_time_text">We respond to catering requests as quickly as possible, typically within one business day.</p>
+          <p><b>Prefer to talk?</b><br><a href="tel:3185720137">(318) 572-0137</a><br><a href="mailto:318FoodCompany@gmail.com">318FoodCompany@gmail.com</a><br><span data-setting="address">Northwest Louisiana</span><br><span data-setting="hours">By appointment</span><br><a data-setting-social="facebook" href="#" hidden>Facebook</a> <a data-setting-social="instagram" href="#" hidden>Instagram</a></p>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <section class="cta-band">
+    <div class="wrap">
+      <h2 data-contact-content="cta_heading">Need Help Planning Your Menu?</h2>
+      <p data-contact-content="cta_text">Use our guided event planner to explore options and build a package for your group.</p>
+      <a class="btn alt" href="quote-builder.html" data-contact-content="cta_button">Plan My Event</a>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="wrap"><p>Fresh food. Reliable service. Built for every occasion.</p></div>
+  </footer>
+
+  <script src="script.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/site-settings.js"></script>
+  <script src="js/site-contact-content.js"></script>
+</body>
+</html>
