@@ -11,9 +11,10 @@
   const quoteDetailContent = document.getElementById("quoteDetailContent");
   const quoteDetailClose = document.getElementById("quoteDetailClose");
   const statuses = ["New", "Contacted", "Proposal Sent", "Booked", "Closed", "Cancelled"];
-  const internalNotesMarker = "--- INTERNAL NOTES ---";
   let quotes = [];
   let noteSaveTimer;
+  let noteSaveInFlight = null;
+  let activeNoteState = null;
 
   if (!quotePanel || !quoteTableWrap) return;
 
@@ -46,23 +47,6 @@
     return date.toLocaleDateString("en-US", includeTime
       ? { year: "numeric", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }
       : { year: "numeric", month: "short", day: "numeric" });
-  }
-
-  function splitNotes(value) {
-    const notes = String(value || "");
-    const markerIndex = notes.indexOf(internalNotesMarker);
-    if (markerIndex < 0) return { customer: notes.trim(), internal: "" };
-    return {
-      customer: notes.slice(0, markerIndex).trim(),
-      internal: notes.slice(markerIndex + internalNotesMarker.length).trim()
-    };
-  }
-
-  function combineNotes(customerNotes, internalNotes) {
-    const customer = String(customerNotes || "").trim();
-    const internal = String(internalNotes || "").trim();
-    if (!internal) return customer;
-    return `${customer}${customer ? "\n\n" : ""}${internalNotesMarker}\n${internal}`;
   }
 
   function setMessage(message, isError = false) {
@@ -190,7 +174,12 @@
   function openQuote(id) {
     const quote = quotes.find((item) => String(item.id) === String(id));
     if (!quote) return;
-    const noteParts = splitNotes(quote.notes);
+    const internalNotesValue = String(quote.internal_notes || "");
+    activeNoteState = {
+      quote,
+      currentValue: internalNotesValue,
+      savedValue: internalNotesValue
+    };
 
     quoteDetailContent.innerHTML = `
       <h2 id="quoteDetailTitle">${escapeHTML(quote.name || "Quote details")}</h2>
@@ -210,11 +199,11 @@
       </div>
       <div class="quote-detail-notes">
         <label>Customer Request Details</label>
-        <div class="quote-customer-notes">${escapeHTML(noteParts.customer || "No additional details were submitted.")}</div>
+        <div class="quote-customer-notes">${escapeHTML(quote.notes || "No additional details were submitted.")}</div>
       </div>
       <div class="quote-detail-notes">
         <label for="quoteInternalNotes">Private Internal Notes</label>
-        <textarea id="quoteInternalNotes" placeholder="Add private follow-up notes for this quote…">${escapeHTML(noteParts.internal)}</textarea>
+        <textarea id="quoteInternalNotes" placeholder="Add private follow-up notes for this quote…">${escapeHTML(internalNotesValue)}</textarea>
         <p id="quoteNoteSaveState" class="quote-save-state" role="status" aria-live="polite"></p>
       </div>`;
 
@@ -224,46 +213,80 @@
     detailStatus.addEventListener("change", async () => {
       await saveStatus(quote.id, detailStatus.value, detailStatus);
     });
-    internalNotes.addEventListener("input", () => scheduleNoteSave(quote, noteParts.customer, internalNotes.value));
-    internalNotes.addEventListener("blur", () => saveInternalNotes(quote, noteParts.customer, internalNotes.value));
+    internalNotes.addEventListener("input", () => scheduleNoteSave(internalNotes.value));
+    internalNotes.addEventListener("blur", () => flushInternalNotes());
   }
 
-  function scheduleNoteSave(quote, customerNotes, internalNotes) {
-    clearTimeout(noteSaveTimer);
+  function setNoteSaveState(message, isError = false) {
     const state = document.getElementById("quoteNoteSaveState");
-    if (state) {
-      state.textContent = "Unsaved changes…";
-      state.style.color = "#6b6b6b";
-    }
-    noteSaveTimer = setTimeout(() => saveInternalNotes(quote, customerNotes, internalNotes), 700);
+    if (!state) return;
+    state.textContent = message;
+    state.style.color = isError ? "#b42318" : message === "Private notes saved." ? "#16794b" : "#6b6b6b";
   }
 
-  async function saveInternalNotes(quote, customerNotes, internalNotes) {
+  function scheduleNoteSave(internalNotes) {
+    if (!activeNoteState) return;
+    activeNoteState.currentValue = internalNotes;
     clearTimeout(noteSaveTimer);
-    const state = document.getElementById("quoteNoteSaveState");
-    const combinedNotes = combineNotes(customerNotes, internalNotes);
-    if (combinedNotes === String(quote.notes || "")) return;
-    if (state) state.textContent = "Saving notes…";
-
-    const { error } = await supabaseClient.from("leads").update({ notes: combinedNotes }).eq("id", quote.id);
-    if (error) {
-      console.error("Internal note save failed:", error);
-      if (state) {
-        state.textContent = `Notes save failed: ${error.message}`;
-        state.style.color = "#b42318";
-      }
+    if (activeNoteState.currentValue === activeNoteState.savedValue) {
+      setNoteSaveState("Private notes saved.");
       return;
     }
-
-    quote.notes = combinedNotes;
-    if (state) {
-      state.textContent = "Private notes saved.";
-      state.style.color = "#16794b";
-    }
+    setNoteSaveState("Unsaved changes…");
+    noteSaveTimer = setTimeout(() => flushInternalNotes(), 700);
   }
 
-  function closeQuote() {
+  async function flushInternalNotes() {
     clearTimeout(noteSaveTimer);
+    const noteState = activeNoteState;
+    if (!noteState || noteState.currentValue === noteState.savedValue) return true;
+
+    if (noteSaveInFlight) {
+      const previousSaveSucceeded = await noteSaveInFlight;
+      if (!previousSaveSucceeded) return false;
+      if (activeNoteState !== noteState || noteState.currentValue === noteState.savedValue) return true;
+      return flushInternalNotes();
+    }
+
+    const valueToSave = noteState.currentValue;
+    setNoteSaveState("Saving notes…");
+    noteSaveInFlight = (async () => {
+      const { error } = await supabaseClient
+        .from("leads")
+        .update({ internal_notes: valueToSave })
+        .eq("id", noteState.quote.id);
+
+      if (error) {
+        console.error("Internal note save failed:", error);
+        const missingColumn = `${error.code || ""} ${error.message || ""}`.includes("internal_notes");
+        setNoteSaveState(
+          missingColumn
+            ? "Private notes require the Supabase quote-internal-notes migration before they can be saved."
+            : `Notes save failed: ${error.message}`,
+          true
+        );
+        return false;
+      }
+
+      noteState.savedValue = valueToSave;
+      noteState.quote.internal_notes = valueToSave;
+      setNoteSaveState(noteState.currentValue === valueToSave ? "Private notes saved." : "Unsaved changes…");
+      return true;
+    })();
+
+    const saveSucceeded = await noteSaveInFlight;
+    noteSaveInFlight = null;
+    if (!saveSucceeded) return false;
+    if (activeNoteState === noteState && noteState.currentValue !== noteState.savedValue) {
+      return flushInternalNotes();
+    }
+    return true;
+  }
+
+  async function closeQuote() {
+    const notesSaved = await flushInternalNotes();
+    if (!notesSaved) return;
+    activeNoteState = null;
     quoteDetailModal.hidden = true;
     quoteDetailContent.innerHTML = "";
   }
@@ -290,7 +313,7 @@
   [quoteSearch, quoteStatusFilter, quoteMonthFilter, quoteEventTypeFilter, quoteSort].forEach((control) => {
     control.addEventListener(control === quoteSearch ? "input" : "change", renderQuotes);
   });
-  quoteDetailClose.addEventListener("click", closeQuote);
+  quoteDetailClose.addEventListener("click", () => closeQuote());
   quoteDetailModal.addEventListener("click", (event) => {
     if (event.target === quoteDetailModal) closeQuote();
   });
