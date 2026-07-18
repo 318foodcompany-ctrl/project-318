@@ -247,7 +247,8 @@
   function renderPayments(payments) {
     const wrap = $("invoicePaymentHistory");
     if (!payments.length) { wrap.innerHTML = `<div class="invoice-empty">No payments recorded.</div>`; return; }
-    wrap.innerHTML = `<div class="invoice-payment-history">${payments.map((payment) => `<div class="invoice-payment-row"><div><strong>${escapeHTML(utils.effectiveLabel(payment.entry_type))} · ${escapeHTML(utils.currency(payment.amount))}</strong><div>${escapeHTML(payment.payment_method)}${payment.reference_number ? ` · ${escapeHTML(payment.reference_number)}` : ""}</div><small>${escapeHTML(utils.dateText(payment.payment_date))}</small></div><span>${escapeHTML(payment.notes || "")}</span>${["payment","deposit"].includes(payment.entry_type) ? `<button class="crm-secondary-button" type="button" data-reverse-payment="${escapeHTML(payment.id)}">Reverse</button>` : ""}</div>`).join("")}</div>`;
+    const reversibleIds = utils.reversiblePaymentIds(payments);
+    wrap.innerHTML = `<div class="invoice-payment-history">${payments.map((payment) => `<div class="invoice-payment-row"><div><strong>${escapeHTML(utils.effectiveLabel(payment.entry_type))} · ${escapeHTML(utils.currency(payment.amount))}</strong><div>${escapeHTML(payment.payment_method)}${payment.reference_number ? ` · ${escapeHTML(payment.reference_number)}` : ""}</div><small>${escapeHTML(utils.dateText(payment.payment_date))}</small></div><span>${escapeHTML(payment.notes || "")}</span>${reversibleIds.has(payment.id) ? `<button class="crm-secondary-button" type="button" data-reverse-payment="${escapeHTML(payment.id)}">Reverse</button>` : ["payment","deposit"].includes(payment.entry_type) ? '<span class="invoice-reversed-label">Reversed</span>' : ""}</div>`).join("")}</div>`;
     wrap.querySelectorAll("[data-reverse-payment]").forEach((button) => button.addEventListener("click", () => reversePayment(button.dataset.reversePayment)));
   }
 
@@ -324,8 +325,8 @@
     showPanel("invoicesPanel");
     if (!booking.customer_id) { setMessage(managerMessage, "Link this booking to a customer before creating an invoice.", true); return; }
     try {
-      const existing = await window.invoiceService.findBySource({ bookingId: booking.id });
-      if (existing) { await openInvoice(existing.id); setMessage(managerMessage, "The existing invoice for this booking was opened."); return; }
+      const existing = await window.invoiceService.findBySource({ bookingId: booking.id, quoteId: booking.quote_id });
+      if (existing) { await openInvoice(existing.id); setMessage(managerMessage, "The existing invoice for this booking or its linked quote was opened."); return; }
       const guests=Number(booking.guest_count||0); const amount=Number(booking.quote_amount||0);
       resetModal({customer_id:booking.customer_id,customer_name:booking.company_name||booking.customer_name,quote_id:booking.quote_id,booking_id:booking.id,due_date:addDays(booking.event_date||null,0),source_label:`Booking #${booking.id}`,line_items:[{description:booking.event_title||"Catering services",quantity:guests>0?guests:1,unit_price:guests>0&&amount>0?amount/guests:amount,taxable:true}]}); openModal();
     } catch(error){setMessage(managerMessage,`Could not create invoice from booking: ${error.message}`,true);}

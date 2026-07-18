@@ -102,13 +102,20 @@
   }
 
   async function findBySource({ quoteId = null, bookingId = null } = {}) {
-    let query = client().from("invoices").select("id,lifecycle_status").neq("lifecycle_status", "void");
-    if (bookingId) query = query.eq("booking_id", bookingId);
-    else if (quoteId) query = query.eq("quote_id", quoteId);
-    else return null;
-    const { data, error } = await query.limit(1);
-    if (error) throw error;
-    return data?.[0] || null;
+    const sourceQueries = [];
+    if (bookingId) sourceQueries.push(["booking_id", bookingId]);
+    if (quoteId) sourceQueries.push(["quote_id", quoteId]);
+    for (const [column, value] of sourceQueries) {
+      const { data, error } = await client()
+        .from("invoices")
+        .select("id,lifecycle_status,quote_id,booking_id")
+        .neq("lifecycle_status", "void")
+        .eq(column, value)
+        .limit(1);
+      if (error) throw error;
+      if (data?.[0]) return data[0];
+    }
+    return null;
   }
 
   async function summary() {

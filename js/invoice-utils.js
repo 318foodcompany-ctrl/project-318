@@ -71,6 +71,13 @@
       .replace(/\b\w/g, (character) => character.toUpperCase());
   }
 
+  function reversiblePaymentIds(payments) {
+    const reversedIds = new Set((payments || []).map((payment) => payment.reverses_payment_id).filter(Boolean));
+    return new Set((payments || [])
+      .filter((payment) => ["payment", "deposit"].includes(payment.entry_type) && !reversedIds.has(payment.id))
+      .map((payment) => payment.id));
+  }
+
   window.invoiceUtils = {
     currency,
     dateText,
@@ -79,6 +86,7 @@
     estimate,
     money,
     normalizeLines,
+    reversiblePaymentIds,
     validateLines
   };
 })();

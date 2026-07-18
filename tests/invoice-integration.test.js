@@ -25,6 +25,8 @@ assert.ok(invoiceAdmin.includes("openFromQuote"));
 assert.ok(invoiceAdmin.includes("openFromBooking"));
 assert.ok(invoiceAdmin.includes("recordPayment"));
 assert.ok(invoiceAdmin.includes("reversePayment"));
+assert.ok(invoiceAdmin.includes("utils.reversiblePaymentIds(payments)"));
+assert.ok(invoiceAdmin.includes("bookingId: booking.id, quoteId: booking.quote_id"), "booking invoice creation reuses a linked quote invoice");
 assert.ok(quotes.includes("window.invoiceManager.openFromQuote"));
 assert.ok(bookings.includes("window.invoiceManager.openFromBooking"));
 assert.ok(customers.includes("window.invoiceService.customerSummary"));

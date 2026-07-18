@@ -191,7 +191,11 @@ begin
     set last_number = public.invoice_number_sequences.last_number + 1,
         updated_at = now()
   returning last_number into v_number;
-  return '318-' || v_year || '-' || lpad(v_number::text, 6, '0');
+  return '318-' || v_year || '-' || lpad(
+    v_number::text,
+    greatest(6, length(v_number::text)),
+    '0'
+  );
 end;
 $$;
 
@@ -330,6 +334,7 @@ as $$
 declare
   v_invoice public.invoices;
   v_source_customer uuid;
+  v_booking_quote bigint;
 begin
   if not public.crm_is_admin() then raise exception 'Administrator access required' using errcode = '42501'; end if;
   if not exists(select 1 from public.customers where id = p_customer_id) then raise exception 'Customer not found'; end if;
@@ -341,8 +346,12 @@ begin
     if not found or v_source_customer is distinct from p_customer_id then raise exception 'Quote customer does not match invoice customer'; end if;
   end if;
   if p_booking_id is not null then
-    select customer_id into v_source_customer from public.bookings where id = p_booking_id;
+    select customer_id, quote_id into v_source_customer, v_booking_quote
+    from public.bookings where id = p_booking_id;
     if not found or v_source_customer is distinct from p_customer_id then raise exception 'Booking customer does not match invoice customer'; end if;
+    if p_quote_id is not null and v_booking_quote is distinct from p_quote_id then
+      raise exception 'Booking is not linked to the supplied quote';
+    end if;
   end if;
 
   insert into public.invoices(

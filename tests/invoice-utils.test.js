@@ -26,4 +26,11 @@ const totals = utils.estimate([
 assert.deepEqual(JSON.parse(JSON.stringify(totals)), { subtotal: 120, discount: 20, tax: 8.33, total: 108.33 });
 assert.equal(utils.effectiveLabel("partially_paid"), "Partially Paid");
 
+const reversibleIds = utils.reversiblePaymentIds([
+  { id: "payment-open", entry_type: "payment", reverses_payment_id: null },
+  { id: "deposit-reversed", entry_type: "deposit", reverses_payment_id: null },
+  { id: "reversal", entry_type: "reversal", reverses_payment_id: "deposit-reversed" }
+]);
+assert.deepEqual([...reversibleIds], ["payment-open"], "already-reversed payments are not offered for reversal");
+
 console.log("invoice-utils tests passed");

@@ -19,5 +19,8 @@ assert.ok(service.includes('.from("invoice_line_items")'));
 assert.ok(service.includes('.from("payments")'));
 assert.ok(service.includes("window.invoiceUtils.normalizeLines"));
 assert.ok(service.includes("throw failed.error"));
+assert.ok(service.includes('sourceQueries.push(["booking_id", bookingId])'));
+assert.ok(service.includes('sourceQueries.push(["quote_id", quoteId])'));
+assert.ok(service.indexOf('sourceQueries.push(["booking_id", bookingId])') < service.indexOf('sourceQueries.push(["quote_id", quoteId])'), "booking lookup takes priority before linked quote fallback");
 
 console.log("invoice-client tests passed");
