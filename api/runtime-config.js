@@ -1,19 +1,27 @@
 "use strict";
 
 const SUPABASE_HOST_PATTERN = /^https:\/\/[a-z0-9]+\.supabase\.co\/?$/i;
+const GA4_MEASUREMENT_PATTERN = /^G-[A-Z0-9]{6,20}$/;
 
 function publicConfigFromEnvironment(environment = process.env) {
   const supabaseUrl = String(environment.PUBLIC_SUPABASE_URL || "").trim();
   const supabaseAnonKey = String(environment.PUBLIC_SUPABASE_ANON_KEY || "").trim();
+  const ga4MeasurementId = String(environment.PUBLIC_GA4_MEASUREMENT_ID || "").trim().toUpperCase();
 
   if (!SUPABASE_HOST_PATTERN.test(supabaseUrl) || !supabaseAnonKey) {
     return null;
   }
 
-  return {
+  const config = {
     supabaseUrl: supabaseUrl.replace(/\/$/, ""),
     supabaseAnonKey
   };
+
+  if (GA4_MEASUREMENT_PATTERN.test(ga4MeasurementId)) {
+    config.ga4MeasurementId = ga4MeasurementId;
+  }
+
+  return config;
 }
 
 function handler(request, response) {
@@ -39,3 +47,4 @@ function handler(request, response) {
 
 module.exports = handler;
 module.exports.publicConfigFromEnvironment = publicConfigFromEnvironment;
+module.exports.GA4_MEASUREMENT_PATTERN = GA4_MEASUREMENT_PATTERN;
