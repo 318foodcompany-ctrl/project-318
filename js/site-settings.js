@@ -80,16 +80,16 @@
     window.websiteSettings = { ...settings };
     replaceBusinessName(settings);
 
-    const phonePattern = /(?:\+?1[\s.-]?)?\(?318\)?[\s.-]?572[\s.-]?0137/;
+    const phonePattern = /(?:\+?1[\s.-]?)?\(?318\)?[\s.-]?\d{3}[\s.-]?\d{4}/;
     document.querySelectorAll('a[href^="tel:"]').forEach((link) => {
-      link.href = phoneHref(settings.phone);
-      replaceExistingContactText(link, phonePattern, settings.phone);
+      link.href = phoneHref(fallbackSettings.phone);
+      replaceExistingContactText(link, phonePattern, fallbackSettings.phone);
     });
 
-    const emailPattern = /318FoodCompany@gmail\.com/i;
+    const emailPattern = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i;
     document.querySelectorAll('a[href^="mailto:"]').forEach((link) => {
-      link.href = emailHref(settings.email);
-      replaceExistingContactText(link, emailPattern, settings.email);
+      link.href = emailHref(fallbackSettings.email);
+      replaceExistingContactText(link, emailPattern, fallbackSettings.email);
     });
 
     document.querySelectorAll('[data-setting="address"]').forEach((element) => {
@@ -134,6 +134,7 @@
 
     const settings = { ...fallbackSettings };
     (data || []).forEach((item) => {
+      if (["phone", "email"].includes(item.setting_key)) return;
       if (Object.hasOwn(settings, item.setting_key) && item.setting_value !== "") {
         settings[item.setting_key] = item.setting_value;
       }
