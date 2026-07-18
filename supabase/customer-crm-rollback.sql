@@ -20,6 +20,7 @@ drop function if exists public.crm_customer_dashboard(text,boolean,text,integer,
 drop function if exists public.crm_customer_matches(text,integer);
 drop function if exists public.crm_find_or_create_customer(text,text,text,text,text,text,text);
 drop function if exists public.crm_find_or_create_customer_internal(text,text,text,text,text,text,text);
+drop function if exists public.crm_match_customer_identity(text,text,text,text,text);
 drop function if exists public.crm_record_quote_activity();
 drop function if exists public.crm_record_booking_activity();
 drop function if exists public.crm_record_customer_activity();

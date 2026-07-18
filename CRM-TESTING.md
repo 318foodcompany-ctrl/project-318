@@ -51,3 +51,24 @@ node tests/crm-utils.test.js
 node tests/crm-migration.test.js
 node tests/booking-time.test.js
 ```
+
+Run the transaction-based identity assertions in a disposable Supabase test
+database after applying the migration:
+
+```text
+tests/customer-crm-identity.sql
+```
+
+For the live database integration test, provide a disposable test project URL,
+its anonymous key, and an authenticated administrator access token:
+
+```text
+CRM_TEST_SUPABASE_URL=https://your-test-project.supabase.co
+CRM_TEST_ANON_KEY=your-test-anon-key
+CRM_TEST_ADMIN_TOKEN=your-test-admin-access-token
+node --test tests/crm-database.integration.test.js
+```
+
+That integration test creates isolated records, verifies anonymous conflict
+privacy and rollback behavior, submits two identical quotes concurrently, and
+removes all test quotes and customers in a `finally` cleanup.

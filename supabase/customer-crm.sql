@@ -144,6 +144,55 @@ create trigger customers_set_updated_at
 before update on public.customers
 for each row execute function public.crm_set_updated_at();
 
+create or replace function public.crm_match_customer_identity(
+  p_first_name text,
+  p_last_name text,
+  p_company text,
+  p_email text,
+  p_phone text
+)
+returns uuid
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  v_email text := lower(btrim(coalesce(p_email, '')));
+  v_phone_key text := regexp_replace(coalesce(p_phone, ''), '[^0-9]', '', 'g');
+  v_full_name text := lower(btrim(coalesce(p_first_name, '') || ' ' || coalesce(p_last_name, '')));
+  v_company text := lower(btrim(coalesce(p_company, '')));
+  v_email_id uuid;
+  v_phone_id uuid;
+  v_name_company_id uuid;
+begin
+  select
+    (select c.id from public.customers c
+      where length(v_email) > 0 and lower(btrim(c.email)) = v_email
+      limit 1),
+    (select c.id from public.customers c
+      where length(v_phone_key) >= 7
+        and regexp_replace(c.phone, '[^0-9]', '', 'g') = v_phone_key
+      limit 1),
+    (select c.id from public.customers c
+      where length(v_full_name) > 0 and length(v_company) > 0
+        and lower(btrim(c.first_name || ' ' || c.last_name)) = v_full_name
+        and lower(btrim(c.company)) = v_company
+      limit 1)
+  into v_email_id, v_phone_id, v_name_company_id;
+
+  if (v_email_id is not null and v_phone_id is not null and v_email_id <> v_phone_id)
+     or (v_email_id is not null and v_name_company_id is not null and v_email_id <> v_name_company_id)
+     or (v_phone_id is not null and v_name_company_id is not null and v_phone_id <> v_name_company_id) then
+    raise exception 'Customer identity conflict: supplied identifiers match different customer records'
+      using errcode = 'P0001';
+  end if;
+
+  return coalesce(v_email_id, v_phone_id, v_name_company_id);
+end;
+$$;
+
+revoke all on function public.crm_match_customer_identity(text,text,text,text,text) from public, anon, authenticated;
+
 create or replace function public.crm_find_or_create_customer_internal(
   p_first_name text,
   p_last_name text,
@@ -160,6 +209,7 @@ set search_path = public, pg_temp
 as $$
 declare
   v_id uuid;
+  v_retry_id uuid;
   v_first text := btrim(coalesce(p_first_name, ''));
   v_last text := btrim(coalesce(p_last_name, ''));
   v_company text := btrim(coalesce(p_company, ''));
@@ -167,22 +217,31 @@ declare
   v_phone text := btrim(coalesce(p_phone, ''));
   v_phone_key text := regexp_replace(coalesce(p_phone, ''), '[^0-9]', '', 'g');
   v_full_name text := lower(btrim(coalesce(p_first_name, '') || ' ' || coalesce(p_last_name, '')));
+  v_identity_lock text;
 begin
   if length(v_first || v_last || v_company || v_email || v_phone) = 0 then
     raise exception 'Customer requires a name, company, email, or phone';
   end if;
 
-  select id into v_id
-  from public.customers
-  where (length(v_email) > 0 and lower(btrim(email)) = v_email)
-     or (length(v_phone_key) >= 7 and regexp_replace(phone, '[^0-9]', '', 'g') = v_phone_key)
-     or (
-       length(v_full_name) > 0 and length(v_company) > 0
-       and lower(btrim(first_name || ' ' || last_name)) = v_full_name
-       and lower(btrim(company)) = lower(v_company)
-     )
-  order by archived asc, created_at asc
-  limit 1;
+  -- Serialize overlapping identity sets in a stable order. Unique indexes remain
+  -- the final safeguard for callers that do not use this resolver.
+  for v_identity_lock in
+    select identity_key
+    from (values
+      (case when length(v_email) > 0 then 'email:' || v_email end),
+      (case when length(v_phone_key) >= 7 then 'phone:' || v_phone_key end),
+      (case when length(v_full_name) > 0 and length(v_company) > 0
+        then 'name_company:' || v_full_name || ':' || lower(v_company) end)
+    ) as supplied(identity_key)
+    where identity_key is not null
+    order by identity_key
+  loop
+    perform pg_advisory_xact_lock(hashtextextended(v_identity_lock, 0));
+  end loop;
+
+  v_id := public.crm_match_customer_identity(
+    v_first, v_last, v_company, v_email, v_phone
+  );
 
   if v_id is null then
     begin
@@ -193,17 +252,9 @@ begin
         btrim(coalesce(p_event_address, '')), btrim(coalesce(p_billing_address, ''))
       ) returning id into v_id;
     exception when unique_violation then
-      select id into v_id
-      from public.customers
-      where (length(v_email) > 0 and lower(btrim(email)) = v_email)
-         or (length(v_phone_key) >= 7 and regexp_replace(phone, '[^0-9]', '', 'g') = v_phone_key)
-         or (
-           length(v_full_name) > 0 and length(v_company) > 0
-           and lower(btrim(first_name || ' ' || last_name)) = v_full_name
-           and lower(btrim(company)) = lower(v_company)
-         )
-      order by archived asc, created_at asc
-      limit 1;
+      v_id := public.crm_match_customer_identity(
+        v_first, v_last, v_company, v_email, v_phone
+      );
     end;
   end if;
 
@@ -211,13 +262,27 @@ begin
     raise exception 'Unable to resolve customer identity';
   end if;
 
+  begin
+    update public.customers
+    set
+      first_name = case when first_name = '' then v_first else first_name end,
+      last_name = case when last_name = '' then v_last else last_name end,
+      company = case when company = '' then v_company else company end,
+      email = case when email = '' then v_email else email end,
+      phone = case when phone = '' then v_phone else phone end
+    where id = v_id;
+  exception when unique_violation then
+    v_retry_id := public.crm_match_customer_identity(
+      v_first, v_last, v_company, v_email, v_phone
+    );
+    if v_retry_id is null or v_retry_id <> v_id then
+      raise exception 'Customer identity conflict: supplied identifiers match different customer records'
+        using errcode = 'P0001';
+    end if;
+  end;
+
   update public.customers
   set
-    first_name = case when first_name = '' then v_first else first_name end,
-    last_name = case when last_name = '' then v_last else last_name end,
-    company = case when company = '' then v_company else company end,
-    email = case when email = '' then v_email else email end,
-    phone = case when phone = '' then v_phone else phone end,
     event_address = case when event_address = '' then btrim(coalesce(p_event_address, '')) else event_address end,
     billing_address = case when billing_address = '' then btrim(coalesce(p_billing_address, '')) else billing_address end
   where id = v_id;
@@ -330,9 +395,14 @@ begin
     raise exception 'Name, email, and phone are required';
   end if;
 
-  v_customer_id := public.crm_find_or_create_customer_internal(
-    v_first, v_last, p_company, p_email, p_phone, v_address, ''
-  );
+  begin
+    v_customer_id := public.crm_find_or_create_customer_internal(
+      v_first, v_last, p_company, p_email, p_phone, v_address, ''
+    );
+  exception when sqlstate 'P0001' then
+    raise exception 'Unable to submit quote with the supplied contact information'
+      using errcode = 'P0001';
+  end;
 
   insert into public.leads (
     name, company, email, phone, event_date, guests, menu, event_type,
