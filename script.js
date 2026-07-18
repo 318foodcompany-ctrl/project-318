@@ -34,6 +34,9 @@
     });
   }
 
+  ensureScript('js/technical-seo.js', 'project318-technical-seo-script', () => Boolean(window.Project318TechnicalSEO))
+    .catch((error) => console.error('Website SEO metadata could not be loaded:', error));
+
   ensureStylesheet('css/consent-manager.css', 'project318-consent-styles');
   ensureScript('js/consent-manager.js', 'project318-consent-script', () => Boolean(window.Project318Consent))
     .then(() => Promise.all([
