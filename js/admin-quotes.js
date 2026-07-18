@@ -181,6 +181,33 @@
     return `<div><span>${escapeHTML(label)}</span><strong>${escapeHTML(value ?? "—")}</strong></div>`;
   }
 
+  async function loadQuoteAttribution(quoteId) {
+    const container = document.getElementById("quoteAttributionDetails");
+    if (!container) return;
+    const { data, error } = await supabaseClient.rpc("marketing_quote_attribution", { p_quote_id: quoteId });
+    if (error) {
+      console.error("Quote attribution load failed:", error);
+      container.textContent = "Attribution is unavailable.";
+      return;
+    }
+    const attribution = Array.isArray(data) ? data[0] : data;
+    if (!attribution || !attribution.first_source) {
+      container.textContent = "No marketing attribution was captured for this quote.";
+      return;
+    }
+    container.innerHTML = `
+      <div class="quote-detail-grid">
+        ${detailItem("First source", attribution.first_source)}
+        ${detailItem("First medium", attribution.first_medium)}
+        ${detailItem("First campaign", attribution.first_campaign || "—")}
+        ${detailItem("First landing page", attribution.first_landing_path || "—")}
+        ${detailItem("Last source", attribution.last_source || attribution.first_source)}
+        ${detailItem("Last medium", attribution.last_medium || attribution.first_medium)}
+        ${detailItem("Last campaign", attribution.last_campaign || "—")}
+        ${detailItem("Last landing page", attribution.last_landing_path || "—")}
+      </div>`;
+  }
+
   function openQuote(id) {
     const quote = quotes.find((item) => String(item.id) === String(id));
     if (!quote) return;
@@ -213,6 +240,10 @@
         <div class="quote-customer-notes">${escapeHTML(quote.notes || "No additional details were submitted.")}</div>
       </div>
       <div class="quote-detail-notes">
+        <label>Marketing Attribution</label>
+        <div id="quoteAttributionDetails" class="quote-customer-notes">Loading attribution…</div>
+      </div>
+      <div class="quote-detail-notes">
         <label for="quoteInternalNotes">Private Internal Notes</label>
         <textarea id="quoteInternalNotes" placeholder="Add private follow-up notes for this quote…">${escapeHTML(internalNotesValue)}</textarea>
         <p id="quoteNoteSaveState" class="quote-save-state" role="status" aria-live="polite"></p>
@@ -222,6 +253,7 @@
       ${canCreateBooking ? `<div class="quote-booking-action"><button id="quoteCreateBookingButton" class="save-button" type="button">Create Booking</button><p>Create a linked calendar booking using this quote’s customer and event details.</p></div>` : ""}`;
 
     quoteDetailModal.hidden = false;
+    loadQuoteAttribution(quote.id);
     const detailStatus = document.getElementById("quoteDetailStatus");
     const internalNotes = document.getElementById("quoteInternalNotes");
     detailStatus.addEventListener("change", async () => {
