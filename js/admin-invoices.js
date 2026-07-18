@@ -41,8 +41,8 @@
     if (invoice.lifecycle_status === "void") return "void";
     if (invoice.lifecycle_status === "draft") return "draft";
     if (Number(invoice.balance_due) === 0) return "paid";
-    if (Number(invoice.paid_amount) > 0) return "partially_paid";
     if (invoice.due_date && invoice.due_date < new Date().toISOString().slice(0, 10)) return "overdue";
+    if (Number(invoice.paid_amount) > 0) return "partially_paid";
     return "sent";
   }
 

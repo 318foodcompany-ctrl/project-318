@@ -42,7 +42,11 @@ create table if not exists public.invoices (
   updated_at timestamptz not null default now(),
   constraint invoices_issue_fields check (
     (lifecycle_status = 'draft' and invoice_number is null)
-    or (lifecycle_status in ('sent', 'void') and invoice_number is not null and issue_date is not null and due_date is not null)
+    or (lifecycle_status = 'sent' and invoice_number is not null and issue_date is not null and due_date is not null)
+    or (lifecycle_status = 'void' and (
+      (invoice_number is null and issue_date is null)
+      or (invoice_number is not null and issue_date is not null and due_date is not null)
+    ))
   ),
   constraint invoices_due_after_issue check (
     issue_date is null or due_date is null or due_date >= issue_date
@@ -141,8 +145,8 @@ as $$
     when p_invoice.lifecycle_status = 'void' then 'void'
     when p_invoice.lifecycle_status = 'draft' then 'draft'
     when p_invoice.balance_due = 0 then 'paid'
-    when p_invoice.paid_amount > 0 then 'partially_paid'
     when p_invoice.due_date < current_date then 'overdue'
+    when p_invoice.paid_amount > 0 then 'partially_paid'
     else 'sent'
   end;
 $$;
@@ -260,6 +264,9 @@ security invoker
 set search_path = public
 as $$
 begin
+  if current_user in ('postgres', 'service_role') then
+    return coalesce(new, old);
+  end if;
   raise exception 'Payment history is append-only; record a reversal instead';
 end;
 $$;
@@ -451,12 +458,10 @@ begin
   if v_invoice.paid_amount > 0 then raise exception 'Reverse or refund payments before voiding this invoice'; end if;
   if length(btrim(coalesce(p_reason,'')))=0 then raise exception 'Void reason is required'; end if;
   update public.invoices set
-    invoice_number=coalesce(invoice_number,public.invoicing_next_number(current_date)),
-    issue_date=coalesce(issue_date,current_date), due_date=coalesce(due_date,current_date),
     lifecycle_status='void',voided_at=now(),void_reason=btrim(p_reason)
   where id=p_invoice_id returning * into v_invoice;
   insert into public.customer_activities(customer_id,activity_type,title,details,invoice_id)
-  values(v_invoice.customer_id,'invoice_voided','Invoice '||v_invoice.invoice_number||' voided',v_invoice.void_reason,v_invoice.id);
+  values(v_invoice.customer_id,'invoice_voided',coalesce('Invoice '||v_invoice.invoice_number,'Draft invoice')||' voided',v_invoice.void_reason,v_invoice.id);
   return v_invoice;
 end;
 $$;
