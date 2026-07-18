@@ -8,7 +8,7 @@ const quotePage = fs.readFileSync(path.join(root, "quote-builder.html"), "utf8")
 const quoteLive = fs.readFileSync(path.join(root, "js", "quote-live.js"), "utf8");
 const bookings = fs.readFileSync(path.join(root, "js", "admin-bookings.js"), "utf8");
 
-for (const script of ["crm-utils.js", "crm-service.js", "admin-customers.js"]) {
+for (const script of ["crm-utils.js", "crm-service.js", "admin-customers.js", "quote-status.js"]) {
   const matches = admin.match(new RegExp(`src=["'][^"']*${script.replace(".", "\\.")}["']`, "g")) || [];
   assert.equal(matches.length, 1, `${script} is loaded exactly once`);
 }

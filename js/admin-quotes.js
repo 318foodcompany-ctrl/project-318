@@ -149,22 +149,32 @@
   async function saveStatus(id, status, control) {
     if (control) control.disabled = true;
     setMessage("Saving quote status…");
-    const { error } = await supabaseClient.from("leads").update({ status }).eq("id", id);
-    if (control) control.disabled = false;
+    try {
+      if (!window.quoteStatusService) {
+        throw new Error("Quote status service is unavailable.");
+      }
 
-    if (error) {
+      const updatedQuote = await window.quoteStatusService.update(
+        supabaseClient,
+        id,
+        status
+      );
+      const quote = quotes.find(
+        (item) => String(item.id) === String(updatedQuote.id)
+      );
+      if (quote) quote.status = updatedQuote.status;
+      updateSummary();
+      renderQuotes();
+      setMessage("Quote status saved.");
+      return true;
+    } catch (error) {
       console.error("Quote status save failed:", error);
       setMessage(`Status save failed: ${error.message}`, true);
       renderQuotes();
       return false;
+    } finally {
+      if (control) control.disabled = false;
     }
-
-    const quote = quotes.find((item) => String(item.id) === String(id));
-    if (quote) quote.status = status;
-    updateSummary();
-    renderQuotes();
-    setMessage("Quote status saved.");
-    return true;
   }
 
   function detailItem(label, value) {
