@@ -21,6 +21,9 @@
   const customerMatches = $("invoiceCustomerMatches");
   const paymentSection = $("invoicePaymentSection");
   const paymentForm = $("invoicePaymentForm");
+  const reasonPrompt = $("invoiceReasonPrompt");
+  const reasonInput = $("invoiceReasonInput");
+  const reasonConfirm = $("invoiceReasonConfirm");
   const utils = window.invoiceUtils;
   const escapeHTML = window.crmUtils.escapeHTML;
   let page = 1;
@@ -28,6 +31,7 @@
   let loading = false;
   let saving = false;
   let currentDetail = null;
+  let pendingReasonAction = null;
   let searchTimer;
   let customerTimer;
   let previousFocus = null;
@@ -154,7 +158,7 @@
   }
 
   function openModal() { previousFocus = document.activeElement; modal.hidden = false; $("invoiceModalClose").focus(); }
-  function closeModal() { modal.hidden = true; customerMatches.hidden = true; currentDetail = null; if (previousFocus) previousFocus.focus(); }
+  function closeModal() { closeReasonPrompt(); modal.hidden = true; customerMatches.hidden = true; currentDetail = null; if (previousFocus) previousFocus.focus(); }
 
   function payload() {
     return {
@@ -264,15 +268,28 @@
     } catch (error) { setMessage($("invoiceFormMessage"), `Issue failed: ${error.message}`, true); }
   }
 
-  async function voidInvoice() {
-    if (!currentDetail) return;
-    const reason = window.prompt("Enter the required reason for voiding this invoice:");
-    if (reason === null) return;
-    try {
-      const invoice = await window.invoiceService.voidInvoice(currentDetail.invoice.id, reason);
-      await Promise.all([openInvoice(invoice.id, { preserveFocus: true }), loadDashboard()]);
-      setMessage($("invoiceFormMessage"), "Invoice voided. Accounting history was preserved.");
-    } catch (error) { setMessage($("invoiceFormMessage"), `Void failed: ${error.message}`, true); }
+  function openReasonPrompt(action) {
+    pendingReasonAction = action;
+    $("invoiceReasonTitle").textContent = action.type === "void" ? "Void invoice" : "Reverse payment";
+    $("invoiceReasonDescription").textContent = action.type === "void"
+      ? "Enter the accounting reason for voiding this invoice."
+      : "Enter the accounting reason for reversing this payment.";
+    reasonInput.value = "";
+    setMessage($("invoiceReasonMessage"), "");
+    reasonPrompt.hidden = false;
+    reasonInput.focus();
+  }
+
+  function closeReasonPrompt() {
+    pendingReasonAction = null;
+    reasonPrompt.hidden = true;
+    reasonInput.value = "";
+    reasonConfirm.disabled = false;
+    setMessage($("invoiceReasonMessage"), "");
+  }
+
+  function voidInvoice() {
+    if (currentDetail) openReasonPrompt({ type: "void" });
   }
 
   async function recordPayment(event) {
@@ -290,11 +307,36 @@
     finally { $("paymentSaveButton").disabled = false; }
   }
 
-  async function reversePayment(id) {
-    const reason = window.prompt("Enter the required reversal reason:");
-    if (reason === null) return;
-    try { await window.invoiceService.reversePayment(id, reason); await Promise.all([openInvoice(currentDetail.invoice.id, { preserveFocus: true }), loadDashboard()]); setMessage($("paymentMessage"), "Payment reversal recorded."); }
-    catch (error) { setMessage($("paymentMessage"), `Reversal failed: ${error.message}`, true); }
+  function reversePayment(id) {
+    if (currentDetail) openReasonPrompt({ type: "reverse", paymentId: id });
+  }
+
+  async function confirmReasonAction() {
+    if (!pendingReasonAction || !currentDetail) return;
+    const action = pendingReasonAction;
+    const invoiceId = currentDetail.invoice.id;
+    const reason = reasonInput.value.trim();
+    if (!reason) {
+      setMessage($("invoiceReasonMessage"), "Enter a reason before continuing.", true);
+      return;
+    }
+    reasonConfirm.disabled = true;
+    setMessage($("invoiceReasonMessage"), "Saving accounting action…");
+    try {
+      if (action.type === "void") await window.invoiceService.voidInvoice(invoiceId, reason);
+      else await window.invoiceService.reversePayment(action.paymentId, reason);
+      closeReasonPrompt();
+      await Promise.all([openInvoice(invoiceId, { preserveFocus: true }), loadDashboard()]);
+      setMessage(
+        action.type === "void" ? $("invoiceFormMessage") : $("paymentMessage"),
+        action.type === "void"
+          ? "Invoice voided. Accounting history was preserved."
+          : "Payment reversal recorded."
+      );
+    } catch (error) {
+      reasonConfirm.disabled = false;
+      setMessage($("invoiceReasonMessage"), `${action.type === "void" ? "Void" : "Reversal"} failed: ${error.message}`, true);
+    }
   }
 
   function renderCustomerMatches(matches) {
@@ -335,6 +377,8 @@
   $("newInvoiceButton").addEventListener("click",()=>{resetModal();openModal();});
   $("invoiceAddLine").addEventListener("click",()=>addLine());
   form.addEventListener("submit",saveDraft); $("invoiceIssueButton").addEventListener("click",issueInvoice); $("invoiceVoidButton").addEventListener("click",voidInvoice); $("invoiceCancelButton").addEventListener("click",closeModal); $("invoiceModalClose").addEventListener("click",closeModal); paymentForm.addEventListener("submit",recordPayment);
+  reasonConfirm.addEventListener("click", confirmReasonAction);
+  $("invoiceReasonCancel").addEventListener("click", closeReasonPrompt);
   [$("invoiceDiscount"),$("invoiceTaxRate")].forEach((input)=>input.addEventListener("input",updateEstimate));
   [statusFilter,overdueOnly,sort,pageSize].forEach((control)=>control.addEventListener("change",()=>{page=1;loadDashboard();}));
   search.addEventListener("input",()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>{page=1;loadDashboard();},250);});

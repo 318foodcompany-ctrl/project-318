@@ -976,6 +976,16 @@
                   <p id="paymentMessage" class="invoice-form-message" role="status" aria-live="polite"></p>
                   <h3>Payment History</h3><div id="invoicePaymentHistory"></div>
                 </section>
+                <section id="invoiceReasonPrompt" class="invoice-reason-prompt" aria-labelledby="invoiceReasonTitle" hidden>
+                  <h3 id="invoiceReasonTitle">Reason required</h3>
+                  <p id="invoiceReasonDescription"></p>
+                  <label>Reason *<textarea id="invoiceReasonInput" rows="3" required></textarea></label>
+                  <p id="invoiceReasonMessage" class="invoice-form-message" role="status" aria-live="polite"></p>
+                  <div class="invoice-form-actions">
+                    <button id="invoiceReasonConfirm" class="invoice-danger-button" type="button">Confirm</button>
+                    <button id="invoiceReasonCancel" class="crm-secondary-button" type="button">Cancel</button>
+                  </div>
+                </section>
               </div>
             </div>
           </section>

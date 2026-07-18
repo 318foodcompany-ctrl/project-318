@@ -14,7 +14,7 @@ for (const script of ["invoice-utils.js", "invoice-service.js", "admin-invoices.
   assert.equal(matches.length, 1, `${script} loads exactly once`);
 }
 
-for (const id of ["invoicesPanel", "invoiceModal", "invoiceForm", "invoicePaymentForm", "bookingCreateInvoiceButton"]) {
+for (const id of ["invoicesPanel", "invoiceModal", "invoiceForm", "invoicePaymentForm", "invoiceReasonPrompt", "invoiceReasonInput", "invoiceReasonConfirm", "bookingCreateInvoiceButton"]) {
   const matches = admin.match(new RegExp(`id=["']${id}["']`, "g")) || [];
   assert.equal(matches.length, 1, `${id} is unique`);
 }
@@ -25,6 +25,8 @@ assert.ok(invoiceAdmin.includes("openFromQuote"));
 assert.ok(invoiceAdmin.includes("openFromBooking"));
 assert.ok(invoiceAdmin.includes("recordPayment"));
 assert.ok(invoiceAdmin.includes("reversePayment"));
+assert.ok(invoiceAdmin.includes("confirmReasonAction"));
+assert.ok(!invoiceAdmin.includes("window.prompt"), "invoice accounting actions do not rely on native prompts");
 assert.ok(invoiceAdmin.includes("utils.reversiblePaymentIds(payments)"));
 assert.ok(invoiceAdmin.includes("bookingId: booking.id, quoteId: booking.quote_id"), "booking invoice creation reuses a linked quote invoice");
 assert.ok(quotes.includes("window.invoiceManager.openFromQuote"));
