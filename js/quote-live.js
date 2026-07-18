@@ -59,7 +59,8 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         try {
-            const { error } = await window.supabaseClient.rpc('submit_quote_with_customer', {
+            const attribution = window.Project318Attribution?.snapshot?.() || {};
+            const { error } = await window.supabaseClient.rpc('submit_quote_with_attribution', {
                 p_name: lead.name,
                 p_company: lead.company || '',
                 p_email: lead.email,
@@ -69,7 +70,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 p_menu: lead.menu,
                 p_event_type: lead.event_type,
                 p_budget: lead.budget,
-                p_notes: lead.notes
+                p_notes: lead.notes,
+                p_attribution: attribution
             });
             if (error) throw error;
 

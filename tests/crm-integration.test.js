@@ -19,7 +19,10 @@ for (const id of ["customersPanel", "customerDetailModal", "bookingCustomerId", 
 }
 
 assert.ok(quotePage.includes('src="js/quote-live.js"'), "quote page loads the CRM submission integration");
-assert.ok(quoteLive.includes("submit_quote_with_customer"), "public quotes use the transactional CRM RPC");
+assert.ok(
+  quoteLive.includes("submit_quote_with_attribution"),
+  "public quotes use the attribution-aware transactional CRM RPC"
+);
 assert.ok(quoteLive.includes("stopImmediatePropagation"), "legacy preview submission cannot report success first");
 assert.ok(bookings.includes("findOrCreateCustomer"), "manual bookings resolve a required customer");
 assert.ok(bookings.includes("customer_id: fields.customerId.value || null"), "bookings persist the customer foreign key");
