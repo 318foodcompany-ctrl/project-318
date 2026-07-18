@@ -11,18 +11,34 @@
   }
 
   function ensureScript(src, id, readyCheck) {
-    if ((typeof readyCheck === 'function' && readyCheck()) || document.getElementById(id)) return;
-    const script = document.createElement('script');
-    script.id = id;
-    script.src = src;
-    script.defer = true;
-    document.head.appendChild(script);
+    if (typeof readyCheck === 'function' && readyCheck()) return Promise.resolve(true);
+    const existing = document.getElementById(id);
+    if (existing) {
+      if (existing.dataset.loaded === 'true') return Promise.resolve(true);
+      return new Promise((resolve, reject) => {
+        existing.addEventListener('load', () => resolve(true), { once: true });
+        existing.addEventListener('error', reject, { once: true });
+      });
+    }
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.id = id;
+      script.src = src;
+      script.async = false;
+      script.addEventListener('load', () => {
+        script.dataset.loaded = 'true';
+        resolve(true);
+      }, { once: true });
+      script.addEventListener('error', reject, { once: true });
+      document.head.appendChild(script);
+    });
   }
 
   ensureStylesheet('css/consent-manager.css', 'project318-consent-styles');
-  ensureScript('js/consent-manager.js', 'project318-consent-script', () => Boolean(window.Project318Consent));
-  ensureScript('js/analytics-events.js', 'project318-analytics-events-script', () => Boolean(window.Project318Analytics));
-  ensureScript('js/ga4-provider.js', 'project318-ga4-provider-script', () => Boolean(window.Project318GA4));
+  ensureScript('js/consent-manager.js', 'project318-consent-script', () => Boolean(window.Project318Consent))
+    .then(() => ensureScript('js/ga4-provider.js', 'project318-ga4-provider-script', () => Boolean(window.Project318GA4)))
+    .then(() => ensureScript('js/analytics-events.js', 'project318-analytics-events-script', () => Boolean(window.Project318Analytics)))
+    .catch((error) => console.error('Website privacy or analytics tools could not be loaded:', error));
 })();
 
 const menuBtn = document.querySelector('.menu-btn');
