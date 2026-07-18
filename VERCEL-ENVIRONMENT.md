@@ -32,4 +32,3 @@ different project.
 
 Use `.env.local` for `vercel dev`; it is excluded by `.gitignore`. Never commit
 real values. The checked-in `.env.test.example` remains placeholders only.
-

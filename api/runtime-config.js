@@ -39,4 +39,3 @@ function handler(request, response) {
 
 module.exports = handler;
 module.exports.publicConfigFromEnvironment = publicConfigFromEnvironment;
-
