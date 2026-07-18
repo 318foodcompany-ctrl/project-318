@@ -1,0 +1,116 @@
+(function marketingDashboardModule(globalScope){
+  "use strict";
+
+  function currency(value){
+    return Number(value||0).toLocaleString("en-US",{style:"currency",currency:"USD"});
+  }
+
+  function dateInputValue(date){
+    const value=new Date(date);
+    return `${value.getFullYear()}-${String(value.getMonth()+1).padStart(2,"0")}-${String(value.getDate()).padStart(2,"0")}`;
+  }
+
+  function summarize(rows){
+    return (rows||[]).reduce((summary,row)=>{
+      const revenue=Number(row.revenue||0);
+      summary.revenue+=revenue;
+      summary.payments+=Number(row.payment_count||0);
+      summary.sources.add(row.source||"unattributed");
+      if(revenue>summary.topRevenue){summary.topRevenue=revenue;summary.topSource=row.source||"unattributed";}
+      return summary;
+    },{revenue:0,payments:0,sources:new Set(),topSource:"—",topRevenue:-Infinity});
+  }
+
+  function escapeHtml(value){
+    return String(value??"").replace(/[&<>"']/g,character=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[character]));
+  }
+
+  function createDashboard(win){
+    const doc=win.document;
+    const client=win.supabaseClient;
+    if(!doc||!client||doc.getElementById("marketingPanel")) return;
+
+    const stylesheet=doc.createElement("link");
+    stylesheet.rel="stylesheet";
+    stylesheet.href="css/admin-marketing.css";
+    doc.head.appendChild(stylesheet);
+
+    const navReference=doc.querySelector('[data-panel="leadsPanel"]');
+    const nav=doc.createElement("button");
+    nav.className="nav-button";
+    nav.dataset.panel="marketingPanel";
+    nav.textContent="Marketing Dashboard";
+    navReference?.before(nav);
+
+    const dashboardGrid=doc.querySelector("#dashboardPanel .dashboard-grid");
+    const dashboardCard=doc.createElement("article");
+    dashboardCard.className="dashboard-card";
+    dashboardCard.innerHTML='<h3>Marketing Dashboard</h3><p>See attributed revenue, payment activity, and top acquisition sources.</p><button data-open-panel="marketingPanel">Open Marketing</button>';
+    dashboardGrid?.appendChild(dashboardCard);
+
+    const panel=doc.createElement("section");
+    panel.id="marketingPanel";
+    panel.className="panel";
+    panel.innerHTML=`
+      <div class="panel-heading"><h2>Marketing Dashboard</h2><p>Revenue attribution from converted quotes and recorded payments.</p></div>
+      <div class="marketing-toolbar card">
+        <label>Start date<input id="marketingStart" type="date"></label>
+        <label>End date<input id="marketingEnd" type="date"></label>
+        <label>Attribution model<select id="marketingModel"><option value="last_non_direct">Last non-direct</option><option value="first">First touch</option></select></label>
+        <button id="marketingRefresh" type="button">Refresh</button>
+      </div>
+      <div class="marketing-summary">
+        <div class="marketing-metric"><span>Attributed Revenue</span><strong id="marketingRevenue">$0.00</strong></div>
+        <div class="marketing-metric"><span>Payments</span><strong id="marketingPayments">0</strong></div>
+        <div class="marketing-metric"><span>Revenue Sources</span><strong id="marketingSources">0</strong></div>
+        <div class="marketing-metric"><span>Top Source</span><strong id="marketingTopSource">—</strong></div>
+      </div>
+      <div class="marketing-grid">
+        <div class="card"><h3>Revenue by source</h3><p id="marketingMessage" class="message" role="status" aria-live="polite"></p><div id="marketingTable"></div></div>
+        <div class="card"><h3>Source mix</h3><div id="marketingSourceList" class="marketing-source-list"></div></div>
+      </div>`;
+    doc.querySelector(".content")?.appendChild(panel);
+
+    const now=new Date();
+    const start=new Date(now.getFullYear(),now.getMonth()-2,1);
+    doc.getElementById("marketingStart").value=dateInputValue(start);
+    doc.getElementById("marketingEnd").value=dateInputValue(now);
+
+    function showPanel(){
+      doc.querySelectorAll(".panel").forEach(item=>item.classList.toggle("active",item.id==="marketingPanel"));
+      doc.querySelectorAll(".nav-button").forEach(item=>item.classList.toggle("active",item.dataset.panel==="marketingPanel"));
+    }
+    nav.addEventListener("click",showPanel);
+    dashboardCard.querySelector("button").addEventListener("click",showPanel);
+
+    async function refresh(){
+      const message=doc.getElementById("marketingMessage");
+      message.textContent="Loading marketing results…";
+      const {data,error}=await client.rpc("marketing_revenue_attribution",{
+        p_start:doc.getElementById("marketingStart").value,
+        p_end:doc.getElementById("marketingEnd").value,
+        p_model:doc.getElementById("marketingModel").value
+      });
+      if(error){message.textContent=`Unable to load marketing data: ${error.message}`;return;}
+      const rows=data||[];
+      const summary=summarize(rows);
+      doc.getElementById("marketingRevenue").textContent=currency(summary.revenue);
+      doc.getElementById("marketingPayments").textContent=String(summary.payments);
+      doc.getElementById("marketingSources").textContent=String(summary.sources.size);
+      doc.getElementById("marketingTopSource").textContent=summary.topSource;
+      message.textContent=rows.length?`Showing ${rows.length} attributed source${rows.length===1?"":"s"}.`:"No attributed revenue was recorded in this date range.";
+      doc.getElementById("marketingTable").innerHTML=rows.length?`<div class="quote-table-wrap"><table class="marketing-table"><thead><tr><th>Source</th><th>Medium</th><th>Campaign</th><th>Payments</th><th>Revenue</th></tr></thead><tbody>${rows.map(row=>`<tr><td>${escapeHtml(row.source||"unattributed")}</td><td>${escapeHtml(row.medium||"(none)")}</td><td>${escapeHtml(row.campaign||"—")}</td><td>${Number(row.payment_count||0)}</td><td>${currency(row.revenue)}</td></tr>`).join("")}</tbody></table></div>`:'<div class="marketing-empty">Revenue will appear here after an attributed quote becomes a paid invoice.</div>';
+      doc.getElementById("marketingSourceList").innerHTML=rows.length?rows.slice(0,8).map(row=>`<div class="marketing-source-item"><span>${escapeHtml(row.source||"unattributed")}</span><strong>${currency(row.revenue)}</strong></div>`).join(""):'<div class="marketing-empty">No source data yet.</div>';
+    }
+
+    doc.getElementById("marketingRefresh").addEventListener("click",refresh);
+    refresh();
+  }
+
+  const api={currency,dateInputValue,summarize,escapeHtml,createDashboard};
+  if(typeof module!=="undefined"&&module.exports) module.exports=api;
+  if(globalScope&&globalScope.document){
+    if(globalScope.document.readyState==="loading") globalScope.document.addEventListener("DOMContentLoaded",()=>createDashboard(globalScope));
+    else createDashboard(globalScope);
+  }
+})(typeof window!=="undefined"?window:globalThis);
