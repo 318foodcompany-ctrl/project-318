@@ -132,6 +132,7 @@
   function resetModal(prefill = {}) {
     form.reset();
     currentDetail = null;
+    setEditable(true);
     $("invoiceId").value = ""; $("invoiceVersion").value = "";
     $("invoiceCustomerId").value = prefill.customer_id || "";
     $("invoiceQuoteId").value = prefill.quote_id || "";

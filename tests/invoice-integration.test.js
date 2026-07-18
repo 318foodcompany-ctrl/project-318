@@ -22,6 +22,7 @@ for (const id of ["invoicesPanel", "invoiceModal", "invoiceForm", "invoicePaymen
 assert.ok(admin.indexOf("invoice-utils.js") < admin.indexOf("invoice-service.js"));
 assert.ok(admin.indexOf("invoice-service.js") < admin.indexOf("admin-invoices.js"));
 assert.ok(invoiceAdmin.includes("openFromQuote"));
+assert.ok(/function resetModal[\s\S]*?setEditable\(true\)/.test(invoiceAdmin), "new invoices restore editable fields after viewing an issued invoice");
 assert.ok(invoiceAdmin.includes("openFromBooking"));
 assert.ok(invoiceAdmin.includes("recordPayment"));
 assert.ok(invoiceAdmin.includes('setMessage($("paymentMessage"), "")'), "opening an invoice clears stale payment status messages");
