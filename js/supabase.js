@@ -1,8 +1,55 @@
-const SUPABASE_URL = 'https://qanetxmyoxpqnwsntmqz.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFhbmV0eG15b3hwcW53c250bXF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQxMzE5MDcsImV4cCI6MjA5OTcwNzkwN30.ichlxuWHLzMfImAEEs-kWZ2Rle-5R09xTKSLR6hEC0A';
+(function initializeSupabaseClient() {
+  const config = window.__APP_CONFIG__;
+  const configError = window.__APP_CONFIG_ERROR__;
+  const validUrl =
+    config &&
+    /^https:\/\/[a-z0-9]+\.supabase\.co\/?$/i.test(config.supabaseUrl || "");
+  const validAnonKey =
+    config &&
+    typeof config.supabaseAnonKey === "string" &&
+    config.supabaseAnonKey.trim().length > 0;
 
-const supabaseClient = window.supabase
-  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-  : null;
+  function showConfigurationError(message) {
+    window.supabaseClient = null;
+    window.supabaseConfigError = message;
+    console.error(message);
 
-window.supabaseClient = supabaseClient;
+    const render = () => {
+      if (document.getElementById("appConfigurationError")) return;
+
+      const alert = document.createElement("div");
+      alert.id = "appConfigurationError";
+      alert.setAttribute("role", "alert");
+      alert.style.cssText =
+        "position:relative;z-index:10000;padding:14px 20px;background:#7f1d1d;color:#fff;text-align:center;font:700 15px/1.4 Arial,sans-serif";
+      alert.textContent = message;
+      document.body.prepend(alert);
+    };
+
+    if (document.body) render();
+    else document.addEventListener("DOMContentLoaded", render, { once: true });
+  }
+
+  if (configError || !validUrl || !validAnonKey) {
+    showConfigurationError(
+      configError ||
+        "Website configuration is missing or invalid. Please contact 318 Food Co."
+    );
+    return;
+  }
+
+  if (!window.supabase || typeof window.supabase.createClient !== "function") {
+    showConfigurationError(
+      "Website services could not be loaded. Please refresh and try again."
+    );
+    return;
+  }
+
+  const supabaseClient = window.supabase.createClient(
+    config.supabaseUrl,
+    config.supabaseAnonKey
+  );
+
+  window.supabaseClient = supabaseClient;
+  window.supabaseConfigError = null;
+})();
