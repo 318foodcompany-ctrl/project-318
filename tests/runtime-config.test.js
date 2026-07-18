@@ -109,6 +109,7 @@ test("browser initializer uses runtime configuration and exposes the client", ()
 
   assert.deepEqual(calls, [{ key: PUBLIC_TEST_KEY, url: STAGING_URL }]);
   assert.equal(window.supabaseClient.url, STAGING_URL);
+  assert.equal(window.SUPABASE_URL, STAGING_URL);
   assert.equal(window.supabaseConfigError, null);
 });
 

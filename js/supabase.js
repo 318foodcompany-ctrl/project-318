@@ -50,6 +50,9 @@
     config.supabaseAnonKey
   );
 
+  // Preserve the public URL global used by the existing image loaders while
+  // sourcing it from the deployment-specific runtime configuration.
+  window.SUPABASE_URL = config.supabaseUrl;
   window.supabaseClient = supabaseClient;
   window.supabaseConfigError = null;
 })();
