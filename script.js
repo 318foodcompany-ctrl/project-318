@@ -34,6 +34,9 @@
     });
   }
 
+  ensureScript('js/public-performance.js', 'project318-performance-script', () => Boolean(window.Project318Performance))
+    .catch((error) => console.error('Website performance tools could not be loaded:', error));
+
   ensureStylesheet('css/accessibility.css', 'project318-accessibility-styles');
   ensureScript('js/accessibility.js', 'project318-accessibility-script', () => Boolean(window.Project318Accessibility))
     .catch((error) => console.error('Website accessibility tools could not be loaded:', error));
