@@ -218,6 +218,7 @@
         <p id="quoteNoteSaveState" class="quote-save-state" role="status" aria-live="polite"></p>
       </div>
       ${quote.customer_id ? `<div class="quote-booking-action"><button id="quoteOpenCustomerButton" class="crm-secondary-button" type="button">Open Customer Record</button></div>` : ""}
+      ${quote.customer_id ? `<div class="quote-booking-action"><button id="quoteCreateInvoiceButton" class="crm-secondary-button" type="button">Create Invoice</button><p>Create or open the accounting invoice linked to this quote.</p></div>` : ""}
       ${canCreateBooking ? `<div class="quote-booking-action"><button id="quoteCreateBookingButton" class="save-button" type="button">Create Booking</button><p>Create a linked calendar booking using this quote’s customer and event details.</p></div>` : ""}`;
 
     quoteDetailModal.hidden = false;
@@ -247,6 +248,17 @@
         }
         const closed = await closeQuote();
         if (closed) window.bookingCalendar.openFromQuote(quote);
+      });
+    }
+    const createInvoiceButton = document.getElementById("quoteCreateInvoiceButton");
+    if (createInvoiceButton) {
+      createInvoiceButton.addEventListener("click", async () => {
+        if (!window.invoiceManager) {
+          setNoteSaveState("Invoice management is still loading. Try again in a moment.", true);
+          return;
+        }
+        const closed = await closeQuote();
+        if (closed) window.invoiceManager.openFromQuote(quote);
       });
     }
   }

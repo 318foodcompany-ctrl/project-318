@@ -16,6 +16,10 @@ const client = {
 };
 
 const window = {
+  __APP_CONFIG__: {
+    supabaseUrl: "https://owsxnyxkgzplvrxaijop.supabase.co",
+    supabaseAnonKey: "public-anon-test-key"
+  },
   crmUtils: {
     validateCustomer() {
       return "";
