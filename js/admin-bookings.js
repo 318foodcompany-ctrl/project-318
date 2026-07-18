@@ -17,6 +17,7 @@
   const conflictWarning = document.getElementById("bookingConflictWarning");
   const saveButton = document.getElementById("bookingSaveButton");
   const deleteButton = document.getElementById("bookingDeleteButton");
+  const createInvoiceButton = document.getElementById("bookingCreateInvoiceButton");
   const customerSearch = document.getElementById("bookingCustomerSearch");
   const customerMatches = document.getElementById("bookingCustomerMatches");
   const statuses = ["Pending", "Confirmed", "Completed", "Cancelled"];
@@ -305,6 +306,7 @@
       ? "Review the details imported from the quote before saving."
       : "Add the customer and event details below.";
     deleteButton.hidden = true;
+    createInvoiceButton.hidden = true;
     Object.entries({
       quoteId: prefill.quote_id,
       customerId: prefill.customer_id,
@@ -336,6 +338,7 @@
     modalTitle.textContent = booking.event_title;
     modalDescription.textContent = `Created ${formatDate(new Date(booking.created_at), { month: "short", day: "numeric", year: "numeric" })}`;
     deleteButton.hidden = false;
+    createInvoiceButton.hidden = !booking.customer_id;
     fields.id.value = booking.id;
     fields.quoteId.value = booking.quote_id || "";
     fields.customerId.value = booking.customer_id || "";
@@ -676,6 +679,15 @@
   document.getElementById("bookingCancelButton").addEventListener("click", closeModal);
   modalClose.addEventListener("click", closeModal);
   deleteButton.addEventListener("click", deleteBooking);
+  createInvoiceButton.addEventListener("click", () => {
+    const booking = bookings.find((item) => String(item.id) === String(fields.id.value));
+    if (!booking || !window.invoiceManager) {
+      setFormMessage("Invoice management is still loading. Try again in a moment.", true);
+      return;
+    }
+    closeModal();
+    window.invoiceManager.openFromBooking(booking);
+  });
   modal.addEventListener("click", (event) => {
     if (event.target === modal) closeModal();
   });
@@ -696,7 +708,7 @@
     }
   });
 
-  window.bookingCalendar = { openFromQuote, refresh: loadBookings };
+  window.bookingCalendar = { openFromQuote, openBooking, refresh: loadBookings };
   document.dispatchEvent(new CustomEvent("booking-calendar-ready"));
   loadingPromise = loadBookings().catch(() => null);
 })();

@@ -568,6 +568,24 @@ begin
 end;
 $$;
 
+create or replace function public.invoicing_summary()
+returns table(total_invoiced numeric,total_paid numeric,outstanding_balance numeric,overdue_count bigint,draft_count bigint)
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+begin
+  if not public.crm_is_admin() then raise exception 'Administrator access required' using errcode='42501'; end if;
+  return query select
+    coalesce(sum(i.total_amount) filter(where i.lifecycle_status<>'void'),0),
+    coalesce(sum(i.paid_amount) filter(where i.lifecycle_status<>'void'),0),
+    coalesce(sum(i.balance_due) filter(where i.lifecycle_status<>'void'),0),
+    count(*) filter(where public.invoicing_effective_status(i)='overdue'),
+    count(*) filter(where i.lifecycle_status='draft')
+  from public.invoices i;
+end;
+$$;
+
 alter table public.invoice_number_sequences enable row level security;
 alter table public.invoices enable row level security;
 alter table public.invoice_line_items enable row level security;
@@ -594,6 +612,7 @@ revoke all on function public.invoicing_record_payment(uuid,numeric,date,text,te
 revoke all on function public.invoicing_reverse_payment(uuid,text) from public,anon;
 revoke all on function public.invoicing_dashboard(text,text,boolean,text,integer,integer) from public,anon;
 revoke all on function public.invoicing_customer_summary(uuid) from public,anon;
+revoke all on function public.invoicing_summary() from public,anon;
 
 grant execute on function public.invoicing_create_invoice(uuid,bigint,bigint,date,numeric,numeric,numeric,text,text,text,jsonb) to authenticated;
 grant execute on function public.invoicing_update_draft(uuid,integer,date,numeric,numeric,numeric,text,text,text,jsonb) to authenticated;
@@ -603,6 +622,7 @@ grant execute on function public.invoicing_record_payment(uuid,numeric,date,text
 grant execute on function public.invoicing_reverse_payment(uuid,text) to authenticated;
 grant execute on function public.invoicing_dashboard(text,text,boolean,text,integer,integer) to authenticated;
 grant execute on function public.invoicing_customer_summary(uuid) to authenticated;
+grant execute on function public.invoicing_summary() to authenticated;
 
 comment on table public.invoices is 'Private production invoices with server-authoritative totals.';
 comment on table public.invoice_line_items is 'Invoice charges editable only through administrator RPCs.';

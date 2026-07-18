@@ -91,7 +91,19 @@
     modalBody.innerHTML = `<div class="crm-loading">Loading customer details…</div>`;
     try {
       const detail = await window.crmService.getCustomerDetail(id);
-      renderDetail(detail);
+      let financial = { invoices: [], summary: { total_invoiced: 0, total_paid: 0, outstanding_balance: 0, overdue_count: 0, last_payment_date: null } };
+      if (window.invoiceService) {
+        try {
+          const [invoices, summary] = await Promise.all([
+            window.invoiceService.customerInvoices(id),
+            window.invoiceService.customerSummary(id)
+          ]);
+          financial = { invoices, summary };
+        } catch (invoiceError) {
+          console.warn("Customer invoicing details are unavailable:", invoiceError.message);
+        }
+      }
+      renderDetail({ ...detail, financial });
       modalClose.focus();
     } catch (error) {
       console.error("Customer detail load failed:", error);
@@ -105,22 +117,29 @@
     modal.hidden = false;
     renderDetail({
       customer: { first_name: "", last_name: "", company: "", email: "", phone: "", secondary_phone: "", billing_address: "", event_address: "", notes: "", archived: false },
-      quotes: [], bookings: [], activities: []
+      quotes: [], bookings: [], activities: [], financial: { invoices: [], summary: { total_invoiced: 0, total_paid: 0, outstanding_balance: 0, overdue_count: 0, last_payment_date: null } }
     });
     document.getElementById("customerDetailTitle").textContent = "New Customer";
     modalClose.focus();
   }
 
-  function renderDetail({ customer, quotes, bookings, activities }) {
+  function renderDetail({ customer, quotes, bookings, activities, financial = { invoices: [], summary: {} } }) {
     const today = new Date().toISOString().slice(0, 10);
     const upcoming = bookings.filter((item) => item.event_date >= today && !["Cancelled", "Completed"].includes(item.status));
     const past = bookings.filter((item) => item.event_date < today || item.status === "Completed");
     const lastBooking = bookings.find((item) => item.status !== "Cancelled");
     const lastContact = activities[0]?.created_at;
-    modalBody.innerHTML = `<div class="crm-detail-heading"><div><h2 id="customerDetailTitle">${escapeHTML(displayName(customer))}</h2><p>${escapeHTML(customer.company || "Individual customer")}</p></div>${customer.archived ? '<span class="crm-archived-badge">Archived</span>' : ""}</div><div class="crm-stats"><div class="crm-stat"><span>Total Quotes</span><strong>${quotes.length}</strong></div><div class="crm-stat"><span>Total Bookings</span><strong>${bookings.length}</strong></div><div class="crm-stat"><span>Total Revenue</span><strong>—</strong></div><div class="crm-stat"><span>Last Contact</span><strong>${escapeHTML(dateText(lastContact))}</strong></div><div class="crm-stat"><span>Last Booking</span><strong>${escapeHTML(dateText(lastBooking?.event_date))}</strong></div></div><form id="customerDetailForm" data-original-archived="${customer.archived}" novalidate><div class="crm-form-grid"><label><span>First Name</span><input name="first_name" value="${escapeHTML(customer.first_name)}"></label><label><span>Last Name</span><input name="last_name" value="${escapeHTML(customer.last_name)}"></label><label><span>Company</span><input name="company" value="${escapeHTML(customer.company)}"></label><label><span>Email</span><input name="email" type="email" value="${escapeHTML(customer.email)}"></label><label><span>Phone</span><input name="phone" type="tel" value="${escapeHTML(customer.phone)}"></label><label><span>Secondary Phone</span><input name="secondary_phone" type="tel" value="${escapeHTML(customer.secondary_phone)}"></label><label class="wide"><span>Billing Address</span><textarea name="billing_address">${escapeHTML(customer.billing_address)}</textarea></label><label class="wide"><span>Event Address</span><textarea name="event_address">${escapeHTML(customer.event_address)}</textarea></label><label class="wide"><span>Internal Notes</span><textarea name="notes">${escapeHTML(customer.notes)}</textarea></label><label><span>Status</span><select name="archived"><option value="false" ${customer.archived ? "" : "selected"}>Active</option><option value="true" ${customer.archived ? "selected" : ""}>Archived</option></select></label></div><p id="customerFormMessage" class="crm-form-message" role="status" aria-live="polite"></p><div class="crm-detail-actions"><button class="save-button" type="submit">Save Customer</button><button id="customerCancelButton" class="crm-secondary-button" type="button">Close</button></div></form><div class="crm-two-column"><section class="crm-section"><h3>Upcoming Events</h3>${detailList(upcoming, "Bookings")}</section><section class="crm-section"><h3>Past Events</h3>${detailList(past, "Bookings")}</section><section class="crm-section"><h3>All Quotes</h3>${detailList(quotes, "Quotes")}</section><section class="crm-section"><h3>All Bookings</h3>${detailList(bookings, "Bookings")}</section></div><section class="crm-section"><h3>Activity Timeline</h3>${activities.length ? `<ol class="crm-timeline">${activities.map((activity) => `<li><strong>${escapeHTML(activity.title)}</strong>${activity.details ? `<span>${escapeHTML(activity.details)}</span>` : ""}<small>${escapeHTML(dateText(activity.created_at, true))}</small></li>`).join("")}</ol>` : '<div class="crm-empty">No activity recorded yet.</div>'}</section>`;
+    const invoiceList = financial.invoices.length ? `<div class="crm-list">${financial.invoices.map((invoice) => `<div class="crm-list-item"><button class="crm-customer-button" type="button" data-customer-invoice="${escapeHTML(invoice.id)}">${escapeHTML(invoice.invoice_number || "Draft Invoice")}</button><span>${escapeHTML(window.invoiceUtils ? window.invoiceUtils.effectiveLabel(invoice.lifecycle_status) : invoice.lifecycle_status)}</span><small>${escapeHTML(currency(invoice.total_amount))} · Balance ${escapeHTML(currency(invoice.balance_due))}</small></div>`).join("")}</div>` : '<div class="crm-empty">No invoices found.</div>';
+    modalBody.innerHTML = `<div class="crm-detail-heading"><div><h2 id="customerDetailTitle">${escapeHTML(displayName(customer))}</h2><p>${escapeHTML(customer.company || "Individual customer")}</p></div>${customer.archived ? '<span class="crm-archived-badge">Archived</span>' : ""}</div><div class="crm-stats"><div class="crm-stat"><span>Total Quotes</span><strong>${quotes.length}</strong></div><div class="crm-stat"><span>Total Bookings</span><strong>${bookings.length}</strong></div><div class="crm-stat"><span>Total Invoiced</span><strong>${escapeHTML(currency(financial.summary.total_invoiced || 0))}</strong></div><div class="crm-stat"><span>Total Paid</span><strong>${escapeHTML(currency(financial.summary.total_paid || 0))}</strong></div><div class="crm-stat"><span>Outstanding</span><strong>${escapeHTML(currency(financial.summary.outstanding_balance || 0))}</strong></div><div class="crm-stat"><span>Last Contact</span><strong>${escapeHTML(dateText(lastContact))}</strong></div><div class="crm-stat"><span>Last Booking</span><strong>${escapeHTML(dateText(lastBooking?.event_date))}</strong></div></div><form id="customerDetailForm" data-original-archived="${customer.archived}" novalidate><div class="crm-form-grid"><label><span>First Name</span><input name="first_name" value="${escapeHTML(customer.first_name)}"></label><label><span>Last Name</span><input name="last_name" value="${escapeHTML(customer.last_name)}"></label><label><span>Company</span><input name="company" value="${escapeHTML(customer.company)}"></label><label><span>Email</span><input name="email" type="email" value="${escapeHTML(customer.email)}"></label><label><span>Phone</span><input name="phone" type="tel" value="${escapeHTML(customer.phone)}"></label><label><span>Secondary Phone</span><input name="secondary_phone" type="tel" value="${escapeHTML(customer.secondary_phone)}"></label><label class="wide"><span>Billing Address</span><textarea name="billing_address">${escapeHTML(customer.billing_address)}</textarea></label><label class="wide"><span>Event Address</span><textarea name="event_address">${escapeHTML(customer.event_address)}</textarea></label><label class="wide"><span>Internal Notes</span><textarea name="notes">${escapeHTML(customer.notes)}</textarea></label><label><span>Status</span><select name="archived"><option value="false" ${customer.archived ? "" : "selected"}>Active</option><option value="true" ${customer.archived ? "selected" : ""}>Archived</option></select></label></div><p id="customerFormMessage" class="crm-form-message" role="status" aria-live="polite"></p><div class="crm-detail-actions"><button class="save-button" type="submit">Save Customer</button><button id="customerCancelButton" class="crm-secondary-button" type="button">Close</button></div></form><div class="crm-two-column"><section class="crm-section"><h3>Upcoming Events</h3>${detailList(upcoming, "Bookings")}</section><section class="crm-section"><h3>Past Events</h3>${detailList(past, "Bookings")}</section><section class="crm-section"><h3>All Quotes</h3>${detailList(quotes, "Quotes")}</section><section class="crm-section"><h3>All Bookings</h3>${detailList(bookings, "Bookings")}</section><section class="crm-section"><h3>Invoices & Payments</h3>${invoiceList}</section></div><section class="crm-section"><h3>Activity Timeline</h3>${activities.length ? `<ol class="crm-timeline">${activities.map((activity) => `<li><strong>${escapeHTML(activity.title)}</strong>${activity.details ? `<span>${escapeHTML(activity.details)}</span>` : ""}<small>${escapeHTML(dateText(activity.created_at, true))}</small></li>`).join("")}</ol>` : '<div class="crm-empty">No activity recorded yet.</div>'}</section>`;
     const form = document.getElementById("customerDetailForm");
     form.addEventListener("submit", saveCustomer);
     document.getElementById("customerCancelButton").addEventListener("click", closeModal);
+    modalBody.querySelectorAll("[data-customer-invoice]").forEach((button) => button.addEventListener("click", () => {
+      if (!window.invoiceManager) return;
+      closeModal();
+      showPanel("invoicesPanel");
+      window.invoiceManager.openInvoice(button.dataset.customerInvoice);
+    }));
   }
 
   async function saveCustomer(event) {

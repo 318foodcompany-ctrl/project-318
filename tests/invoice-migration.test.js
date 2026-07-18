@@ -18,6 +18,7 @@ for (const required of [
   "invoicing_record_payment",
   "invoicing_reverse_payment",
   "invoicing_customer_summary",
+  "invoicing_summary",
   "public.crm_is_admin()",
   "revoke all on public.invoice_number_sequences,public.invoices,public.invoice_line_items,public.payments from anon"
 ]) assert.ok(migration.includes(required), `migration contains ${required}`);

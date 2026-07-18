@@ -101,15 +101,32 @@
     return data || [];
   }
 
+  async function findBySource({ quoteId = null, bookingId = null } = {}) {
+    let query = client().from("invoices").select("id,lifecycle_status").neq("lifecycle_status", "void");
+    if (bookingId) query = query.eq("booking_id", bookingId);
+    else if (quoteId) query = query.eq("quote_id", quoteId);
+    else return null;
+    const { data, error } = await query.limit(1);
+    if (error) throw error;
+    return data?.[0] || null;
+  }
+
+  async function summary() {
+    const data = await rpc("invoicing_summary", {});
+    return data?.[0] || { total_invoiced: 0, total_paid: 0, outstanding_balance: 0, overdue_count: 0, draft_count: 0 };
+  }
+
   window.invoiceService = {
     createInvoice,
     customerInvoices,
     customerSummary,
     dashboard,
+    findBySource,
     getInvoice,
     issueInvoice,
     recordPayment,
     reversePayment,
+    summary,
     updateDraft,
     voidInvoice
   };

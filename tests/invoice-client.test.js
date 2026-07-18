@@ -12,6 +12,7 @@ for (const rpc of [
   "invoicing_record_payment",
   "invoicing_reverse_payment",
   "invoicing_customer_summary"
+  ,"invoicing_summary"
 ]) assert.ok(service.includes(rpc), `service calls ${rpc}`);
 
 assert.ok(service.includes('.from("invoice_line_items")'));

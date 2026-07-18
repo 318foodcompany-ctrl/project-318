@@ -10,6 +10,7 @@ revoke execute on function public.invoicing_record_payment(uuid,numeric,date,tex
 revoke execute on function public.invoicing_reverse_payment(uuid,text) from authenticated;
 revoke execute on function public.invoicing_dashboard(text,text,boolean,text,integer,integer) from authenticated;
 revoke execute on function public.invoicing_customer_summary(uuid) from authenticated;
+revoke execute on function public.invoicing_summary() from authenticated;
 
 drop policy if exists "Invoice administrators can read invoices" on public.invoices;
 drop policy if exists "Invoice administrators can read line items" on public.invoice_line_items;
