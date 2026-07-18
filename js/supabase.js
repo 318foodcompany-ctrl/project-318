@@ -62,11 +62,33 @@
     /\/admin\.html$/i.test(window.location.pathname || "") &&
     !document.querySelector('script[data-admin-marketing]');
 
+  function loadAdminScript(src, attribute) {
+    return new Promise((resolve, reject) => {
+      const existing = document.querySelector(`script[${attribute}]`);
+      if (existing) {
+        if (existing.dataset.loaded === "true") resolve(true);
+        else {
+          existing.addEventListener("load", () => resolve(true), { once: true });
+          existing.addEventListener("error", reject, { once: true });
+        }
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = src;
+      script.defer = true;
+      script.setAttribute(attribute, "");
+      script.addEventListener("load", () => {
+        script.dataset.loaded = "true";
+        resolve(true);
+      }, { once: true });
+      script.addEventListener("error", reject, { once: true });
+      document.head.appendChild(script);
+    });
+  }
+
   if (canLoadAdminDashboard) {
-    const script = document.createElement("script");
-    script.src = "js/admin-marketing.js";
-    script.defer = true;
-    script.dataset.adminMarketing = "";
-    document.head.appendChild(script);
+    loadAdminScript("js/admin-marketing.js", "data-admin-marketing")
+      .then(() => loadAdminScript("js/admin-marketing-spend.js", "data-admin-marketing-spend"))
+      .catch((error) => console.error("Marketing dashboard tools could not be loaded:", error));
   }
 })();
