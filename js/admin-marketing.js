@@ -25,6 +25,18 @@
     return String(value??"").replace(/[&<>"']/g,character=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[character]));
   }
 
+  function providerStatus(config={}){
+    return {
+      ga4:{configured:/^G-[A-Z0-9]{6,20}$/.test(String(config.ga4MeasurementId||"").toUpperCase()),label:"Google Analytics 4"},
+      meta:{configured:/^[0-9]{5,30}$/.test(String(config.metaPixelId||"")),label:"Meta Pixel"}
+    };
+  }
+
+  function statusMarkup(label,configured,detail){
+    const state=configured?"Connected":"Needs setup";
+    return `<div class="marketing-setup-item"><div><strong>${escapeHtml(label)}</strong><span>${escapeHtml(detail)}</span></div><em class="marketing-status ${configured?"ready":"pending"}">${state}</em></div>`;
+  }
+
   function createDashboard(win){
     const doc=win.document;
     const client=win.supabaseClient;
@@ -45,14 +57,23 @@
     const dashboardGrid=doc.querySelector("#dashboardPanel .dashboard-grid");
     const dashboardCard=doc.createElement("article");
     dashboardCard.className="dashboard-card";
-    dashboardCard.innerHTML='<h3>Marketing Dashboard</h3><p>See attributed revenue, payment activity, and top acquisition sources.</p><button data-open-panel="marketingPanel">Open Marketing</button>';
+    dashboardCard.innerHTML='<h3>Marketing Dashboard</h3><p>See attributed revenue, provider setup, and conversion tracking readiness.</p><button data-open-panel="marketingPanel">Open Marketing</button>';
     dashboardGrid?.appendChild(dashboardCard);
 
     const panel=doc.createElement("section");
     panel.id="marketingPanel";
     panel.className="panel";
     panel.innerHTML=`
-      <div class="panel-heading"><h2>Marketing Dashboard</h2><p>Revenue attribution from converted quotes and recorded payments.</p></div>
+      <div class="panel-heading"><h2>Marketing Dashboard</h2><p>Revenue attribution, provider setup, and conversion tracking health.</p></div>
+      <div class="marketing-setup-grid">
+        <div class="card"><div class="marketing-card-heading"><div><h3>Provider setup</h3><p>Public tracking IDs are read from your deployment settings.</p></div><button id="marketingCheckSetup" type="button">Check setup</button></div><div id="marketingSetupList" class="marketing-setup-list"></div></div>
+        <div class="card"><h3>Conversion tracking</h3><div class="marketing-conversion-list">
+          <div><strong>Quote submitted</strong><span>GA4 event + Meta Lead</span></div>
+          <div><strong>Phone click</strong><span>GA4 event + Meta Contact</span></div>
+          <div><strong>Email click</strong><span>GA4 event + Meta Contact</span></div>
+          <div><strong>Page view</strong><span>Consent-aware on both providers</span></div>
+        </div><p class="marketing-note">No customer names, emails, phone numbers, notes, or form values are sent to advertising providers.</p></div>
+      </div>
       <div class="marketing-toolbar card">
         <label>Start date<input id="marketingStart" type="date"></label>
         <label>End date<input id="marketingEnd" type="date"></label>
@@ -83,6 +104,15 @@
     nav.addEventListener("click",showPanel);
     dashboardCard.querySelector("button").addEventListener("click",showPanel);
 
+    async function checkSetup(){
+      const target=doc.getElementById("marketingSetupList");
+      const statuses=providerStatus(win.__APP_CONFIG__||{});
+      target.innerHTML=statusMarkup(statuses.ga4.label,statuses.ga4.configured,statuses.ga4.configured?"Measurement ID detected":"Add PUBLIC_GA4_MEASUREMENT_ID in Vercel")+
+        statusMarkup(statuses.meta.label,statuses.meta.configured,statuses.meta.configured?"Pixel ID detected":"Add PUBLIC_META_PIXEL_ID in Vercel")+
+        statusMarkup("Consent controls",true,"Analytics and advertising are denied until the visitor chooses")+
+        statusMarkup("First-party attribution",true,"Quote-to-payment revenue attribution is installed");
+    }
+
     async function refresh(){
       const message=doc.getElementById("marketingMessage");
       message.textContent="Loading marketing results…";
@@ -103,11 +133,13 @@
       doc.getElementById("marketingSourceList").innerHTML=rows.length?rows.slice(0,8).map(row=>`<div class="marketing-source-item"><span>${escapeHtml(row.source||"unattributed")}</span><strong>${currency(row.revenue)}</strong></div>`).join(""):'<div class="marketing-empty">No source data yet.</div>';
     }
 
+    doc.getElementById("marketingCheckSetup").addEventListener("click",checkSetup);
     doc.getElementById("marketingRefresh").addEventListener("click",refresh);
+    checkSetup();
     refresh();
   }
 
-  const api={currency,dateInputValue,summarize,escapeHtml,createDashboard};
+  const api={currency,dateInputValue,summarize,escapeHtml,providerStatus,statusMarkup,createDashboard};
   if(typeof module!=="undefined"&&module.exports) module.exports=api;
   if(globalScope&&globalScope.document){
     if(globalScope.document.readyState==="loading") globalScope.document.addEventListener("DOMContentLoaded",()=>createDashboard(globalScope));
