@@ -1,6 +1,12 @@
 (function () {
+  const blockedTestContent = /^(?:318\s*food\s*co\.?\s*)?test(?:ing)?$/i;
+
   function isSafeContentLink(value) {
     return /^(?:https?:\/\/|mailto:|tel:|#|[a-z0-9._/-]+\.html(?:#[a-z0-9_-]+)?$)/i.test(value);
+  }
+
+  function isPublishableContent(value) {
+    return typeof value === "string" && value.trim() && !blockedTestContent.test(value.trim());
   }
 
   async function loadHomepageContent() {
@@ -22,7 +28,7 @@
 
     document.querySelectorAll("[data-content]").forEach((element) => {
       const value = content[element.dataset.content];
-      if (typeof value === "string" && value.trim()) element.textContent = value;
+      if (isPublishableContent(value)) element.textContent = value.trim();
     });
 
     document.querySelectorAll("[data-content-link]").forEach((element) => {
