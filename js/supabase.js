@@ -50,8 +50,6 @@
     config.supabaseAnonKey
   );
 
-  // Preserve the public URL global used by the existing image loaders while
-  // sourcing it from the deployment-specific runtime configuration.
   window.SUPABASE_URL = config.supabaseUrl;
   window.supabaseClient = supabaseClient;
   window.supabaseConfigError = null;
@@ -89,6 +87,7 @@
   if (canLoadAdminDashboard) {
     loadAdminScript("js/admin-marketing.js", "data-admin-marketing")
       .then(() => loadAdminScript("js/admin-marketing-spend.js", "data-admin-marketing-spend"))
+      .then(() => loadAdminScript("js/admin-campaign-links.js", "data-admin-campaign-links"))
       .catch((error) => console.error("Marketing dashboard tools could not be loaded:", error));
   }
 })();
