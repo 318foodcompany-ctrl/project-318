@@ -22,6 +22,7 @@
   ensureStylesheet('css/consent-manager.css', 'project318-consent-styles');
   ensureScript('js/consent-manager.js', 'project318-consent-script', () => Boolean(window.Project318Consent));
   ensureScript('js/analytics-events.js', 'project318-analytics-events-script', () => Boolean(window.Project318Analytics));
+  ensureScript('js/ga4-provider.js', 'project318-ga4-provider-script', () => Boolean(window.Project318GA4));
 })();
 
 const menuBtn = document.querySelector('.menu-btn');
