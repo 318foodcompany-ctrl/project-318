@@ -56,7 +56,13 @@
   window.supabaseClient = supabaseClient;
   window.supabaseConfigError = null;
 
-  if (/\/admin\.html$/i.test(window.location.pathname) && !document.querySelector('script[data-admin-marketing]')) {
+  const canLoadAdminDashboard =
+    typeof document !== "undefined" &&
+    window.location &&
+    /\/admin\.html$/i.test(window.location.pathname || "") &&
+    !document.querySelector('script[data-admin-marketing]');
+
+  if (canLoadAdminDashboard) {
     const script = document.createElement("script");
     script.src = "js/admin-marketing.js";
     script.defer = true;
