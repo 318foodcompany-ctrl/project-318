@@ -149,22 +149,32 @@
   async function saveStatus(id, status, control) {
     if (control) control.disabled = true;
     setMessage("Saving quote status…");
-    const { error } = await supabaseClient.from("leads").update({ status }).eq("id", id);
-    if (control) control.disabled = false;
+    try {
+      if (!window.quoteStatusService) {
+        throw new Error("Quote status service is unavailable.");
+      }
 
-    if (error) {
+      const updatedQuote = await window.quoteStatusService.update(
+        supabaseClient,
+        id,
+        status
+      );
+      const quote = quotes.find(
+        (item) => String(item.id) === String(updatedQuote.id)
+      );
+      if (quote) quote.status = updatedQuote.status;
+      updateSummary();
+      renderQuotes();
+      setMessage("Quote status saved.");
+      return true;
+    } catch (error) {
       console.error("Quote status save failed:", error);
       setMessage(`Status save failed: ${error.message}`, true);
       renderQuotes();
       return false;
+    } finally {
+      if (control) control.disabled = false;
     }
-
-    const quote = quotes.find((item) => String(item.id) === String(id));
-    if (quote) quote.status = status;
-    updateSummary();
-    renderQuotes();
-    setMessage("Quote status saved.");
-    return true;
   }
 
   function detailItem(label, value) {
@@ -207,6 +217,7 @@
         <textarea id="quoteInternalNotes" placeholder="Add private follow-up notes for this quote…">${escapeHTML(internalNotesValue)}</textarea>
         <p id="quoteNoteSaveState" class="quote-save-state" role="status" aria-live="polite"></p>
       </div>
+      ${quote.customer_id ? `<div class="quote-booking-action"><button id="quoteOpenCustomerButton" class="crm-secondary-button" type="button">Open Customer Record</button></div>` : ""}
       ${canCreateBooking ? `<div class="quote-booking-action"><button id="quoteCreateBookingButton" class="save-button" type="button">Create Booking</button><p>Create a linked calendar booking using this quote’s customer and event details.</p></div>` : ""}`;
 
     quoteDetailModal.hidden = false;
@@ -217,6 +228,16 @@
     });
     internalNotes.addEventListener("input", () => scheduleNoteSave(internalNotes.value));
     internalNotes.addEventListener("blur", () => flushInternalNotes());
+    const openCustomerButton = document.getElementById("quoteOpenCustomerButton");
+    if (openCustomerButton) {
+      openCustomerButton.addEventListener("click", async () => {
+        const closed = await closeQuote();
+        if (closed && window.customerCRM) {
+          showPanel("customersPanel");
+          window.customerCRM.openCustomer(quote.customer_id);
+        }
+      });
+    }
     const createBookingButton = document.getElementById("quoteCreateBookingButton");
     if (createBookingButton) {
       createBookingButton.addEventListener("click", async () => {

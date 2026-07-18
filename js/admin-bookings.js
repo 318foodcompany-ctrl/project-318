@@ -17,11 +17,14 @@
   const conflictWarning = document.getElementById("bookingConflictWarning");
   const saveButton = document.getElementById("bookingSaveButton");
   const deleteButton = document.getElementById("bookingDeleteButton");
+  const customerSearch = document.getElementById("bookingCustomerSearch");
+  const customerMatches = document.getElementById("bookingCustomerMatches");
   const statuses = ["Pending", "Confirmed", "Completed", "Cancelled"];
   const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const fields = {
     id: document.getElementById("bookingId"),
     quoteId: document.getElementById("bookingQuoteId"),
+    customerId: document.getElementById("bookingCustomerId"),
     customerName: document.getElementById("bookingCustomerName"),
     companyName: document.getElementById("bookingCompanyName"),
     email: document.getElementById("bookingEmail"),
@@ -47,6 +50,7 @@
   let deleteResetTimer;
   let conflictApprovalSignature = "";
   let previousFocus = null;
+  let customerSearchTimer;
 
   if (!panel || !calendar || !form) return;
   if (!window.bookingTimeUtils) {
@@ -281,6 +285,9 @@
     form.reset();
     fields.id.value = "";
     fields.quoteId.value = "";
+    fields.customerId.value = "";
+    customerSearch.value = "";
+    customerMatches.hidden = true;
     fields.eventDate.value = dateValue;
     fields.startTime.value = "11:00";
     fields.endTime.value = "13:00";
@@ -300,6 +307,7 @@
     deleteButton.hidden = true;
     Object.entries({
       quoteId: prefill.quote_id,
+      customerId: prefill.customer_id,
       customerName: prefill.customer_name,
       companyName: prefill.company_name,
       email: prefill.email,
@@ -330,6 +338,7 @@
     deleteButton.hidden = false;
     fields.id.value = booking.id;
     fields.quoteId.value = booking.quote_id || "";
+    fields.customerId.value = booking.customer_id || "";
     fields.customerName.value = booking.customer_name || "";
     fields.companyName.value = booking.company_name || "";
     fields.email.value = booking.email || "";
@@ -363,6 +372,7 @@
       venue_name: fields.venueName.value.trim(),
       venue_address: fields.venueAddress.value.trim(),
       quote_id: fields.quoteId.value === "" ? null : Number(fields.quoteId.value),
+      customer_id: fields.customerId.value || null,
       quote_amount: fields.quoteAmount.value === "" ? null : Number(fields.quoteAmount.value),
       status: fields.status.value,
       internal_notes: fields.internalNotes.value.trim()
@@ -436,25 +446,40 @@
     saving = true;
     saveButton.disabled = true;
     setFormMessage("Saving booking…");
-    const query = currentId
-      ? supabaseClient.from("bookings").update(payload).eq("id", currentId).select().single()
-      : supabaseClient.from("bookings").insert([payload]).select().single();
-    const { data, error } = await query;
-    saving = false;
-    saveButton.disabled = false;
-
-    if (error) {
+    try {
+      if (!payload.customer_id) {
+        if (!window.crmService || !window.crmUtils) throw new Error("Customer matching is unavailable.");
+        const name = window.crmUtils.splitName(payload.customer_name);
+        payload.customer_id = await window.crmService.findOrCreateCustomer({
+          first_name: name.firstName,
+          last_name: name.lastName,
+          company: payload.company_name,
+          email: payload.email,
+          phone: payload.phone,
+          event_address: payload.venue_address,
+          billing_address: ""
+        });
+        fields.customerId.value = payload.customer_id;
+      }
+      const query = currentId
+        ? supabaseClient.from("bookings").update(payload).eq("id", currentId).select().single()
+        : supabaseClient.from("bookings").insert([payload]).select().single();
+      const { data, error } = await query;
+      if (error) throw error;
+      if (currentId) {
+        const index = bookings.findIndex((booking) => String(booking.id) === String(currentId));
+        if (index >= 0) bookings[index] = data;
+      } else {
+        bookings.push(data);
+      }
+    } catch (error) {
       console.error("Booking save failed:", error);
       const duplicateQuote = error.code === "23505" && String(error.message || "").includes("quote");
       setFormMessage(duplicateQuote ? "A booking already exists for this quote." : `Save failed: ${error.message}`, true);
       return;
-    }
-
-    if (currentId) {
-      const index = bookings.findIndex((booking) => String(booking.id) === String(currentId));
-      if (index >= 0) bookings[index] = data;
-    } else {
-      bookings.push(data);
+    } finally {
+      saving = false;
+      saveButton.disabled = false;
     }
     populateFilters();
     renderSummary();
@@ -518,6 +543,7 @@
     const customerOrCompany = quote.company || quote.name || "Customer";
     newBooking({
       quote_id: quote.id,
+      customer_id: quote.customer_id || "",
       customer_name: quote.name || "",
       company_name: quote.company || "",
       email: quote.email || "",
@@ -560,6 +586,50 @@
     return loadingPromise;
   }
 
+  function renderCustomerMatches(matches) {
+    if (!matches.length) {
+      customerMatches.innerHTML = `<div class="crm-empty">No matching customer. Saving will create one.</div>`;
+      customerMatches.hidden = false;
+      customerSearch.setAttribute("aria-expanded", "true");
+      return;
+    }
+    customerMatches.innerHTML = matches.map((customer) => `<button class="crm-match-button" type="button" data-booking-customer="${escapeHTML(customer.id)}"><strong>${escapeHTML(window.crmUtils.displayName(customer))}</strong><small>${escapeHTML([customer.company, customer.email, customer.phone].filter(Boolean).join(" / "))}</small></button>`).join("");
+    customerMatches.hidden = false;
+    customerSearch.setAttribute("aria-expanded", "true");
+    customerMatches.querySelectorAll("[data-booking-customer]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const customer = matches.find((item) => item.id === button.dataset.bookingCustomer);
+        if (!customer) return;
+        fields.customerId.value = customer.id;
+        fields.customerName.value = window.crmUtils.displayName(customer);
+        fields.companyName.value = customer.company || "";
+        fields.email.value = customer.email || "";
+        fields.phone.value = customer.phone || "";
+        if (!fields.venueAddress.value) fields.venueAddress.value = customer.event_address || "";
+        customerSearch.value = window.crmUtils.displayName(customer);
+        customerMatches.hidden = true;
+        customerSearch.setAttribute("aria-expanded", "false");
+        setFormMessage("Existing customer selected.");
+      });
+    });
+  }
+
+  async function searchForCustomers() {
+    const term = customerSearch.value.trim();
+    fields.customerId.value = "";
+    if (term.length < 2) {
+      customerMatches.hidden = true;
+      customerSearch.setAttribute("aria-expanded", "false");
+      return;
+    }
+    try {
+      renderCustomerMatches(await window.crmService.searchCustomers(term));
+    } catch (error) {
+      console.error("Customer search failed:", error);
+      setFormMessage(`Customer search failed: ${error.message}`, true);
+    }
+  }
+
   fields.status.innerHTML = statuses.map((status) => `<option value="${status}">${status}</option>`).join("");
   document.getElementById("newBookingButton").addEventListener("click", () => newBooking());
   document.getElementById("bookingPrevious").addEventListener("click", () => {
@@ -591,6 +661,16 @@
     eventTypeFilter.value = "";
     monthFilter.value = "";
     renderCalendar();
+  });
+  customerSearch.addEventListener("input", () => {
+    clearTimeout(customerSearchTimer);
+    customerSearchTimer = setTimeout(searchForCustomers, 250);
+  });
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest(".crm-customer-picker")) {
+      customerMatches.hidden = true;
+      customerSearch.setAttribute("aria-expanded", "false");
+    }
   });
   form.addEventListener("submit", saveBooking);
   document.getElementById("bookingCancelButton").addEventListener("click", closeModal);

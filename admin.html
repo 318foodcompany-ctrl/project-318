@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>318 Website Manager</title>
   <link rel="stylesheet" href="booking-calendar.css">
+  <link rel="stylesheet" href="crm.css">
 <style>
     :root {
   --red: #e21b23;
@@ -564,6 +565,10 @@
           Booking Calendar
         </button>
 
+        <button class="nav-button" data-panel="customersPanel">
+          Customers
+        </button>
+
         <button id="logoutButton" class="logout-button">
           Log Out
         </button>
@@ -635,6 +640,12 @@
                 <h3>Booking Calendar</h3>
                 <p>Schedule and manage confirmed catering events.</p>
                 <button data-open-panel="bookingsPanel">Open Calendar</button>
+              </article>
+
+              <article class="dashboard-card">
+                <h3>Customers</h3>
+                <p>Search customer records, history, quotes, bookings, and activity.</p>
+                <button data-open-panel="customersPanel">Open CRM</button>
               </article>
 
               <article class="dashboard-card">
@@ -862,7 +873,9 @@
                 <form id="bookingForm" novalidate>
                   <input id="bookingId" type="hidden">
                   <input id="bookingQuoteId" type="hidden">
+                  <input id="bookingCustomerId" type="hidden">
                   <div class="booking-form-grid">
+                    <label class="wide crm-customer-picker"><span>Find existing customer</span><input id="bookingCustomerSearch" type="search" autocomplete="off" placeholder="Search name, company, email, or phone" aria-controls="bookingCustomerMatches" aria-expanded="false"><div id="bookingCustomerMatches" class="crm-match-list" hidden></div></label>
                     <label>Customer name *<input id="bookingCustomerName" name="customer_name" required></label>
                     <label>Company name<input id="bookingCompanyName" name="company_name"></label>
                     <label>Email<input id="bookingEmail" name="email" type="email"></label>
@@ -891,11 +904,28 @@
               </div>
             </div>
           </section>
+
+          <section id="customersPanel" class="panel">
+            <div class="crm-panel-heading"><div><h2>Customers</h2><p>Manage customer relationships, history, and upcoming events.</p></div><button id="newCustomerButton" class="save-button" type="button">New Customer</button></div>
+            <div class="card">
+              <div class="crm-toolbar">
+                <input id="customerSearch" type="search" placeholder="Search name, company, phone, email, address, quote, or booking date" aria-label="Search customers">
+                <select id="customerArchiveFilter" aria-label="Show active or archived customers"><option value="active">Active Customers</option><option value="archived">Archived Customers</option></select>
+                <select id="customerSort" aria-label="Sort customers"><option value="activity_desc">Recent Activity</option><option value="activity_asc">Oldest Activity</option><option value="name_asc">Name A–Z</option><option value="name_desc">Name Z–A</option><option value="company_asc">Company A–Z</option></select>
+                <select id="customerPageSize" aria-label="Customers per page"><option value="10">10 per page</option><option value="20" selected>20 per page</option><option value="50">50 per page</option></select>
+              </div>
+              <p id="customerManagerMessage" class="message" role="status" aria-live="polite"></p>
+              <div id="customerTableWrap" class="crm-table-wrap"></div>
+              <div class="crm-pagination"><button id="customerPreviousPage" class="crm-secondary-button" type="button">Previous</button><span id="customerPageText">Page 1</span><button id="customerNextPage" class="crm-secondary-button" type="button">Next</button></div>
+            </div>
+            <div id="customerDetailModal" class="crm-modal" hidden><div class="crm-modal-card" role="dialog" aria-modal="true" aria-labelledby="customerDetailTitle"><button id="customerDetailClose" class="crm-modal-close" type="button" aria-label="Close customer details">×</button><div id="customerDetailBody"></div></div></div>
+          </section>
         </div>
       </main>
     </div>
   </div>
 
+  <div id="crmToastRegion" class="crm-toast-region" aria-live="polite"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase.js"></script>
 
@@ -970,6 +1000,10 @@
   <script src="js/admin-photos.js"></script>
   <script src="js/admin-menu.js"></script>
   <script src="js/admin-settings.js"></script>
+  <script src="js/crm-utils.js"></script>
+  <script src="js/crm-service.js"></script>
+  <script src="js/admin-customers.js"></script>
+  <script src="js/quote-status.js"></script>
   <script src="js/admin-quotes.js"></script>
   <script src="js/booking-time.js"></script>
   <script src="js/admin-bookings.js"></script>
