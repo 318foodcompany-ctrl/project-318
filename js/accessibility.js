@@ -65,6 +65,7 @@
 
   const api={pageName,isCurrentLink,createAccessibility};
   if(typeof module!=="undefined"&&module.exports) module.exports=api;
+  if(globalScope) globalScope.Project318Accessibility=api;
   if(globalScope&&globalScope.document){
     if(globalScope.document.readyState==="loading") globalScope.document.addEventListener("DOMContentLoaded",()=>createAccessibility(globalScope));
     else createAccessibility(globalScope);
