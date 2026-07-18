@@ -25,6 +25,8 @@ const totals = utils.estimate([
 ], 20, 10);
 assert.deepEqual(JSON.parse(JSON.stringify(totals)), { subtotal: 120, discount: 20, tax: 8.33, total: 108.33 });
 assert.equal(utils.effectiveLabel("partially_paid"), "Partially Paid");
+assert.equal(utils.effectiveStatus({ lifecycle_status: "sent", balance_due: 80, paid_amount: 20, due_date: "2026-08-01" }, "2026-07-18"), "partially_paid");
+assert.equal(utils.effectiveStatus({ lifecycle_status: "sent", balance_due: 100, paid_amount: 0, due_date: "2026-07-17" }, "2026-07-18"), "overdue");
 
 const reversibleIds = utils.reversiblePaymentIds([
   { id: "payment-open", entry_type: "payment", reverses_payment_id: null },

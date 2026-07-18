@@ -34,6 +34,7 @@ assert.ok(invoiceAdmin.includes("bookingId: booking.id, quoteId: booking.quote_i
 assert.ok(quotes.includes("window.invoiceManager.openFromQuote"));
 assert.ok(bookings.includes("window.invoiceManager.openFromBooking"));
 assert.ok(customers.includes("window.invoiceService.customerSummary"));
+assert.ok(customers.includes("window.invoiceUtils.effectiveStatus(invoice)"), "CRM uses the same effective invoice status as the invoice dashboard");
 assert.ok(customers.includes("Customer invoicing details are unavailable"), "CRM degrades safely before migration deployment");
 
 console.log("invoice integration tests passed");

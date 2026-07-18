@@ -71,6 +71,15 @@
       .replace(/\b\w/g, (character) => character.toUpperCase());
   }
 
+  function effectiveStatus(invoice, today = new Date().toISOString().slice(0, 10)) {
+    if (invoice.lifecycle_status === "void") return "void";
+    if (invoice.lifecycle_status === "draft") return "draft";
+    if (Number(invoice.balance_due) === 0) return "paid";
+    if (invoice.due_date && invoice.due_date < today) return "overdue";
+    if (Number(invoice.paid_amount) > 0) return "partially_paid";
+    return "sent";
+  }
+
   function reversiblePaymentIds(payments) {
     const reversedIds = new Set((payments || []).map((payment) => payment.reverses_payment_id).filter(Boolean));
     return new Set((payments || [])
@@ -83,6 +92,7 @@
     dateText,
     decimal,
     effectiveLabel,
+    effectiveStatus,
     estimate,
     money,
     normalizeLines,
