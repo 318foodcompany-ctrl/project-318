@@ -1,0 +1,30 @@
+name: Project 318 Production Smoke Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: Production or preview URL to test
+        required: false
+        default: https://www.318foodco.com
+
+permissions:
+  contents: read
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Run public launch smoke tests
+        env:
+          PROJECT318_BASE_URL: ${{ inputs.base_url }}
+        run: node scripts/public-launch-smoke.js
