@@ -7,6 +7,8 @@ begin;
 drop trigger if exists crm_quote_activity on public.leads;
 drop trigger if exists crm_booking_activity on public.bookings;
 drop trigger if exists crm_customer_activity on public.customers;
+drop trigger if exists crm_protect_lead_customer_link on public.leads;
+drop trigger if exists crm_protect_booking_customer_link on public.bookings;
 
 alter table public.leads drop constraint if exists leads_customer_id_fkey;
 alter table public.bookings drop constraint if exists bookings_customer_id_fkey;
@@ -22,6 +24,7 @@ drop function if exists public.crm_record_quote_activity();
 drop function if exists public.crm_record_booking_activity();
 drop function if exists public.crm_record_customer_activity();
 drop function if exists public.crm_set_updated_at();
+drop function if exists public.crm_enforce_admin_customer_link();
 
 drop table if exists public.customer_activities;
 drop table if exists public.customers;

@@ -95,6 +95,31 @@ create table if not exists public.customer_activities (
   created_at timestamptz not null default now()
 );
 
+create or replace function public.crm_enforce_admin_customer_link()
+returns trigger
+language plpgsql
+security invoker
+set search_path = public
+as $$
+begin
+  if current_user not in ('postgres', 'service_role') and not public.crm_is_admin() then
+    raise exception 'Administrator access required to link CRM customers' using errcode = '42501';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists crm_protect_lead_customer_link on public.leads;
+create trigger crm_protect_lead_customer_link
+before insert or update of customer_id on public.leads
+for each row when (new.customer_id is not null)
+execute function public.crm_enforce_admin_customer_link();
+
+drop trigger if exists crm_protect_booking_customer_link on public.bookings;
+create trigger crm_protect_booking_customer_link
+before insert or update of customer_id on public.bookings
+for each row execute function public.crm_enforce_admin_customer_link();
+
 create index if not exists customer_activities_customer_created_idx
   on public.customer_activities (customer_id, created_at desc);
 create index if not exists customer_activities_quote_idx
@@ -334,7 +359,9 @@ language plpgsql
 security definer
 set search_path = public, pg_temp
 as $$
-declare v_search text := lower(btrim(coalesce(p_search, '')));
+declare
+  v_search text := lower(btrim(coalesce(p_search, '')));
+  v_phone_search text := regexp_replace(coalesce(p_search, ''), '[^0-9]', '', 'g');
 begin
   if not public.crm_is_admin() then
     raise exception 'Administrator access required' using errcode = '42501';
@@ -347,7 +374,7 @@ begin
     or lower(c.first_name || ' ' || c.last_name) like '%' || v_search || '%'
     or lower(c.company) like '%' || v_search || '%'
     or lower(c.email) like '%' || v_search || '%'
-    or regexp_replace(c.phone, '[^0-9]', '', 'g') like '%' || regexp_replace(v_search, '[^0-9]', '', 'g') || '%'
+    or (length(v_phone_search) > 0 and regexp_replace(c.phone, '[^0-9]', '', 'g') like '%' || v_phone_search || '%')
   )
   order by lower(c.last_name), lower(c.first_name), lower(c.company)
   limit least(greatest(coalesce(p_limit, 8), 1), 25);
@@ -366,7 +393,7 @@ create or replace function public.crm_customer_dashboard(
 )
 returns table (
   id uuid, first_name text, last_name text, company text, email text, phone text,
-  archived boolean, quote_count bigint, booking_count bigint,
+  archived boolean, created_at timestamptz, quote_count bigint, booking_count bigint,
   last_activity timestamptz, total_count bigint
 )
 language plpgsql
@@ -375,6 +402,7 @@ set search_path = public, pg_temp
 as $$
 declare
   v_search text := lower(btrim(coalesce(p_search, '')));
+  v_phone_search text := regexp_replace(coalesce(p_search, ''), '[^0-9]', '', 'g');
   v_page integer := greatest(coalesce(p_page, 1), 1);
   v_size integer := least(greatest(coalesce(p_page_size, 20), 5), 100);
 begin
@@ -384,7 +412,7 @@ begin
   return query
   with customer_rows as (
     select
-      c.id, c.first_name, c.last_name, c.company, c.email, c.phone, c.archived,
+      c.id, c.first_name, c.last_name, c.company, c.email, c.phone, c.archived, c.created_at,
       (select count(*) from public.leads q where q.customer_id = c.id) as quote_count,
       (select count(*) from public.bookings b where b.customer_id = c.id) as booking_count,
       (select max(a.created_at) from public.customer_activities a where a.customer_id = c.id) as last_activity
@@ -395,7 +423,7 @@ begin
         or lower(c.first_name || ' ' || c.last_name) like '%' || v_search || '%'
         or lower(c.company) like '%' || v_search || '%'
         or lower(c.email) like '%' || v_search || '%'
-        or regexp_replace(c.phone, '[^0-9]', '', 'g') like '%' || regexp_replace(v_search, '[^0-9]', '', 'g') || '%'
+        or (length(v_phone_search) > 0 and regexp_replace(c.phone, '[^0-9]', '', 'g') like '%' || v_phone_search || '%')
         or lower(c.event_address) like '%' || v_search || '%'
         or exists (select 1 from public.leads q where q.customer_id = c.id and q.id::text = v_search)
         or exists (select 1 from public.bookings b where b.customer_id = c.id and b.event_date::text = v_search)
@@ -407,7 +435,7 @@ begin
     case when p_sort = 'name_asc' then lower(r.first_name || ' ' || r.last_name) end asc,
     case when p_sort = 'name_desc' then lower(r.first_name || ' ' || r.last_name) end desc,
     case when p_sort = 'company_asc' then lower(r.company) end asc,
-    case when p_sort = 'created_desc' then r.id::text end desc,
+    case when p_sort = 'created_desc' then r.created_at end desc,
     case when p_sort = 'activity_asc' then r.last_activity end asc nulls first,
     r.last_activity desc nulls last,
     lower(r.last_name), lower(r.first_name)
@@ -431,7 +459,7 @@ begin
     values(new.customer_id, 'quote_created', 'Quote #' || new.id || ' created', new.id);
   elsif new.status is distinct from old.status then
     insert into public.customer_activities(customer_id, activity_type, title, details, quote_id)
-    values(new.customer_id, 'quote_status_changed', 'Quote #' || new.id || ' status changed', coalesce(old.status, '') || ' → ' || coalesce(new.status, ''), new.id);
+    values(new.customer_id, 'quote_status_changed', 'Quote #' || new.id || ' status changed', coalesce(old.status, '') || ' -> ' || coalesce(new.status, ''), new.id);
   elsif new.internal_notes is distinct from old.internal_notes then
     insert into public.customer_activities(customer_id, activity_type, title, quote_id)
     values(new.customer_id, 'internal_note_added', 'Internal quote note updated', new.id);
@@ -453,24 +481,27 @@ language plpgsql
 security definer
 set search_path = public, pg_temp
 as $$
-declare v_row public.bookings;
 begin
-  v_row := case when tg_op = 'DELETE' then old else new end;
-  if v_row.customer_id is null then return v_row; end if;
+  if tg_op = 'DELETE' then
+    if old.customer_id is not null then
+      insert into public.customer_activities(customer_id, activity_type, title, details)
+      values(old.customer_id, 'booking_deleted', 'Booking deleted: ' || old.event_title, old.event_date::text);
+    end if;
+    return old;
+  end if;
+
+  if new.customer_id is null then return new; end if;
   if tg_op = 'INSERT' then
     insert into public.customer_activities(customer_id, activity_type, title, booking_id)
-    values(v_row.customer_id, 'booking_created', 'Booking created: ' || v_row.event_title, v_row.id);
-  elsif tg_op = 'DELETE' then
-    insert into public.customer_activities(customer_id, activity_type, title, details)
-    values(v_row.customer_id, 'booking_deleted', 'Booking deleted: ' || v_row.event_title, v_row.event_date::text);
+    values(new.customer_id, 'booking_created', 'Booking created: ' || new.event_title, new.id);
   elsif new.status is distinct from old.status then
     insert into public.customer_activities(customer_id, activity_type, title, details, booking_id)
-    values(v_row.customer_id, 'booking_status_changed', 'Booking status changed: ' || v_row.event_title, coalesce(old.status, '') || ' → ' || coalesce(new.status, ''), v_row.id);
+    values(new.customer_id, 'booking_status_changed', 'Booking status changed: ' || new.event_title, coalesce(old.status, '') || ' -> ' || coalesce(new.status, ''), new.id);
   else
     insert into public.customer_activities(customer_id, activity_type, title, booking_id)
-    values(v_row.customer_id, 'booking_updated', 'Booking updated: ' || v_row.event_title, v_row.id);
+    values(new.customer_id, 'booking_updated', 'Booking updated: ' || new.event_title, new.id);
   end if;
-  return v_row;
+  return new;
 end;
 $$;
 

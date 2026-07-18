@@ -207,6 +207,7 @@
         <textarea id="quoteInternalNotes" placeholder="Add private follow-up notes for this quote…">${escapeHTML(internalNotesValue)}</textarea>
         <p id="quoteNoteSaveState" class="quote-save-state" role="status" aria-live="polite"></p>
       </div>
+      ${quote.customer_id ? `<div class="quote-booking-action"><button id="quoteOpenCustomerButton" class="crm-secondary-button" type="button">Open Customer Record</button></div>` : ""}
       ${canCreateBooking ? `<div class="quote-booking-action"><button id="quoteCreateBookingButton" class="save-button" type="button">Create Booking</button><p>Create a linked calendar booking using this quote’s customer and event details.</p></div>` : ""}`;
 
     quoteDetailModal.hidden = false;
@@ -217,6 +218,16 @@
     });
     internalNotes.addEventListener("input", () => scheduleNoteSave(internalNotes.value));
     internalNotes.addEventListener("blur", () => flushInternalNotes());
+    const openCustomerButton = document.getElementById("quoteOpenCustomerButton");
+    if (openCustomerButton) {
+      openCustomerButton.addEventListener("click", async () => {
+        const closed = await closeQuote();
+        if (closed && window.customerCRM) {
+          showPanel("customersPanel");
+          window.customerCRM.openCustomer(quote.customer_id);
+        }
+      });
+    }
     const createBookingButton = document.getElementById("quoteCreateBookingButton");
     if (createBookingButton) {
       createBookingButton.addEventListener("click", async () => {
