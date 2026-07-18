@@ -10,8 +10,8 @@
     document.head.appendChild(link);
   }
 
-  function ensureScript(src, id) {
-    if (window.Project318Consent || document.getElementById(id)) return;
+  function ensureScript(src, id, readyCheck) {
+    if ((typeof readyCheck === 'function' && readyCheck()) || document.getElementById(id)) return;
     const script = document.createElement('script');
     script.id = id;
     script.src = src;
@@ -20,7 +20,8 @@
   }
 
   ensureStylesheet('css/consent-manager.css', 'project318-consent-styles');
-  ensureScript('js/consent-manager.js', 'project318-consent-script');
+  ensureScript('js/consent-manager.js', 'project318-consent-script', () => Boolean(window.Project318Consent));
+  ensureScript('js/analytics-events.js', 'project318-analytics-events-script', () => Boolean(window.Project318Analytics));
 })();
 
 const menuBtn = document.querySelector('.menu-btn');
