@@ -1,3 +1,28 @@
+(() => {
+  'use strict';
+
+  function ensureStylesheet(href, id) {
+    if (document.getElementById(id)) return;
+    const link = document.createElement('link');
+    link.id = id;
+    link.rel = 'stylesheet';
+    link.href = href;
+    document.head.appendChild(link);
+  }
+
+  function ensureScript(src, id) {
+    if (window.Project318Consent || document.getElementById(id)) return;
+    const script = document.createElement('script');
+    script.id = id;
+    script.src = src;
+    script.defer = true;
+    document.head.appendChild(script);
+  }
+
+  ensureStylesheet('css/consent-manager.css', 'project318-consent-styles');
+  ensureScript('js/consent-manager.js', 'project318-consent-script');
+})();
+
 const menuBtn = document.querySelector('.menu-btn');
 const links = document.querySelector('.links');
 

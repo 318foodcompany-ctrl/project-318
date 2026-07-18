@@ -7,6 +7,24 @@
   const LAST_TOUCH_KEY = "p318_marketing_last_non_direct_v1";
   const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
 
+  function loadConsentControls() {
+    if (!globalScope || !globalScope.document) return;
+    if (!globalScope.document.querySelector('link[data-318-consent-styles]')) {
+      const stylesheet = globalScope.document.createElement('link');
+      stylesheet.rel = 'stylesheet';
+      stylesheet.href = 'css/consent-manager.css';
+      stylesheet.dataset.consentStyles = '';
+      globalScope.document.head.appendChild(stylesheet);
+    }
+    if (!globalScope.document.querySelector('script[data-318-consent-script]')) {
+      const script = globalScope.document.createElement('script');
+      script.src = 'js/consent-manager.js';
+      script.defer = true;
+      script.dataset.consentScript = '';
+      globalScope.document.head.appendChild(script);
+    }
+  }
+
   function safeText(value, maximum) {
     return String(value || "").trim().slice(0, maximum);
   }
@@ -102,6 +120,7 @@
   const api = { classifyTouch, createId, initialize, isDirect, SESSION_TIMEOUT_MS };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (globalScope && globalScope.document && globalScope.location && globalScope.localStorage) {
+    loadConsentControls();
     const state = initialize({ storage: globalScope.localStorage, location: globalScope.location, referrer: globalScope.document.referrer, crypto: globalScope.crypto, now: new Date() });
     globalScope.Project318Attribution = { snapshot() { return JSON.parse(JSON.stringify(state)); } };
   }
