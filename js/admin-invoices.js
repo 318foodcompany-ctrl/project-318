@@ -239,6 +239,7 @@
       $("invoiceIssueButton").hidden = invoice.lifecycle_status !== "draft";
       $("invoiceVoidButton").hidden = invoice.lifecycle_status === "void";
       paymentSection.hidden = invoice.lifecycle_status !== "sent";
+      setMessage($("paymentMessage"), "");
       renderPayments(detail.payments);
       setMessage($("invoiceFormMessage"), "");
       modal.hidden = false;

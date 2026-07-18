@@ -24,6 +24,7 @@ assert.ok(admin.indexOf("invoice-service.js") < admin.indexOf("admin-invoices.js
 assert.ok(invoiceAdmin.includes("openFromQuote"));
 assert.ok(invoiceAdmin.includes("openFromBooking"));
 assert.ok(invoiceAdmin.includes("recordPayment"));
+assert.ok(invoiceAdmin.includes('setMessage($("paymentMessage"), "")'), "opening an invoice clears stale payment status messages");
 assert.ok(invoiceAdmin.includes("reversePayment"));
 assert.ok(invoiceAdmin.includes("confirmReasonAction"));
 assert.ok(!invoiceAdmin.includes("window.prompt"), "invoice accounting actions do not rely on native prompts");
