@@ -34,6 +34,10 @@
     });
   }
 
+  ensureStylesheet('css/accessibility.css', 'project318-accessibility-styles');
+  ensureScript('js/accessibility.js', 'project318-accessibility-script', () => Boolean(window.Project318Accessibility))
+    .catch((error) => console.error('Website accessibility tools could not be loaded:', error));
+
   ensureScript('js/technical-seo.js', 'project318-technical-seo-script', () => Boolean(window.Project318TechnicalSEO))
     .catch((error) => console.error('Website SEO metadata could not be loaded:', error));
 
