@@ -25,10 +25,28 @@ test("captures complete UTM attribution without storing the query string", () =>
 });
 
 test("classifies Google and Facebook click identifiers", () => {
-  const google = attribution.classifyTouch(location("?gclid=g-1"), "", new Date().toISOString());
+  const google = attribution.classifyTouch(location("?gclid=g-1&gbraid=gb-1&wbraid=wb-1"), "", new Date().toISOString());
   assert.deepEqual({ source: google.source, medium: google.medium }, { source: "google", medium: "cpc" });
+  assert.deepEqual({ gclid: google.gclid, gbraid: google.gbraid, wbraid: google.wbraid }, { gclid: "g-1", gbraid: "gb-1", wbraid: "wb-1" });
   const facebook = attribution.classifyTouch(location("?fbclid=f-1"), "", new Date().toISOString());
   assert.deepEqual({ source: facebook.source, medium: facebook.medium }, { source: "facebook", medium: "paid_social" });
+  assert.equal(facebook.fbclid, "f-1");
+});
+
+test("bounds oversized values and deterministically uses the first duplicated parameter", () => {
+  const touch = attribution.classifyTouch(location(`?utm_source=first&utm_source=second&utm_campaign=${"x".repeat(800)}&gclid=${"g".repeat(800)}`), "", new Date().toISOString());
+  assert.equal(touch.source, "first");
+  assert.equal(touch.campaign.length, 500);
+  assert.equal(touch.gclid.length, 500);
+});
+
+test("handles malformed encoded campaign parameters without throwing", () => {
+  const touch = attribution.classifyTouch(location("?utm_source=%E0%A4%A&utm_medium=cpc&utm_campaign=%"), "", new Date().toISOString());
+  assert.equal(touch.medium, "cpc");
+  assert.equal(typeof touch.source, "string");
+  assert.equal(typeof touch.campaign, "string");
+  assert.equal(touch.source.length <= 255, true);
+  assert.equal(touch.campaign.length <= 500, true);
 });
 
 test("classifies external referrers and ignores same-site referrers", () => {
