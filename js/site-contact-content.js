@@ -1,4 +1,9 @@
 (function () {
+  function isProductionContent(value) {
+    if (typeof value !== "string" || !value.trim()) return false;
+    return !/\b(?:test|testing|placeholder|lorem ipsum|sample text)\b/i.test(value);
+  }
+
   async function loadContactPageContent() {
     if (typeof supabaseClient === "undefined" || !supabaseClient) return;
 
@@ -15,7 +20,7 @@
     const content = Object.fromEntries((data || []).map((item) => [item.content_key, item.content_value]));
     document.querySelectorAll("[data-contact-content]").forEach((element) => {
       const value = content[element.dataset.contactContent];
-      if (typeof value === "string" && value.trim()) element.textContent = value;
+      if (isProductionContent(value)) element.textContent = value.trim();
     });
   }
 

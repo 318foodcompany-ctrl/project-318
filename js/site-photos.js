@@ -43,9 +43,6 @@ document.addEventListener('DOMContentLoaded', () => {
     replaceImageWhenAvailable(image, image.dataset.photoImage);
   });
 
-  const aboutImage = document.querySelector('.feature-photo:not([data-photo-image])');
-  replaceImageWhenAvailable(aboutImage, 'about.jpg');
-
   document.querySelectorAll('[data-gallery-image]').forEach((image, index) => {
     replaceImageWhenAvailable(image, `gallery${index + 1}.jpg`);
   });
