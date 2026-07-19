@@ -6,6 +6,21 @@
   <title>318 Food Co. | Catering Made Simple. Made Fresh.</title>
   <meta name="description" content="Fresh catering for office lunches, employee events, weddings and celebrations across Shreveport, Bossier City and Northwest Louisiana.">
   <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Preview pass: keep the real truck unchanged and make the hero less theatrical. */
+    .hero-cinematic{min-height:720px;background:#080808}
+    .hero-photo-layer{inset:0;background-image:url('assets/images/hero-food.jpg');background-position:64% center;background-size:cover;transform:none!important;filter:saturate(1.04) contrast(1.03)}
+    .hero-shade{background:linear-gradient(90deg,rgba(0,0,0,.92) 0%,rgba(0,0,0,.78) 35%,rgba(0,0,0,.2) 67%,rgba(0,0,0,.12) 100%),linear-gradient(0deg,rgba(0,0,0,.62),transparent 52%)}
+    .hero-glow,.ember-field,.hero-service-stack{display:none}
+    .hero-stage{grid-template-columns:minmax(0,650px) 1fr;align-items:center;padding-top:70px;padding-bottom:70px}
+    .hero-cinematic .display{font-size:clamp(3.6rem,6.2vw,6.7rem);line-height:.9;letter-spacing:-.055em}
+    .hero-cinematic .hero-copy{max-width:650px;padding:34px 0}
+    .hero-cinematic .script{color:#ff6259}
+    .hero-cinematic p{max-width:590px}
+    .truck-note{display:inline-flex;align-items:center;gap:9px;margin-top:22px;padding:9px 13px;border:1px solid rgba(255,255,255,.22);border-radius:999px;background:rgba(0,0,0,.34);font-size:.82rem;color:rgba(255,255,255,.82);backdrop-filter:blur(8px)}
+    @media(max-width:900px){.hero-stage{grid-template-columns:1fr}.hero-photo-layer{background-position:68% center}.hero-shade{background:linear-gradient(90deg,rgba(0,0,0,.9),rgba(0,0,0,.38)),linear-gradient(0deg,rgba(0,0,0,.76),transparent 48%)}}
+    @media(max-width:700px){.hero-cinematic{min-height:690px}.hero-photo-layer{background-position:72% center}.hero-cinematic .display{font-size:clamp(3.25rem,16vw,4.8rem)}.truck-note{display:none}}
+  </style>
 </head>
 <body class="cinematic-home">
   <header class="topbar">
@@ -24,11 +39,8 @@
   <main>
     <section class="hero hero-cinematic" data-cinematic-hero>
       <div class="hero-media" aria-hidden="true">
-        <div class="hero-photo-layer" data-depth="0.08"></div>
+        <div class="hero-photo-layer"></div>
         <div class="hero-shade"></div>
-        <div class="hero-glow hero-glow-one" data-depth="0.16"></div>
-        <div class="hero-glow hero-glow-two" data-depth="0.22"></div>
-        <div class="ember-field" data-embers></div>
       </div>
 
       <div class="wrap hero-stage">
@@ -37,23 +49,12 @@
           <h1 class="display" data-content="hero_heading">Real Food.<br>Real People.<br><span>Real Impact.</span></h1>
           <p data-content="hero_text">Office lunches, employee events, weddings and celebrations—delivered and set up across Shreveport, Bossier City and Northwest Louisiana.</p>
           <div class="actions">
-            <a class="btn btn-lift" href="quote-builder.html" data-content="hero_button" data-content-link="hero_button_link">▣ Get My Catering Quote</a>
+            <a class="btn btn-lift" href="quote-builder.html" data-content="hero_button" data-content-link="hero_button_link">Get My Catering Quote</a>
             <a class="btn alt btn-lift" href="catering.html" data-content="hero_secondary_button" data-content-link="hero_secondary_button_link">View Catering Menus</a>
           </div>
           <div class="minimum" data-content="minimum_order">★ Minimum order: 15 people</div>
+          <div class="truck-note">Featuring the real 318 Food Co. truck — no AI body or window redesign</div>
         </div>
-
-        <aside class="hero-service-stack" aria-label="Popular catering services" data-reveal>
-          <a class="floating-service-card" href="corporate.html" data-tilt-card>
-            <span>Corporate Catering</span><small>Office lunches and employee events</small>
-          </a>
-          <a class="floating-service-card" href="catering.html" data-tilt-card>
-            <span>Weddings & Celebrations</span><small>Flexible menus for memorable days</small>
-          </a>
-          <a class="floating-service-card" href="quote-builder.html" data-tilt-card>
-            <span>Food Truck Events</span><small>Our pizza truck is one catering option</small>
-          </a>
-        </aside>
       </div>
 
       <a class="scroll-cue" href="#catering-options" aria-label="Scroll to catering options">↓</a>
