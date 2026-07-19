@@ -7,30 +7,49 @@
   <meta name="description" content="Fresh catering for office lunches, employee events, weddings and celebrations across Shreveport, Bossier City and Northwest Louisiana.">
   <link rel="stylesheet" href="styles.css">
   <style>
-    .hero-rebuild{min-height:760px;position:relative;overflow:hidden;background:radial-gradient(circle at 75% 40%,rgba(170,24,18,.2),transparent 34%),linear-gradient(135deg,#050505 0%,#111 58%,#070707 100%);color:#fff;isolation:isolate}
-    .hero-rebuild:before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.98) 0%,rgba(0,0,0,.82) 38%,rgba(0,0,0,.24) 67%,rgba(0,0,0,.38) 100%);z-index:1}
-    .hero-rebuild .hero-stage{position:relative;z-index:4;min-height:760px;display:grid;grid-template-columns:minmax(0,590px) minmax(520px,1fr);align-items:center;gap:24px;padding:70px 0 86px}
-    .hero-rebuild .hero-copy{padding:0;max-width:590px;animation:copy-arrive .85s cubic-bezier(.2,.75,.2,1) both}
-    .hero-rebuild .display{font-size:clamp(3.8rem,6.5vw,7rem);line-height:.88;letter-spacing:-.06em;text-transform:uppercase;margin:12px 0 22px}
-    .hero-rebuild .display span{color:#d52b22}
-    .hero-rebuild .script{color:#ff655d}
-    .hero-rebuild p{font-size:clamp(1rem,1.5vw,1.25rem);max-width:570px;color:rgba(255,255,255,.82)}
-    .hero-truck-stage{position:relative;height:540px;align-self:end;pointer-events:none}
-    .truck-photo-shell{position:absolute;right:-9%;bottom:38px;width:min(860px,72vw);aspect-ratio:1.48/1;border-radius:32px;overflow:hidden;box-shadow:0 48px 110px rgba(0,0,0,.62);animation:truck-drive-in 1.25s cubic-bezier(.18,.82,.22,1) both}
-    .truck-photo-shell img{width:100%;height:100%;object-fit:cover;object-position:center 46%;filter:saturate(1.07) contrast(1.04) brightness(.92);transform:scale(1.01)}
-    .truck-photo-shell:before{content:'';position:absolute;inset:0;z-index:2;background:linear-gradient(90deg,rgba(0,0,0,.18),transparent 25%,transparent 78%,rgba(0,0,0,.12)),linear-gradient(0deg,rgba(0,0,0,.35),transparent 32%)}
-    .truck-photo-shell:after{content:'';position:absolute;inset:-2px;z-index:3;border:1px solid rgba(255,255,255,.14);border-radius:32px;box-shadow:inset 0 0 45px rgba(0,0,0,.28)}
-    .truck-underglow{position:absolute;z-index:-1;right:2%;bottom:18px;width:76%;height:92px;border-radius:50%;background:radial-gradient(ellipse,rgba(239,25,18,.92) 0%,rgba(207,21,17,.46) 34%,transparent 72%);filter:blur(20px);opacity:0;animation:glow-on .75s ease 1.1s forwards,glow-breathe 3.2s ease-in-out 1.85s infinite}
-    .truck-ground{position:absolute;right:0;bottom:15px;width:88%;height:52px;border-radius:50%;background:rgba(0,0,0,.68);filter:blur(19px);z-index:-2}
-    .truck-label{position:absolute;right:5%;bottom:4px;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.46)}
-    .minimum{display:inline-flex;margin-top:22px;padding:9px 13px;border:1px solid rgba(255,255,255,.2);border-radius:999px;background:rgba(0,0,0,.28);backdrop-filter:blur(8px)}
-    @keyframes truck-drive-in{0%{opacity:0;transform:translate3d(180px,18px,0) scale(.94)}68%{opacity:1;transform:translate3d(-8px,0,0) scale(1.008)}100%{opacity:1;transform:none}}
-    @keyframes glow-on{from{opacity:0;transform:scaleX(.7)}to{opacity:.9;transform:scaleX(1)}}
-    @keyframes glow-breathe{0%,100%{opacity:.68;transform:scaleX(.96)}50%{opacity:1;transform:scaleX(1.04)}}
-    @keyframes copy-arrive{from{opacity:0;transform:translate3d(-28px,18px,0)}to{opacity:1;transform:none}}
-    @media(max-width:1050px){.hero-rebuild .hero-stage{grid-template-columns:1fr;min-height:900px;align-content:center}.hero-truck-stage{height:390px}.truck-photo-shell{right:-7%;bottom:24px;width:min(850px,96vw)}.hero-rebuild:before{background:linear-gradient(180deg,rgba(0,0,0,.93) 0%,rgba(0,0,0,.66) 53%,rgba(0,0,0,.2) 100%)}}
-    @media(max-width:700px){.hero-rebuild{min-height:820px}.hero-rebuild .hero-stage{min-height:820px;padding:52px 0 70px;gap:10px}.hero-rebuild .display{font-size:clamp(3.15rem,15.5vw,4.65rem)}.hero-truck-stage{height:285px}.truck-photo-shell{right:-19%;bottom:18px;width:118vw;border-radius:22px}.truck-photo-shell:after{border-radius:22px}.truck-underglow{right:-8%;width:104%;bottom:5px;height:62px}.truck-label{display:none}}
-    @media(prefers-reduced-motion:reduce){.hero-rebuild .hero-copy,.truck-photo-shell,.truck-underglow{animation:none!important;opacity:1!important}}
+    .lux-hero{min-height:790px;position:relative;overflow:hidden;background:#050505;color:#fff;isolation:isolate}
+    .lux-hero:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 78% 18%,rgba(214,42,31,.28),transparent 27%),radial-gradient(circle at 58% 78%,rgba(255,149,68,.13),transparent 30%),linear-gradient(135deg,#050505 0%,#0d0d0f 48%,#150706 100%);z-index:-5}
+    .lux-grid{position:absolute;inset:0;z-index:-4;opacity:.28;background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);background-size:72px 72px;mask-image:linear-gradient(to bottom,black,transparent 88%)}
+    .lux-noise{position:absolute;inset:0;z-index:-3;opacity:.1;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.35'/%3E%3C/svg%3E")}
+    .lux-orb{position:absolute;border-radius:50%;filter:blur(8px);will-change:transform}
+    .lux-orb.one{width:390px;height:390px;right:5%;top:11%;background:radial-gradient(circle at 35% 35%,rgba(255,102,84,.68),rgba(173,16,10,.2) 58%,transparent 72%);animation:orb-float 8s ease-in-out infinite}
+    .lux-orb.two{width:210px;height:210px;right:34%;bottom:10%;background:radial-gradient(circle at 35% 35%,rgba(255,196,112,.5),rgba(213,45,24,.12) 62%,transparent 74%);animation:orb-float 10s ease-in-out -2s infinite reverse}
+    .lux-ring{position:absolute;right:7%;top:14%;width:470px;height:470px;border-radius:50%;border:1px solid rgba(255,255,255,.12);box-shadow:0 0 0 42px rgba(255,255,255,.025),0 0 0 84px rgba(255,255,255,.014);animation:ring-turn 22s linear infinite}
+    .lux-ring:before,.lux-ring:after{content:"";position:absolute;border-radius:50%;inset:14%;border:1px solid rgba(255,76,61,.2)}
+    .lux-ring:after{inset:32%;border-color:rgba(255,255,255,.11)}
+    .lux-stage{min-height:790px;display:grid;grid-template-columns:minmax(0,650px) minmax(340px,1fr);align-items:center;gap:58px;padding:84px 0 92px}
+    .lux-copy{position:relative;z-index:4;animation:lux-copy-in .9s cubic-bezier(.2,.75,.2,1) both}
+    .lux-copy .script{color:#ff6b60}
+    .lux-title{font-size:clamp(4.2rem,7.8vw,8.2rem);line-height:.84;letter-spacing:-.07em;text-transform:uppercase;margin:13px 0 25px;max-width:760px;text-wrap:balance}
+    .lux-title .outline{color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.72);text-shadow:none}
+    .lux-title .accent{color:#d52b22;text-shadow:0 0 34px rgba(213,43,34,.22)}
+    .lux-copy p{font-size:clamp(1.05rem,1.45vw,1.28rem);max-width:600px;color:rgba(255,255,255,.78)}
+    .lux-actions{display:flex;gap:14px;flex-wrap:wrap;margin-top:31px}
+    .lux-actions .btn{min-height:52px;padding:14px 23px}
+    .lux-actions .btn.alt{color:#fff;border-color:rgba(255,255,255,.55);background:rgba(255,255,255,.04);backdrop-filter:blur(12px)}
+    .lux-proof{display:flex;gap:26px;flex-wrap:wrap;margin-top:34px;padding-top:28px;border-top:1px solid rgba(255,255,255,.14)}
+    .lux-proof div{display:grid;gap:2px}.lux-proof strong{font-size:1.25rem}.lux-proof small{color:rgba(255,255,255,.5)}
+    .lux-showcase{position:relative;z-index:3;min-height:530px;display:grid;place-items:center;perspective:1000px}
+    .glass-card{position:absolute;border:1px solid rgba(255,255,255,.16);background:linear-gradient(145deg,rgba(255,255,255,.11),rgba(255,255,255,.035));backdrop-filter:blur(24px);box-shadow:0 34px 90px rgba(0,0,0,.46);border-radius:28px;color:#fff;overflow:hidden}
+    .glass-card.main{width:min(470px,92%);padding:32px;transform:rotateY(-8deg) rotateX(4deg);animation:card-float 6.5s ease-in-out infinite}
+    .glass-card.main:before{content:"";position:absolute;inset:0;background:linear-gradient(120deg,transparent 22%,rgba(255,255,255,.13) 44%,transparent 63%);transform:translateX(-120%);animation:shine 5s ease-in-out infinite}
+    .glass-card .eyebrow{font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:#ff7b70}
+    .glass-card h2{font-size:clamp(2.2rem,4vw,4.2rem);line-height:.92;letter-spacing:-.055em;margin:14px 0 18px}
+    .glass-card p{color:rgba(255,255,255,.68);margin:0 0 24px}
+    .service-pills{display:flex;flex-wrap:wrap;gap:9px}.service-pills span{padding:9px 12px;border-radius:999px;background:rgba(0,0,0,.27);border:1px solid rgba(255,255,255,.1);font-size:.82rem}
+    .glass-card.mini{padding:16px 18px;border-radius:20px;display:grid;gap:3px;animation:mini-float 7s ease-in-out infinite}
+    .glass-card.mini strong{font-size:1rem}.glass-card.mini small{color:rgba(255,255,255,.55)}
+    .glass-card.mini.a{right:0;top:11%;animation-delay:-1.5s}.glass-card.mini.b{left:-2%;bottom:8%;animation-delay:-3.2s}.glass-card.mini.c{right:3%;bottom:2%;animation-delay:-4.8s}
+    .scroll-cue{bottom:22px}
+    @keyframes lux-copy-in{from{opacity:0;transform:translate3d(-34px,20px,0)}to{opacity:1;transform:none}}
+    @keyframes orb-float{0%,100%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(-18px,22px,0) scale(1.05)}}
+    @keyframes ring-turn{to{transform:rotate(360deg)}}
+    @keyframes card-float{0%,100%{transform:rotateY(-8deg) rotateX(4deg) translateY(0)}50%{transform:rotateY(-5deg) rotateX(2deg) translateY(-16px)}}
+    @keyframes mini-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+    @keyframes shine{0%,55%{transform:translateX(-120%)}80%,100%{transform:translateX(140%)}}
+    @media(max-width:1000px){.lux-stage{grid-template-columns:1fr;min-height:980px;gap:20px;align-content:center}.lux-showcase{min-height:390px}.lux-ring{right:-10%;top:51%;width:420px;height:420px}.lux-orb.one{top:55%;right:2%}}
+    @media(max-width:700px){.lux-hero,.lux-stage{min-height:900px}.lux-stage{padding:62px 0 78px}.lux-title{font-size:clamp(3.5rem,17vw,5rem)}.lux-showcase{min-height:330px}.glass-card.main{width:96%;padding:24px}.glass-card.mini{display:none}.lux-ring{width:330px;height:330px;right:-28%;top:60%}.lux-orb.one{width:260px;height:260px;top:61%;right:-8%}.lux-proof{gap:18px}.lux-actions .btn{width:100%}}
+    @media(prefers-reduced-motion:reduce){.lux-copy,.lux-orb,.lux-ring,.glass-card{animation:none!important}}
   </style>
 </head>
 <body class="cinematic-home">
@@ -48,25 +67,29 @@
   </header>
 
   <main>
-    <section class="hero hero-rebuild" data-cinematic-hero>
-      <div class="wrap hero-stage">
-        <div class="hero-copy">
+    <section class="hero lux-hero" data-cinematic-hero>
+      <div class="lux-grid"></div><div class="lux-noise"></div><div class="lux-orb one" data-depth="0.16"></div><div class="lux-orb two" data-depth="0.22"></div><div class="lux-ring"></div>
+      <div class="wrap lux-stage">
+        <div class="lux-copy">
           <span class="script" data-content="hero_eyebrow">Catering that brings people together</span>
-          <h1 class="display" data-content="hero_heading">Real Food.<br>Real People.<br><span>Real Impact.</span></h1>
+          <h1 class="lux-title" data-content="hero_heading">Real Food.<br><span class="outline">Real People.</span><br><span class="accent">Real Impact.</span></h1>
           <p data-content="hero_text">Office lunches, employee events, weddings and celebrations—delivered and set up across Shreveport, Bossier City and Northwest Louisiana.</p>
-          <div class="actions">
+          <div class="lux-actions">
             <a class="btn btn-lift" href="quote-builder.html" data-content="hero_button" data-content-link="hero_button_link">Get My Catering Quote</a>
             <a class="btn alt btn-lift" href="catering.html" data-content="hero_secondary_button" data-content-link="hero_secondary_button_link">View Catering Menus</a>
           </div>
-          <div class="minimum" data-content="minimum_order">★ Minimum order: 15 people</div>
+          <div class="lux-proof"><div><strong>15+</strong><small>Guest minimum</small></div><div><strong>318</strong><small>Locally owned</small></div><div><strong>Fresh</strong><small>Made for your event</small></div></div>
         </div>
-        <div class="hero-truck-stage" aria-label="The real 318 Food Co. food truck">
-          <div class="truck-ground"></div>
-          <div class="truck-underglow"></div>
-          <div class="truck-photo-shell">
-            <img src="assets/images/truck-hero-real.jpg" alt="318 Food Co. food truck">
+        <div class="lux-showcase" aria-label="Catering services">
+          <div class="glass-card main" data-tilt-card>
+            <span class="eyebrow">Catering made simple</span>
+            <h2>One team.<br>Every occasion.</h2>
+            <p>Flexible menus, polished setup, and dependable service built around your event.</p>
+            <div class="service-pills"><span>Corporate</span><span>Weddings</span><span>Schools</span><span>Private Events</span><span>Food Truck</span></div>
           </div>
-          <div class="truck-label">The real 318 Food Co. truck</div>
+          <div class="glass-card mini a"><strong>Delivery & Setup</strong><small>Available for your event</small></div>
+          <div class="glass-card mini b"><strong>Built for Groups</strong><small>From 15 guests and up</small></div>
+          <div class="glass-card mini c"><strong>Local & Dependable</strong><small>Northwest Louisiana</small></div>
         </div>
       </div>
       <a class="scroll-cue" href="#catering-options" aria-label="Scroll to catering options">↓</a>
