@@ -41,13 +41,44 @@
     element.classList.toggle("error", error);
   }
 
-  function effectiveStatus(invoice) {
-    return utils.effectiveStatus(invoice);
+  function normalizeIdentity(value) {
+    return String(value || "").trim().replace(/\s+/g, " ").toLowerCase();
   }
 
-  function statusBadge(status) {
-    return `<span class="invoice-status status-${escapeHTML(status)}">${escapeHTML(utils.effectiveLabel(status))}</span>`;
+  function submittedContactName(quote) {
+    return String(quote.name || quote.company || "Submitted contact").trim();
   }
+
+  function buildQuoteInvoicePrefill(quote, customer) {
+    const selectedQuote = { ...quote };
+    const guests = Number(selectedQuote.guests || 0);
+    const amount = Number(selectedQuote.budget || 0);
+    const billingCustomer = window.crmUtils.displayName(customer);
+    const submittedContact = submittedContactName(selectedQuote);
+    return {
+      customer_id: selectedQuote.customer_id,
+      customer_name: billingCustomer,
+      quote_id: selectedQuote.id,
+      due_date: addDays(null, 14),
+      source_label: `Quote #${selectedQuote.id} · Submitted by ${submittedContact} · Billing customer: ${billingCustomer}`,
+      customer_notes: selectedQuote.notes || "",
+      line_items: [{
+        description: selectedQuote.menu || selectedQuote.event_type || "Catering services",
+        quantity: guests > 0 ? guests : 1,
+        unit_price: guests > 0 && amount > 0 ? amount / guests : amount,
+        taxable: true
+      }]
+    };
+  }
+
+  function quoteCustomerMismatch(quote, customer) {
+    const submitted = normalizeIdentity(submittedContactName(quote));
+    const billing = normalizeIdentity(window.crmUtils.displayName(customer));
+    return Boolean(submitted && billing && submitted !== billing);
+  }
+
+  function effectiveStatus(invoice) { return utils.effectiveStatus(invoice); }
+  function statusBadge(status) { return `<span class="invoice-status status-${escapeHTML(status)}">${escapeHTML(utils.effectiveLabel(status))}</span>`; }
 
   async function loadDashboard() {
     if (loading) return;
@@ -100,20 +131,8 @@
     row.querySelector(".invoice-line-remove").addEventListener("click", () => { row.remove(); renumberLines(); updateEstimate(); });
     row.querySelectorAll("input").forEach((input) => input.addEventListener("input", updateEstimate));
   }
-
-  function renumberLines() {
-    [...linesWrap.children].forEach((row, index) => { row.querySelector(".line-position").value = index + 1; });
-  }
-
-  function collectLines() {
-    return [...linesWrap.querySelectorAll(".invoice-line")].map((row) => ({
-      position: Number(row.querySelector(".line-position").value),
-      description: row.querySelector(".line-description").value,
-      quantity: row.querySelector(".line-quantity").value,
-      unit_price: row.querySelector(".line-price").value,
-      taxable: row.querySelector(".line-taxable").checked
-    }));
-  }
+  function renumberLines() { [...linesWrap.children].forEach((row, index) => { row.querySelector(".line-position").value = index + 1; }); }
+  function collectLines() { return [...linesWrap.querySelectorAll(".invoice-line")].map((row) => ({ position: Number(row.querySelector(".line-position").value), description: row.querySelector(".line-description").value, quantity: row.querySelector(".line-quantity").value, unit_price: row.querySelector(".line-price").value, taxable: row.querySelector(".line-taxable").checked })); }
 
   function updateEstimate() {
     const estimated = utils.estimate(collectLines(), $("invoiceDiscount").value, $("invoiceTaxRate").value);
@@ -125,9 +144,7 @@
   }
 
   function resetModal(prefill = {}) {
-    form.reset();
-    currentDetail = null;
-    setEditable(true);
+    form.reset(); currentDetail = null; setEditable(true);
     $("invoiceId").value = ""; $("invoiceVersion").value = "";
     $("invoiceCustomerId").value = prefill.customer_id || "";
     $("invoiceQuoteId").value = prefill.quote_id || "";
@@ -148,243 +165,94 @@
     $("invoiceModalStatus").textContent = "Draft";
     $("invoiceSaveButton").hidden = false; $("invoiceIssueButton").hidden = true; $("invoiceVoidButton").hidden = true;
     paymentSection.hidden = true;
-    setMessage($("invoiceFormMessage"), "");
+    setMessage($("invoiceFormMessage"), prefill.identity_notice || "", Boolean(prefill.identity_notice));
     $("invoicePaid").textContent = utils.currency(0);
     updateEstimate();
   }
 
   function openModal() { previousFocus = document.activeElement; modal.hidden = false; $("invoiceModalClose").focus(); }
   function closeModal() { closeReasonPrompt(); modal.hidden = true; customerMatches.hidden = true; currentDetail = null; if (previousFocus) previousFocus.focus(); }
-
-  function payload() {
-    return {
-      customer_id: $("invoiceCustomerId").value,
-      quote_id: $("invoiceQuoteId").value || null,
-      booking_id: $("invoiceBookingId").value || null,
-      due_date: $("invoiceDueDate").value || null,
-      discount_amount: utils.money($("invoiceDiscount").value),
-      tax_rate: utils.decimal($("invoiceTaxRate").value, 0),
-      required_deposit_amount: utils.money($("invoiceDepositRequired").value),
-      customer_notes: $("invoiceCustomerNotes").value.trim(),
-      internal_notes: $("invoiceInternalNotes").value.trim(),
-      terms: $("invoiceTerms").value.trim(),
-      line_items: collectLines()
-    };
-  }
-
-  function validate(data) {
-    if (!data.customer_id) return "Select an existing customer.";
-    const lineError = utils.validateLines(data.line_items, { required: true });
-    if (lineError) return lineError;
-    const estimate = utils.estimate(data.line_items, data.discount_amount, data.tax_rate);
-    if (data.discount_amount > estimate.subtotal) return "Discount cannot exceed the subtotal.";
-    if (data.required_deposit_amount > estimate.total) return "Required deposit cannot exceed the total.";
-    return "";
-  }
+  function payload() { return { customer_id: $("invoiceCustomerId").value, quote_id: $("invoiceQuoteId").value || null, booking_id: $("invoiceBookingId").value || null, due_date: $("invoiceDueDate").value || null, discount_amount: utils.money($("invoiceDiscount").value), tax_rate: utils.decimal($("invoiceTaxRate").value, 0), required_deposit_amount: utils.money($("invoiceDepositRequired").value), customer_notes: $("invoiceCustomerNotes").value.trim(), internal_notes: $("invoiceInternalNotes").value.trim(), terms: $("invoiceTerms").value.trim(), line_items: collectLines() }; }
+  function validate(data) { if (!data.customer_id) return "Select an existing customer."; const lineError = utils.validateLines(data.line_items, { required: true }); if (lineError) return lineError; const estimate = utils.estimate(data.line_items, data.discount_amount, data.tax_rate); if (data.discount_amount > estimate.subtotal) return "Discount cannot exceed the subtotal."; if (data.required_deposit_amount > estimate.total) return "Required deposit cannot exceed the total."; return ""; }
 
   async function saveDraft(event) {
-    if (event) event.preventDefault();
-    if (saving) return null;
-    const data = payload();
-    const validation = validate(data);
+    if (event) event.preventDefault(); if (saving) return null;
+    const data = payload(); const validation = validate(data);
     if (validation) { setMessage($("invoiceFormMessage"), validation, true); return null; }
     saving = true; $("invoiceSaveButton").disabled = true; setMessage($("invoiceFormMessage"), "Saving draft…");
     try {
-      const saved = $("invoiceId").value
-        ? await window.invoiceService.updateDraft($("invoiceId").value, Number($("invoiceVersion").value), data)
-        : await window.invoiceService.createInvoice(data);
-      await openInvoice(saved.id, { preserveFocus: true });
-      await loadDashboard();
-      setMessage($("invoiceFormMessage"), "Draft saved successfully.");
-      return saved;
-    } catch (error) {
-      console.error("Invoice draft save failed:", error);
-      setMessage($("invoiceFormMessage"), `Save failed: ${error.message}`, true);
-      return null;
-    } finally { saving = false; $("invoiceSaveButton").disabled = false; }
+      const saved = $("invoiceId").value ? await window.invoiceService.updateDraft($("invoiceId").value, Number($("invoiceVersion").value), data) : await window.invoiceService.createInvoice(data);
+      await openInvoice(saved.id, { preserveFocus: true }); await loadDashboard(); setMessage($("invoiceFormMessage"), "Draft saved successfully."); return saved;
+    } catch (error) { console.error("Invoice draft save failed:", error); setMessage($("invoiceFormMessage"), `Save failed: ${error.message}`, true); return null; }
+    finally { saving = false; $("invoiceSaveButton").disabled = false; }
   }
 
-  function setEditable(editable) {
-    form.querySelectorAll("input:not([type=hidden]),textarea").forEach((control) => { control.disabled = !editable; });
-    $("invoiceAddLine").hidden = !editable;
-    linesWrap.querySelectorAll("button").forEach((button) => { button.hidden = !editable; });
-    customerSearch.disabled = !editable;
-    $("invoiceSaveButton").hidden = !editable;
-  }
+  function setEditable(editable) { form.querySelectorAll("input:not([type=hidden]),textarea").forEach((control) => { control.disabled = !editable; }); $("invoiceAddLine").hidden = !editable; linesWrap.querySelectorAll("button").forEach((button) => { button.hidden = !editable; }); customerSearch.disabled = !editable; $("invoiceSaveButton").hidden = !editable; }
 
   async function openInvoice(id, { preserveFocus = false } = {}) {
     if (!preserveFocus) { previousFocus = document.activeElement; modal.hidden = false; }
     setMessage($("invoiceFormMessage"), "Loading invoice…");
     try {
-      const detail = await window.invoiceService.getInvoice(id);
-      currentDetail = detail;
-      const invoice = detail.invoice;
-      const customer = await window.crmService.getCustomer(invoice.customer_id);
-      $("invoiceId").value = invoice.id; $("invoiceVersion").value = invoice.version; $("invoiceCustomerId").value = invoice.customer_id;
-      $("invoiceQuoteId").value = invoice.quote_id || ""; $("invoiceBookingId").value = invoice.booking_id || "";
-      customerSearch.value = window.crmUtils.displayName(customer);
-      $("invoiceDueDate").value = invoice.due_date || ""; $("invoiceTaxRate").value = invoice.tax_rate; $("invoiceDiscount").value = invoice.discount_amount;
-      $("invoiceDepositRequired").value = invoice.required_deposit_amount; $("invoiceCustomerNotes").value = invoice.customer_notes; $("invoiceInternalNotes").value = invoice.internal_notes; $("invoiceTerms").value = invoice.terms;
-      linesWrap.innerHTML = ""; detail.lineItems.forEach(addLine);
-      const status = effectiveStatus(invoice);
-      $("invoiceModalTitle").textContent = invoice.invoice_number || "Draft Invoice";
-      $("invoiceModalSubtitle").textContent = [invoice.quote_id ? `Quote #${invoice.quote_id}` : "", invoice.booking_id ? `Booking #${invoice.booking_id}` : ""].filter(Boolean).join(" · ") || "Manual invoice";
-      $("invoiceModalStatus").className = `invoice-status status-${status}`; $("invoiceModalStatus").textContent = utils.effectiveLabel(status);
+      const detail = await window.invoiceService.getInvoice(id); currentDetail = detail; const invoice = detail.invoice; const customer = await window.crmService.getCustomer(invoice.customer_id);
+      $("invoiceId").value = invoice.id; $("invoiceVersion").value = invoice.version; $("invoiceCustomerId").value = invoice.customer_id; $("invoiceQuoteId").value = invoice.quote_id || ""; $("invoiceBookingId").value = invoice.booking_id || "";
+      customerSearch.value = window.crmUtils.displayName(customer); $("invoiceDueDate").value = invoice.due_date || ""; $("invoiceTaxRate").value = invoice.tax_rate; $("invoiceDiscount").value = invoice.discount_amount; $("invoiceDepositRequired").value = invoice.required_deposit_amount; $("invoiceCustomerNotes").value = invoice.customer_notes; $("invoiceInternalNotes").value = invoice.internal_notes; $("invoiceTerms").value = invoice.terms;
+      linesWrap.innerHTML = ""; detail.lineItems.forEach(addLine); const status = effectiveStatus(invoice);
+      $("invoiceModalTitle").textContent = invoice.invoice_number || "Draft Invoice"; $("invoiceModalSubtitle").textContent = [invoice.quote_id ? `Quote #${invoice.quote_id}` : "", invoice.booking_id ? `Booking #${invoice.booking_id}` : ""].filter(Boolean).join(" · ") || "Manual invoice"; $("invoiceModalStatus").className = `invoice-status status-${status}`; $("invoiceModalStatus").textContent = utils.effectiveLabel(status);
       $("invoiceSubtotal").textContent = utils.currency(invoice.subtotal); $("invoiceDiscountDisplay").textContent = utils.currency(invoice.discount_amount); $("invoiceTaxDisplay").textContent = utils.currency(invoice.tax_amount); $("invoiceTotal").textContent = utils.currency(invoice.total_amount); $("invoicePaid").textContent = utils.currency(invoice.paid_amount); $("invoiceBalance").textContent = utils.currency(invoice.balance_due);
-      setEditable(invoice.lifecycle_status === "draft");
-      $("invoiceIssueButton").hidden = invoice.lifecycle_status !== "draft";
-      $("invoiceVoidButton").hidden = invoice.lifecycle_status === "void";
-      paymentSection.hidden = invoice.lifecycle_status !== "sent";
-      setMessage($("paymentMessage"), "");
-      renderPayments(detail.payments);
-      setMessage($("invoiceFormMessage"), "");
-      modal.hidden = false;
-    } catch (error) {
-      console.error("Invoice load failed:", error);
-      setMessage($("invoiceFormMessage"), `Invoice could not be loaded: ${error.message}`, true);
-    }
+      setEditable(invoice.lifecycle_status === "draft"); $("invoiceIssueButton").hidden = invoice.lifecycle_status !== "draft"; $("invoiceVoidButton").hidden = invoice.lifecycle_status === "void"; paymentSection.hidden = invoice.lifecycle_status !== "sent"; setMessage($("paymentMessage"), ""); renderPayments(detail.payments); setMessage($("invoiceFormMessage"), ""); modal.hidden = false;
+    } catch (error) { console.error("Invoice load failed:", error); setMessage($("invoiceFormMessage"), `Invoice could not be loaded: ${error.message}`, true); }
   }
 
-  function renderPayments(payments) {
-    const wrap = $("invoicePaymentHistory");
-    if (!payments.length) { wrap.innerHTML = `<div class="invoice-empty">No payments recorded.</div>`; return; }
-    const reversibleIds = utils.reversiblePaymentIds(payments);
-    wrap.innerHTML = `<div class="invoice-payment-history">${payments.map((payment) => `<div class="invoice-payment-row"><div><strong>${escapeHTML(utils.effectiveLabel(payment.entry_type))} · ${escapeHTML(utils.currency(payment.amount))}</strong><div>${escapeHTML(payment.payment_method)}${payment.reference_number ? ` · ${escapeHTML(payment.reference_number)}` : ""}</div><small>${escapeHTML(utils.dateText(payment.payment_date))}</small></div><span>${escapeHTML(payment.notes || "")}</span>${reversibleIds.has(payment.id) ? `<button class="crm-secondary-button" type="button" data-reverse-payment="${escapeHTML(payment.id)}">Reverse</button>` : ["payment","deposit"].includes(payment.entry_type) ? '<span class="invoice-reversed-label">Reversed</span>' : ""}</div>`).join("")}</div>`;
-    wrap.querySelectorAll("[data-reverse-payment]").forEach((button) => button.addEventListener("click", () => reversePayment(button.dataset.reversePayment)));
-  }
+  function renderPayments(payments) { const wrap = $("invoicePaymentHistory"); if (!payments.length) { wrap.innerHTML = `<div class="invoice-empty">No payments recorded.</div>`; return; } const reversibleIds = utils.reversiblePaymentIds(payments); wrap.innerHTML = `<div class="invoice-payment-history">${payments.map((payment) => `<div class="invoice-payment-row"><div><strong>${escapeHTML(utils.effectiveLabel(payment.entry_type))} · ${escapeHTML(utils.currency(payment.amount))}</strong><div>${escapeHTML(payment.payment_method)}${payment.reference_number ? ` · ${escapeHTML(payment.reference_number)}` : ""}</div><small>${escapeHTML(utils.dateText(payment.payment_date))}</small></div><span>${escapeHTML(payment.notes || "")}</span>${reversibleIds.has(payment.id) ? `<button class="crm-secondary-button" type="button" data-reverse-payment="${escapeHTML(payment.id)}">Reverse</button>` : ["payment","deposit"].includes(payment.entry_type) ? '<span class="invoice-reversed-label">Reversed</span>' : ""}</div>`).join("")}</div>`; wrap.querySelectorAll("[data-reverse-payment]").forEach((button) => button.addEventListener("click", () => reversePayment(button.dataset.reversePayment))); }
+  async function issueInvoice() { const saved = await saveDraft(); if (!saved) return; const issueDate = new Date().toISOString().slice(0, 10); try { setMessage($("invoiceFormMessage"), "Issuing invoice…"); const issued = await window.invoiceService.issueInvoice(saved.id, issueDate, $("invoiceDueDate").value); await Promise.all([openInvoice(issued.id, { preserveFocus: true }), loadDashboard()]); setMessage($("invoiceFormMessage"), `Invoice ${issued.invoice_number} issued successfully.`); } catch (error) { setMessage($("invoiceFormMessage"), `Issue failed: ${error.message}`, true); } }
+  function openReasonPrompt(action) { pendingReasonAction = action; $("invoiceReasonTitle").textContent = action.type === "void" ? "Void invoice" : "Reverse payment"; $("invoiceReasonDescription").textContent = action.type === "void" ? "Enter the accounting reason for voiding this invoice." : "Enter the accounting reason for reversing this payment."; reasonInput.value = ""; setMessage($("invoiceReasonMessage"), ""); reasonPrompt.hidden = false; reasonInput.focus(); }
+  function closeReasonPrompt() { pendingReasonAction = null; reasonPrompt.hidden = true; reasonInput.value = ""; reasonConfirm.disabled = false; setMessage($("invoiceReasonMessage"), ""); }
+  function voidInvoice() { if (currentDetail) openReasonPrompt({ type: "void" }); }
+  async function recordPayment(event) { event.preventDefault(); if (!currentDetail) return; const data = { entry_type: $("paymentEntryType").value, amount: utils.money($("paymentAmount").value), payment_date: $("paymentDate").value, payment_method: $("paymentMethod").value, reference_number: $("paymentReference").value.trim(), notes: $("paymentNotes").value.trim() }; if (!Number.isFinite(data.amount) || data.amount <= 0) { setMessage($("paymentMessage"), "Enter an amount greater than zero.", true); return; } $("paymentSaveButton").disabled = true; setMessage($("paymentMessage"), "Recording payment…"); try { await window.invoiceService.recordPayment(currentDetail.invoice.id, data); paymentForm.reset(); $("paymentDate").value = new Date().toISOString().slice(0, 10); await Promise.all([openInvoice(currentDetail.invoice.id, { preserveFocus: true }), loadDashboard()]); setMessage($("paymentMessage"), "Payment recorded successfully."); } catch (error) { setMessage($("paymentMessage"), `Payment failed: ${error.message}`, true); } finally { $("paymentSaveButton").disabled = false; } }
+  function reversePayment(id) { if (currentDetail) openReasonPrompt({ type: "reverse", paymentId: id }); }
+  async function confirmReasonAction() { if (!pendingReasonAction || !currentDetail) return; const action = pendingReasonAction; const invoiceId = currentDetail.invoice.id; const reason = reasonInput.value.trim(); if (!reason) { setMessage($("invoiceReasonMessage"), "Enter a reason before continuing.", true); return; } reasonConfirm.disabled = true; setMessage($("invoiceReasonMessage"), "Saving accounting action…"); try { if (action.type === "void") await window.invoiceService.voidInvoice(invoiceId, reason); else await window.invoiceService.reversePayment(action.paymentId, reason); closeReasonPrompt(); await Promise.all([openInvoice(invoiceId, { preserveFocus: true }), loadDashboard()]); setMessage(action.type === "void" ? $("invoiceFormMessage") : $("paymentMessage"), action.type === "void" ? "Invoice voided. Accounting history was preserved." : "Payment reversal recorded."); } catch (error) { reasonConfirm.disabled = false; setMessage($("invoiceReasonMessage"), `${action.type === "void" ? "Void" : "Reversal"} failed: ${error.message}`, true); } }
 
-  async function issueInvoice() {
-    const saved = await saveDraft();
-    if (!saved) return;
-    const issueDate = new Date().toISOString().slice(0, 10);
-    try {
-      setMessage($("invoiceFormMessage"), "Issuing invoice…");
-      const issued = await window.invoiceService.issueInvoice(saved.id, issueDate, $("invoiceDueDate").value);
-      await Promise.all([openInvoice(issued.id, { preserveFocus: true }), loadDashboard()]);
-      setMessage($("invoiceFormMessage"), `Invoice ${issued.invoice_number} issued successfully.`);
-    } catch (error) { setMessage($("invoiceFormMessage"), `Issue failed: ${error.message}`, true); }
-  }
-
-  function openReasonPrompt(action) {
-    pendingReasonAction = action;
-    $("invoiceReasonTitle").textContent = action.type === "void" ? "Void invoice" : "Reverse payment";
-    $("invoiceReasonDescription").textContent = action.type === "void"
-      ? "Enter the accounting reason for voiding this invoice."
-      : "Enter the accounting reason for reversing this payment.";
-    reasonInput.value = "";
-    setMessage($("invoiceReasonMessage"), "");
-    reasonPrompt.hidden = false;
-    reasonInput.focus();
-  }
-
-  function closeReasonPrompt() {
-    pendingReasonAction = null;
-    reasonPrompt.hidden = true;
-    reasonInput.value = "";
-    reasonConfirm.disabled = false;
-    setMessage($("invoiceReasonMessage"), "");
-  }
-
-  function voidInvoice() {
-    if (currentDetail) openReasonPrompt({ type: "void" });
-  }
-
-  async function recordPayment(event) {
-    event.preventDefault();
-    if (!currentDetail) return;
-    const data = { entry_type: $("paymentEntryType").value, amount: utils.money($("paymentAmount").value), payment_date: $("paymentDate").value, payment_method: $("paymentMethod").value, reference_number: $("paymentReference").value.trim(), notes: $("paymentNotes").value.trim() };
-    if (!Number.isFinite(data.amount) || data.amount <= 0) { setMessage($("paymentMessage"), "Enter an amount greater than zero.", true); return; }
-    $("paymentSaveButton").disabled = true; setMessage($("paymentMessage"), "Recording payment…");
-    try {
-      await window.invoiceService.recordPayment(currentDetail.invoice.id, data);
-      paymentForm.reset(); $("paymentDate").value = new Date().toISOString().slice(0, 10);
-      await Promise.all([openInvoice(currentDetail.invoice.id, { preserveFocus: true }), loadDashboard()]);
-      setMessage($("paymentMessage"), "Payment recorded successfully.");
-    } catch (error) { setMessage($("paymentMessage"), `Payment failed: ${error.message}`, true); }
-    finally { $("paymentSaveButton").disabled = false; }
-  }
-
-  function reversePayment(id) {
-    if (currentDetail) openReasonPrompt({ type: "reverse", paymentId: id });
-  }
-
-  async function confirmReasonAction() {
-    if (!pendingReasonAction || !currentDetail) return;
-    const action = pendingReasonAction;
-    const invoiceId = currentDetail.invoice.id;
-    const reason = reasonInput.value.trim();
-    if (!reason) {
-      setMessage($("invoiceReasonMessage"), "Enter a reason before continuing.", true);
-      return;
-    }
-    reasonConfirm.disabled = true;
-    setMessage($("invoiceReasonMessage"), "Saving accounting action…");
-    try {
-      if (action.type === "void") await window.invoiceService.voidInvoice(invoiceId, reason);
-      else await window.invoiceService.reversePayment(action.paymentId, reason);
-      closeReasonPrompt();
-      await Promise.all([openInvoice(invoiceId, { preserveFocus: true }), loadDashboard()]);
-      setMessage(
-        action.type === "void" ? $("invoiceFormMessage") : $("paymentMessage"),
-        action.type === "void"
-          ? "Invoice voided. Accounting history was preserved."
-          : "Payment reversal recorded."
-      );
-    } catch (error) {
-      reasonConfirm.disabled = false;
-      setMessage($("invoiceReasonMessage"), `${action.type === "void" ? "Void" : "Reversal"} failed: ${error.message}`, true);
-    }
-  }
-
-  function renderCustomerMatches(matches) {
-    customerMatches.hidden = false; customerSearch.setAttribute("aria-expanded", "true");
-    customerMatches.innerHTML = matches.length ? matches.map((customer) => `<button class="crm-match-button" type="button" data-invoice-customer="${escapeHTML(customer.id)}"><strong>${escapeHTML(window.crmUtils.displayName(customer))}</strong><small>${escapeHTML([customer.company,customer.email,customer.phone].filter(Boolean).join(" / "))}</small></button>`).join("") : `<div class="crm-empty">No matching customer found.</div>`;
-    customerMatches.querySelectorAll("[data-invoice-customer]").forEach((button) => button.addEventListener("click", () => { const customer=matches.find((item)=>item.id===button.dataset.invoiceCustomer); if(!customer)return; $("invoiceCustomerId").value=customer.id; customerSearch.value=window.crmUtils.displayName(customer); customerMatches.hidden=true; customerSearch.setAttribute("aria-expanded","false"); setMessage($("invoiceFormMessage"),"Customer selected."); }));
-  }
-
-  async function searchCustomers() {
-    $("invoiceCustomerId").value = "";
-    if (customerSearch.value.trim().length < 2) { customerMatches.hidden = true; return; }
-    try { renderCustomerMatches(await window.crmService.searchCustomers(customerSearch.value)); }
-    catch (error) { setMessage($("invoiceFormMessage"), `Customer search failed: ${error.message}`, true); }
-  }
+  function renderCustomerMatches(matches) { customerMatches.hidden = false; customerSearch.setAttribute("aria-expanded", "true"); customerMatches.innerHTML = matches.length ? matches.map((customer) => `<button class="crm-match-button" type="button" data-invoice-customer="${escapeHTML(customer.id)}"><strong>${escapeHTML(window.crmUtils.displayName(customer))}</strong><small>${escapeHTML([customer.company,customer.email,customer.phone].filter(Boolean).join(" / "))}</small></button>`).join("") : `<div class="crm-empty">No matching customer found.</div>`; customerMatches.querySelectorAll("[data-invoice-customer]").forEach((button) => button.addEventListener("click", () => { const customer = matches.find((item) => item.id === button.dataset.invoiceCustomer); if (!customer) return; $("invoiceCustomerId").value = customer.id; customerSearch.value = window.crmUtils.displayName(customer); customerMatches.hidden = true; customerSearch.setAttribute("aria-expanded", "false"); setMessage($("invoiceFormMessage"), "Customer selected."); })); }
+  async function searchCustomers() { $("invoiceCustomerId").value = ""; if (customerSearch.value.trim().length < 2) { customerMatches.hidden = true; return; } try { renderCustomerMatches(await window.crmService.searchCustomers(customerSearch.value)); } catch (error) { setMessage($("invoiceFormMessage"), `Customer search failed: ${error.message}`, true); } }
 
   async function openFromQuote(quote) {
     showPanel("invoicesPanel");
-    if (!quote.customer_id) { setMessage(managerMessage, "Link this quote to a customer before creating an invoice.", true); return; }
+    const selectedQuote = { ...quote };
+    if (!selectedQuote.customer_id) { setMessage(managerMessage, "Link this quote to a customer before creating an invoice.", true); return; }
     try {
-      const existing = await window.invoiceService.findBySource({ quoteId: quote.id });
-      if (existing) { await openInvoice(existing.id); setMessage(managerMessage, "The existing invoice for this quote was opened."); return; }
-      const guests = Number(quote.guests || 0); const amount = Number(quote.budget || 0);
-      resetModal({ customer_id: quote.customer_id, customer_name: quote.company || quote.name, quote_id: quote.id, due_date: addDays(null,14), source_label:`Quote #${quote.id}`, customer_notes: quote.notes || "", line_items:[{description:quote.menu || quote.event_type || "Catering services",quantity:guests>0?guests:1,unit_price:guests>0&&amount>0?amount/guests:amount,taxable:true}] }); openModal();
+      const existing = await window.invoiceService.findBySource({ quoteId: selectedQuote.id });
+      if (existing) { await openInvoice(existing.id); setMessage(managerMessage, `The existing invoice for Quote #${selectedQuote.id} was opened.`); return; }
+      const customer = await window.crmService.getCustomer(selectedQuote.customer_id);
+      const billingCustomer = window.crmUtils.displayName(customer);
+      const submittedContact = submittedContactName(selectedQuote);
+      const mismatch = quoteCustomerMismatch(selectedQuote, customer);
+      if (mismatch) {
+        const confirmed = window.confirm(`This quote was submitted as ${submittedContact}, but its email or phone is linked to the existing CRM customer ${billingCustomer}.\n\nCreate the invoice for ${billingCustomer} from Quote #${selectedQuote.id}?`);
+        if (!confirmed) { setMessage(managerMessage, "Invoice creation cancelled. Review the linked CRM customer before continuing.", true); return; }
+      }
+      const prefill = buildQuoteInvoicePrefill(selectedQuote, customer);
+      if (mismatch) prefill.identity_notice = `Submitted as ${submittedContact}; billing customer is ${billingCustomer} because the email or phone matched an existing CRM record.`;
+      resetModal(prefill);
+      openModal();
+      setMessage(managerMessage, mismatch ? `Quote #${selectedQuote.id} is being invoiced to linked CRM customer ${billingCustomer}.` : `Creating an invoice from Quote #${selectedQuote.id}.`, mismatch);
     } catch (error) { setMessage(managerMessage, `Could not create invoice from quote: ${error.message}`, true); }
   }
 
-  async function openFromBooking(booking) {
-    showPanel("invoicesPanel");
-    if (!booking.customer_id) { setMessage(managerMessage, "Link this booking to a customer before creating an invoice.", true); return; }
-    try {
-      const existing = await window.invoiceService.findBySource({ bookingId: booking.id, quoteId: booking.quote_id });
-      if (existing) { await openInvoice(existing.id); setMessage(managerMessage, "The existing invoice for this booking or its linked quote was opened."); return; }
-      const guests=Number(booking.guest_count||0); const amount=Number(booking.quote_amount||0);
-      resetModal({customer_id:booking.customer_id,customer_name:booking.company_name||booking.customer_name,quote_id:booking.quote_id,booking_id:booking.id,due_date:addDays(booking.event_date||null,0),source_label:`Booking #${booking.id}`,line_items:[{description:booking.event_title||"Catering services",quantity:guests>0?guests:1,unit_price:guests>0&&amount>0?amount/guests:amount,taxable:true}]}); openModal();
-    } catch(error){setMessage(managerMessage,`Could not create invoice from booking: ${error.message}`,true);}
-  }
+  async function openFromBooking(booking) { showPanel("invoicesPanel"); if (!booking.customer_id) { setMessage(managerMessage, "Link this booking to a customer before creating an invoice.", true); return; } try { const existing = await window.invoiceService.findBySource({ bookingId: booking.id, quoteId: booking.quote_id }); if (existing) { await openInvoice(existing.id); setMessage(managerMessage, "The existing invoice for this booking or its linked quote was opened."); return; } const guests = Number(booking.guest_count || 0); const amount = Number(booking.quote_amount || 0); resetModal({ customer_id: booking.customer_id, customer_name: booking.company_name || booking.customer_name, quote_id: booking.quote_id, booking_id: booking.id, due_date: addDays(booking.event_date || null, 0), source_label: `Booking #${booking.id}`, line_items: [{ description: booking.event_title || "Catering services", quantity: guests > 0 ? guests : 1, unit_price: guests > 0 && amount > 0 ? amount / guests : amount, taxable: true }] }); openModal(); } catch (error) { setMessage(managerMessage, `Could not create invoice from booking: ${error.message}`, true); } }
 
-  $("newInvoiceButton").addEventListener("click",()=>{resetModal();openModal();});
-  $("invoiceAddLine").addEventListener("click",()=>addLine());
-  form.addEventListener("submit",saveDraft); $("invoiceIssueButton").addEventListener("click",issueInvoice); $("invoiceVoidButton").addEventListener("click",voidInvoice); $("invoiceCancelButton").addEventListener("click",closeModal); $("invoiceModalClose").addEventListener("click",closeModal); paymentForm.addEventListener("submit",recordPayment);
-  reasonConfirm.addEventListener("click", confirmReasonAction);
-  $("invoiceReasonCancel").addEventListener("click", closeReasonPrompt);
-  [$("invoiceDiscount"),$("invoiceTaxRate")].forEach((input)=>input.addEventListener("input",updateEstimate));
-  [statusFilter,overdueOnly,sort,pageSize].forEach((control)=>control.addEventListener("change",()=>{page=1;loadDashboard();}));
-  search.addEventListener("input",()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>{page=1;loadDashboard();},250);});
-  customerSearch.addEventListener("input",()=>{clearTimeout(customerTimer);customerTimer=setTimeout(searchCustomers,250);});
-  previous.addEventListener("click",()=>{if(page>1){page-=1;loadDashboard();}}); next.addEventListener("click",()=>{page+=1;loadDashboard();});
-  modal.addEventListener("click",(event)=>{if(event.target===modal)closeModal();}); document.addEventListener("keydown",(event)=>{if(event.key==="Escape"&&!modal.hidden)closeModal();});
-  $("paymentDate").value=new Date().toISOString().slice(0,10);
+  $("newInvoiceButton").addEventListener("click", () => { resetModal(); openModal(); });
+  $("invoiceAddLine").addEventListener("click", () => addLine());
+  form.addEventListener("submit", saveDraft); $("invoiceIssueButton").addEventListener("click", issueInvoice); $("invoiceVoidButton").addEventListener("click", voidInvoice); $("invoiceCancelButton").addEventListener("click", closeModal); $("invoiceModalClose").addEventListener("click", closeModal); paymentForm.addEventListener("submit", recordPayment);
+  reasonConfirm.addEventListener("click", confirmReasonAction); $("invoiceReasonCancel").addEventListener("click", closeReasonPrompt);
+  [$("invoiceDiscount"), $("invoiceTaxRate")].forEach((input) => input.addEventListener("input", updateEstimate));
+  [statusFilter, overdueOnly, sort, pageSize].forEach((control) => control.addEventListener("change", () => { page = 1; loadDashboard(); }));
+  search.addEventListener("input", () => { clearTimeout(searchTimer); searchTimer = setTimeout(() => { page = 1; loadDashboard(); }, 250); });
+  customerSearch.addEventListener("input", () => { clearTimeout(customerTimer); customerTimer = setTimeout(searchCustomers, 250); });
+  previous.addEventListener("click", () => { if (page > 1) { page -= 1; loadDashboard(); } }); next.addEventListener("click", () => { page += 1; loadDashboard(); });
+  modal.addEventListener("click", (event) => { if (event.target === modal) closeModal(); }); document.addEventListener("keydown", (event) => { if (event.key === "Escape" && !modal.hidden) closeModal(); });
+  $("paymentDate").value = new Date().toISOString().slice(0, 10);
 
-  window.invoiceManager={openFromQuote,openFromBooking,openInvoice,refresh:loadDashboard};
+  window.invoiceManager = { openFromQuote, openFromBooking, openInvoice, refresh: loadDashboard, buildQuoteInvoicePrefill, quoteCustomerMismatch };
   document.dispatchEvent(new CustomEvent("invoice-manager-ready"));
   loadDashboard();
 })();
