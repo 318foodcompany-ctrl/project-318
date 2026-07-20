@@ -11,15 +11,16 @@
       .select("id,status");
 
     if (error) throw error;
-
     if (!Array.isArray(data) || data.length !== 1) {
-      throw new Error(
-        "Quote status was not saved. Check administrator permissions and try again."
-      );
+      throw new Error("Quote status was not saved. Check administrator permissions and try again.");
     }
-
     return data[0];
   }
 
   window.quoteStatusService = { update };
+
+  const script = document.createElement("script");
+  script.src = "js/admin-command-center.js";
+  script.defer = true;
+  document.head.appendChild(script);
 })();
