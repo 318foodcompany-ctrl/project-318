@@ -2,6 +2,14 @@
   const api = factory();
   if (typeof module === "object" && module.exports) module.exports = api;
   root.crmUtils = api;
+
+  if (typeof document !== "undefined" && !document.querySelector('script[data-crm-visual-workspace]')) {
+    const script = document.createElement("script");
+    script.src = "js/crm-visual-workspace.js";
+    script.defer = true;
+    script.dataset.crmVisualWorkspace = "true";
+    document.head.appendChild(script);
+  }
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   function escapeHTML(value) {
     return String(value ?? "")
