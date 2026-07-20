@@ -23,7 +23,8 @@
     "js/admin-command-center.js",
     "js/admin-booking-enhancements.js",
     "js/admin-invoice-enhancements.js",
-    "js/admin-editor-enhancements.js"
+    "js/admin-editor-enhancements.js",
+    "js/admin-marketing-dashboard.js"
   ].forEach((src) => {
     const script = document.createElement("script");
     script.src = src;
