@@ -19,8 +19,10 @@
 
   window.quoteStatusService = { update };
 
-  const script = document.createElement("script");
-  script.src = "js/admin-command-center.js";
-  script.defer = true;
-  document.head.appendChild(script);
+  ["js/admin-command-center.js", "js/admin-booking-enhancements.js"].forEach((src) => {
+    const script = document.createElement("script");
+    script.src = src;
+    script.defer = true;
+    document.head.appendChild(script);
+  });
 })();
