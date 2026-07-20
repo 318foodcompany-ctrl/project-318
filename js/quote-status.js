@@ -24,7 +24,8 @@
     "js/admin-booking-enhancements.js",
     "js/admin-invoice-enhancements.js",
     "js/admin-editor-enhancements.js",
-    "js/admin-marketing-dashboard.js"
+    "js/admin-marketing-dashboard.js",
+    "js/admin-experience.js"
   ].forEach((src) => {
     const script = document.createElement("script");
     script.src = src;
