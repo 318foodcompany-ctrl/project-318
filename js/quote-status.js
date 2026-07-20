@@ -19,7 +19,7 @@
 
   window.quoteStatusService = { update };
 
-  ["js/admin-command-center.js", "js/admin-booking-enhancements.js"].forEach((src) => {
+  ["js/admin-command-center.js", "js/admin-booking-enhancements.js", "js/admin-invoice-enhancements.js"].forEach((src) => {
     const script = document.createElement("script");
     script.src = src;
     script.defer = true;
