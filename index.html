@@ -9,10 +9,12 @@
   <link rel="stylesheet" href="css/home-coin.css">
 </head>
 <body class="home-coin">
+  <a class="skip-link" href="#main-content">Skip to content</a>
+
   <header class="topbar">
     <div class="wrap nav">
-      <a class="brand" href="index.html"><img src="assets/images/logo.jpeg" alt="318 Food Co logo"></a>
-      <nav class="links"><a href="index.html">Home</a><a href="about.html">About</a><a href="catering.html">Menu</a><a href="corporate.html">Catering</a><a href="gallery.html">Gallery</a><a href="contact.html">Contact</a></nav>
+      <a class="brand" href="index.html" aria-label="318 Food Co. home"><img src="assets/images/logo.jpeg" alt="318 Food Co logo"></a>
+      <nav class="links" aria-label="Primary navigation"><a href="index.html">Home</a><a href="about.html">About</a><a href="catering.html">Menus</a><a href="corporate.html">Corporate</a><a href="gallery.html">Gallery</a><a href="contact.html">Contact</a></nav>
       <a class="nav-cta" href="quote-builder.html">Get a Quote →</a>
       <button class="menu-btn" aria-label="Open menu">☰</button>
     </div>
@@ -21,37 +23,42 @@
   <div class="coin-stage" data-coin-stage aria-hidden="true"><div class="coin-vignette"></div><div class="coin-floor-glow"></div></div>
   <div class="coin-progress" aria-hidden="true"><span></span><i></i><i></i><i></i><i></i></div>
 
-  <main class="coin-main">
+  <main class="coin-main" id="main-content">
     <section class="coin-section coin-hero">
       <div class="wrap coin-layout left">
         <div class="coin-copy">
+          <span class="consumer-kicker">Catering across Shreveport &amp; Bossier</span>
           <h1 data-content="hero_heading">Catering<br>that hits<br><em>different.</em></h1>
-          <p data-content="hero_text">Real food. Real people.<br>Unforgettable events.</p>
-          <div class="coin-actions"><a class="btn" href="quote-builder.html" data-content="hero_button" data-content-link="hero_button_link">Get a Quote →</a></div>
+          <p data-content="hero_text">Fresh, crowd-pleasing catering for office lunches, employee events, weddings, and celebrations.</p>
+          <div class="coin-actions"><a class="btn" href="quote-builder.html" data-content="hero_button" data-content-link="hero_button_link">Build My Quote →</a><a class="btn text-link" href="catering.html">View Menus</a></div>
+          <div class="hero-reassurance"><span>15-person minimum</span><span>Delivery &amp; setup available</span></div>
         </div>
       </div>
     </section>
 
-    <section class="coin-section coin-impress">
+    <section class="coin-section coin-impress" id="experience">
       <div class="wrap coin-layout split-layout">
         <div class="coin-copy">
+          <span class="consumer-kicker">Easy from start to finish</span>
           <h2>Made to<br><em>impress.</em></h2>
           <span class="red-rule"></span>
-          <p>From corporate lunches to epic celebrations, we bring the flavor and the fire.</p>
+          <p>Tell us your date, guest count, and menu preferences. We’ll help you build the right catering plan.</p>
           <div class="coin-actions"><a class="btn outline" href="about.html">Our Story →</a></div>
         </div>
-        <div class="coin-icons">
-          <span><b>◇</b>Fresh<br>Ingredients</span><span><b>♨</b>Expert<br>Chefs</span><span><b>⌒</b>On-Time<br>Delivery</span><span><b>☆</b>Unforgettable<br>Experiences</span>
+        <div class="coin-icons" aria-label="Service highlights">
+          <span><b>◇</b>Fresh<br>Ingredients</span><span><b>♨</b>Professional<br>Service</span><span><b>⌒</b>On-Time<br>Delivery</span><span><b>☆</b>Memorable<br>Events</span>
         </div>
       </div>
     </section>
 
-    <section class="coin-section coin-detail">
+    <section class="coin-section coin-detail" id="details">
       <div class="wrap coin-layout left">
         <div class="coin-copy">
+          <span class="consumer-kicker">You enjoy the event</span>
           <h2>We handle<br>every <em>detail.</em></h2>
           <p>You focus on your guests.<br>We’ll handle the rest.</p>
-          <ul class="checks"><li>Custom Menus</li><li>Professional Service</li><li>On-Time Delivery</li><li>Stress-Free Experience</li></ul>
+          <ul class="checks"><li>Crowd-pleasing menu options</li><li>Professional delivery and setup</li><li>Clear planning and communication</li><li>Stress-free service</li></ul>
+          <div class="coin-actions"><a class="btn text-link" href="catering.html">Explore Catering Menus →</a></div>
         </div>
       </div>
     </section>
@@ -61,21 +68,24 @@
     <section class="coin-section coin-finale">
       <div class="wrap">
         <div class="coin-copy coin-dust-copy" data-coin-finale>
+          <span class="consumer-kicker">Ready when you are</span>
           <h2 data-content="cta_heading">Ready to make your<br>event <em>unforgettable?</em></h2>
           <span class="red-rule center"></span>
-          <p data-content="cta_text">Let’s create something amazing together.</p>
-          <div class="coin-actions"><a class="btn" href="quote-builder.html" data-content="cta_button">Get a Quote →</a></div>
+          <p data-content="cta_text">Share a few details and we’ll help you plan the food.</p>
+          <div class="coin-actions"><a class="btn" href="quote-builder.html" data-content="cta_button">Build My Quote →</a><a class="btn text-link" href="tel:3185720137">Call (318) 572-0137</a></div>
         </div>
       </div>
     </section>
   </main>
 
+  <a class="mobile-quote-bar" href="quote-builder.html"><span>Planning an event?</span><strong>Build My Quote →</strong></a>
+
   <footer class="footer">
     <div class="wrap footer-grid">
       <div><img src="assets/images/logo.jpeg" alt="318 Food Co"><p data-content="footer_text">Catering done right.<br>Every time.</p></div>
-      <div><h4>Quick Links</h4><p><a href="index.html">Home</a><br><a href="about.html">About</a><br><a href="catering.html">Menu</a><br><a href="corporate.html">Catering</a><br><a href="gallery.html">Gallery</a><br><a href="contact.html">Contact</a></p></div>
+      <div><h4>Quick Links</h4><p><a href="index.html">Home</a><br><a href="about.html">About</a><br><a href="catering.html">Menus</a><br><a href="corporate.html">Corporate</a><br><a href="gallery.html">Gallery</a><br><a href="contact.html">Contact</a></p></div>
       <div><h4>Contact Us</h4><p><a href="tel:3185720137">☎ (318) 572-0137</a><br><a href="mailto:318FoodCompany@gmail.com">✉ 318FoodCompany@gmail.com</a><br><span data-setting="address">⌖ Shreveport, LA</span></p></div>
-      <div><h4>Follow Us</h4><p>Facebook · Instagram</p></div>
+      <div><h4>Plan Your Event</h4><p><a href="quote-builder.html">Build a Quote</a><br><a href="catering.html">View Menus</a><br><a href="corporate.html">Corporate Catering</a></p></div>
     </div>
     <div class="wrap copyright">© 2026 318 Food Co. All Rights Reserved.</div>
   </footer>
