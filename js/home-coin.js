@@ -56,15 +56,23 @@ else{
   const floor=new THREE.Mesh(new THREE.PlaneGeometry(32,32),new THREE.MeshStandardMaterial({color:0x080706,metalness:.35,roughness:.38}));
   floor.rotation.x=-Math.PI/2;floor.position.y=-2.22;floor.receiveShadow=true;scene.add(floor);
 
-  // Sparks hug the ground and flare from the contact point as the coin spins.
-  const sparkCount=520,sparkPos=new Float32Array(sparkCount*3),sparkSeed=[];
-  for(let i=0;i<sparkCount;i++){
-    const angle=(Math.random()-.5)*1.7,distance=.15+Math.random()*4.8;
-    sparkSeed.push({angle,distance,lift:Math.random()*.55,phase:Math.random()*Math.PI*2,speed:.6+Math.random()*1.5});
-  }
-  const sparkGeo=new THREE.BufferGeometry();sparkGeo.setAttribute('position',new THREE.BufferAttribute(sparkPos,3));
-  const sparkMat=new THREE.PointsMaterial({color:0xff6a2b,size:.055,transparent:true,opacity:.9,depthWrite:false,blending:THREE.AdditiveBlending});
-  const sparks=new THREE.Points(sparkGeo,sparkMat);scene.add(sparks);
+  // Thin incandescent streaks emitted only from the floor contact point.
+  const sparkCount=84;
+  const sparkLines=new Float32Array(sparkCount*6);
+  const sparkHeads=new Float32Array(sparkCount*3);
+  const sparkSeed=[];
+  for(let i=0;i<sparkCount;i++) sparkSeed.push({
+    phase:Math.random(),speed:.75+Math.random()*1.8,
+    side:(Math.random()-.5)*1.15,length:.28+Math.random()*1.25,
+    lift:.06+Math.random()*.42,depth:(Math.random()-.5)*.55,
+    delay:Math.random()*.7
+  });
+  const lineGeo=new THREE.BufferGeometry();lineGeo.setAttribute('position',new THREE.BufferAttribute(sparkLines,3));
+  const lineMat=new THREE.LineBasicMaterial({color:0xffb16a,transparent:true,opacity:.72,depthWrite:false,blending:THREE.AdditiveBlending});
+  const sparkStreaks=new THREE.LineSegments(lineGeo,lineMat);scene.add(sparkStreaks);
+  const headGeo=new THREE.BufferGeometry();headGeo.setAttribute('position',new THREE.BufferAttribute(sparkHeads,3));
+  const headMat=new THREE.PointsMaterial({color:0xffe0ae,size:.035,transparent:true,opacity:.82,depthWrite:false,blending:THREE.AdditiveBlending,sizeAttenuation:true});
+  const sparkTips=new THREE.Points(headGeo,headMat);scene.add(sparkTips);
 
   // Large reversible dust cloud for the final impact.
   const dustCount=1300,dustBase=[],dustDir=[],dustPos=new Float32Array(dustCount*3);
@@ -74,7 +82,7 @@ else{
     dustDir.push({x:Math.cos(a)*(1.4+Math.random()*4.5),y:1.2+Math.random()*4.8,z:Math.sin(a)*(.7+Math.random()*2.2),drag:.7+Math.random()*.7});
   }
   const dustGeo=new THREE.BufferGeometry();dustGeo.setAttribute('position',new THREE.BufferAttribute(dustPos,3));
-  const dustMat=new THREE.PointsMaterial({color:0xd0ad84,size:.13,transparent:true,opacity:0,depthWrite:false,blending:THREE.NormalBlending});
+  const dustMat=new THREE.PointsMaterial({color:0xd0ad84,size:.13,transparent:true,opacity:0,depthWrite:false});
   const dust=new THREE.Points(dustGeo,dustMat);scene.add(dust);
 
   let scroll=0,target=0;
@@ -86,7 +94,7 @@ else{
 
   const clock=new THREE.Clock();
   function animate(){
-    requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.033);scroll+=(target-scroll)*.075;
+    requestAnimationFrame(animate);clock.getDelta();scroll+=(target-scroll)*.075;
     const pre=clamp(scroll/.78,0,1),fallRaw=clamp((scroll-.78)/.17,0,1),fall=smooth(fallRaw),settle=clamp((scroll-.95)/.05,0,1);
     const spin=pre*Math.PI*18;
     coin.rotation.y=spin;
@@ -97,23 +105,33 @@ else{
     coin.position.z=fall*.85;
     coin.scale.setScalar((host.clientWidth<760?.84:1.1)*(1+Math.sin(pre*Math.PI)*.04));
 
-    const sparkArr=sparks.geometry.attributes.position.array;
-    const contactX=coin.position.x,contactY=-2.14,contactZ=coin.position.z-.1;
-    const sparkStrength=(1-fall)*(.45+.55*Math.abs(Math.sin(spin*.55)));
+    const now=clock.elapsedTime;
+    const contactX=coin.position.x,contactY=-2.14,contactZ=coin.position.z-.08;
+    const friction=(1-fall)*clamp(Math.abs(Math.sin(spin*.42))*1.35,0,1);
     for(let i=0;i<sparkCount;i++){
-      const s=sparkSeed[i],pulse=(clock.elapsedTime*s.speed+s.phase)%1;
-      const spread=s.distance*pulse;
-      sparkArr[i*3]=contactX-Math.cos(s.angle)*spread;
-      sparkArr[i*3+1]=contactY+Math.sin(pulse*Math.PI)*s.lift*(1-pulse);
-      sparkArr[i*3+2]=contactZ+Math.sin(s.angle)*spread*.35;
+      const s=sparkSeed[i];
+      const life=(now*s.speed+s.phase+s.delay)%1;
+      const gate=life<.46?1:0;
+      const t=life/.46;
+      const fade=(1-t)*(1-t)*gate*friction;
+      const travel=s.length*t;
+      const x=contactX-travel;
+      const y=contactY+Math.sin(t*Math.PI)*s.lift*(1-t);
+      const z=contactZ+s.side*travel*.22+s.depth*t;
+      const tail=.12+s.length*.24;
+      sparkLines[i*6]=x-tail; sparkLines[i*6+1]=Math.max(contactY,y-s.lift*.16); sparkLines[i*6+2]=z-s.side*.04;
+      sparkLines[i*6+3]=x; sparkLines[i*6+4]=y; sparkLines[i*6+5]=z;
+      sparkHeads[i*3]=x; sparkHeads[i*3+1]=y; sparkHeads[i*3+2]=z;
+      if(!fade){sparkLines[i*6+1]=sparkLines[i*6+4]=-20;sparkHeads[i*3+1]=-20;}
     }
-    sparks.geometry.attributes.position.needsUpdate=true;
-    sparkMat.opacity=.95*sparkStrength;
-    sparkMat.size=.045+.045*sparkStrength;
-    rim.intensity=72+Math.sin(clock.elapsedTime*2.2)*12;
+    lineGeo.attributes.position.needsUpdate=true;
+    headGeo.attributes.position.needsUpdate=true;
+    lineMat.opacity=.58+.22*friction;
+    headMat.opacity=.66+.18*friction;
+    rim.intensity=72+Math.sin(now*2.2)*12;
 
     const impact=clamp((fallRaw-.5)/.5,0,1),life=Math.sin(impact*Math.PI);
-    dustMat.opacity=Math.pow(life,.55)*1.0;
+    dustMat.opacity=Math.pow(life,.55);
     dustMat.size=.12+.11*life;
     const arr=dust.geometry.attributes.position.array;
     for(let i=0;i<dustCount;i++){
