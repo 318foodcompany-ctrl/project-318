@@ -124,3 +124,91 @@ if (quote) {
     location.href = `mailto:${destinationEmail}?subject=${encodeURIComponent('Catering Quote Request')}&body=${encodeURIComponent(lines.join('\n'))}`;
   });
 }
+
+(() => {
+  'use strict';
+
+  const hero = document.querySelector('[data-cinematic-hero]');
+  if (!hero) return;
+
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const revealItems = document.querySelectorAll('[data-reveal]');
+
+  if ('IntersectionObserver' in window && !reducedMotion) {
+    const revealObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add('is-visible');
+        observer.unobserve(entry.target);
+      });
+    }, { threshold: 0.16, rootMargin: '0px 0px -40px' });
+
+    revealItems.forEach((item, index) => {
+      item.style.transitionDelay = `${Math.min(index % 4, 3) * 90}ms`;
+      revealObserver.observe(item);
+    });
+  } else {
+    revealItems.forEach((item) => item.classList.add('is-visible'));
+  }
+
+  const emberField = hero.querySelector('[data-embers]');
+  if (emberField && !reducedMotion) {
+    const emberCount = window.innerWidth < 700 ? 12 : 22;
+    const fragment = document.createDocumentFragment();
+
+    for (let index = 0; index < emberCount; index += 1) {
+      const ember = document.createElement('span');
+      ember.className = 'ember';
+      ember.style.left = `${Math.random() * 100}%`;
+      ember.style.setProperty('--duration', `${5 + Math.random() * 6}s`);
+      ember.style.setProperty('--delay', `${-Math.random() * 9}s`);
+      ember.style.setProperty('--drift', `${-45 + Math.random() * 90}px`);
+      ember.style.width = `${2 + Math.random() * 3}px`;
+      ember.style.height = ember.style.width;
+      fragment.appendChild(ember);
+    }
+
+    emberField.appendChild(fragment);
+  }
+
+  if (!reducedMotion && window.matchMedia('(pointer: fine)').matches) {
+    const depthLayers = hero.querySelectorAll('[data-depth]');
+    let frameId = 0;
+    let targetX = 0;
+    let targetY = 0;
+
+    const renderHeroDepth = () => {
+      frameId = 0;
+      depthLayers.forEach((layer) => {
+        const depth = Number(layer.dataset.depth) || 0.08;
+        layer.style.transform = `translate3d(${targetX * depth}px, ${targetY * depth}px, 0) scale(1.06)`;
+      });
+    };
+
+    hero.addEventListener('pointermove', (event) => {
+      const bounds = hero.getBoundingClientRect();
+      targetX = ((event.clientX - bounds.left) / bounds.width - 0.5) * 34;
+      targetY = ((event.clientY - bounds.top) / bounds.height - 0.5) * 24;
+      if (!frameId) frameId = requestAnimationFrame(renderHeroDepth);
+    });
+
+    hero.addEventListener('pointerleave', () => {
+      targetX = 0;
+      targetY = 0;
+      if (!frameId) frameId = requestAnimationFrame(renderHeroDepth);
+    });
+
+    document.querySelectorAll('[data-tilt-card]').forEach((card) => {
+      card.addEventListener('pointermove', (event) => {
+        const bounds = card.getBoundingClientRect();
+        const x = (event.clientX - bounds.left) / bounds.width - 0.5;
+        const y = (event.clientY - bounds.top) / bounds.height - 0.5;
+        card.style.transform = `perspective(900px) rotateX(${y * -5}deg) rotateY(${x * 7}deg) translateY(-3px)`;
+      });
+
+      card.addEventListener('pointerleave', () => {
+        card.style.transform = '';
+      });
+    });
+  }
+})();

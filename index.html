@@ -6,102 +6,94 @@
   <title>318 Food Co. | Catering Made Simple. Made Fresh.</title>
   <meta name="description" content="Fresh catering for office lunches, employee events, weddings and celebrations across Shreveport, Bossier City and Northwest Louisiana.">
   <link rel="stylesheet" href="styles.css">
+  <style>
+    .lux-hero{min-height:790px;position:relative;overflow:hidden;background:#050505;color:#fff;isolation:isolate}
+    .lux-hero:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 78% 18%,rgba(214,42,31,.28),transparent 27%),radial-gradient(circle at 58% 78%,rgba(255,149,68,.13),transparent 30%),linear-gradient(135deg,#050505 0%,#0d0d0f 48%,#150706 100%);z-index:-5}
+    .lux-grid{position:absolute;inset:0;z-index:-4;opacity:.28;background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);background-size:72px 72px;mask-image:linear-gradient(to bottom,black,transparent 88%)}
+    .lux-noise{position:absolute;inset:0;z-index:-3;opacity:.1;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.35'/%3E%3C/svg%3E")}
+    .lux-orb{position:absolute;border-radius:50%;filter:blur(8px);will-change:transform}
+    .lux-orb.one{width:390px;height:390px;right:5%;top:11%;background:radial-gradient(circle at 35% 35%,rgba(255,102,84,.68),rgba(173,16,10,.2) 58%,transparent 72%);animation:orb-float 8s ease-in-out infinite}
+    .lux-orb.two{width:210px;height:210px;right:34%;bottom:10%;background:radial-gradient(circle at 35% 35%,rgba(255,196,112,.5),rgba(213,45,24,.12) 62%,transparent 74%);animation:orb-float 10s ease-in-out -2s infinite reverse}
+    .lux-ring{position:absolute;right:7%;top:14%;width:470px;height:470px;border-radius:50%;border:1px solid rgba(255,255,255,.12);box-shadow:0 0 0 42px rgba(255,255,255,.025),0 0 0 84px rgba(255,255,255,.014);animation:ring-turn 22s linear infinite}
+    .lux-ring:before,.lux-ring:after{content:"";position:absolute;border-radius:50%;inset:14%;border:1px solid rgba(255,76,61,.2)}
+    .lux-ring:after{inset:32%;border-color:rgba(255,255,255,.11)}
+    .lux-stage{min-height:790px;display:grid;grid-template-columns:minmax(0,650px) minmax(340px,1fr);align-items:center;gap:58px;padding:84px 0 92px}
+    .lux-copy{position:relative;z-index:4;animation:lux-copy-in .9s cubic-bezier(.2,.75,.2,1) both}
+    .lux-copy .script{color:#ff6b60}
+    .lux-title{font-size:clamp(4.2rem,7.8vw,8.2rem);line-height:.84;letter-spacing:-.07em;text-transform:uppercase;margin:13px 0 25px;max-width:760px;text-wrap:balance}
+    .lux-title .outline{color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.72);text-shadow:none}
+    .lux-title .accent{color:#d52b22;text-shadow:0 0 34px rgba(213,43,34,.22)}
+    .lux-copy p{font-size:clamp(1.05rem,1.45vw,1.28rem);max-width:600px;color:rgba(255,255,255,.78)}
+    .lux-actions{display:flex;gap:14px;flex-wrap:wrap;margin-top:31px}
+    .lux-actions .btn{min-height:52px;padding:14px 23px}
+    .lux-actions .btn.alt{color:#fff;border-color:rgba(255,255,255,.55);background:rgba(255,255,255,.04);backdrop-filter:blur(12px)}
+    .lux-proof{display:flex;gap:26px;flex-wrap:wrap;margin-top:34px;padding-top:28px;border-top:1px solid rgba(255,255,255,.14)}
+    .lux-proof div{display:grid;gap:2px}.lux-proof strong{font-size:1.25rem}.lux-proof small{color:rgba(255,255,255,.5)}
+    .lux-showcase{position:relative;z-index:3;min-height:530px;display:grid;place-items:center;perspective:1000px}
+    .food-halo{position:absolute;width:430px;height:430px;border-radius:50%;background:radial-gradient(circle,rgba(226,58,37,.24),rgba(255,145,67,.08) 40%,transparent 70%);filter:blur(12px);animation:halo-breathe 4.8s ease-in-out infinite}
+    .food-plate{position:absolute;z-index:1;width:min(420px,86%);aspect-ratio:1/1;border-radius:50%;overflow:hidden;box-shadow:0 48px 120px rgba(0,0,0,.68),0 0 70px rgba(213,43,34,.2);transform:translate(34px,28px) rotate(-5deg);animation:food-float 6.8s ease-in-out infinite}
+    .food-plate img{width:100%;height:100%;object-fit:cover;transform:scale(1.08);filter:saturate(1.14) contrast(1.06) brightness(.96)}
+    .food-plate:after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 38% 30%,transparent 0 35%,rgba(0,0,0,.16) 74%,rgba(0,0,0,.5) 100%),linear-gradient(145deg,rgba(255,255,255,.12),transparent 32%);border:1px solid rgba(255,255,255,.16);border-radius:50%}
+    .glass-card{position:absolute;border:1px solid rgba(255,255,255,.16);background:linear-gradient(145deg,rgba(255,255,255,.11),rgba(255,255,255,.035));backdrop-filter:blur(24px);box-shadow:0 34px 90px rgba(0,0,0,.46);border-radius:28px;color:#fff;overflow:hidden}
+    .glass-card.main{z-index:2;width:min(420px,88%);padding:28px;left:0;bottom:12px;transform:rotateY(-8deg) rotateX(4deg);animation:card-float 6.5s ease-in-out infinite}
+    .glass-card.main:before{content:"";position:absolute;inset:0;background:linear-gradient(120deg,transparent 22%,rgba(255,255,255,.13) 44%,transparent 63%);transform:translateX(-120%);animation:shine 5s ease-in-out infinite}
+    .glass-card .eyebrow{font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:#ff7b70}
+    .glass-card h2{font-size:clamp(2rem,3.5vw,3.6rem);line-height:.92;letter-spacing:-.055em;margin:12px 0 14px}
+    .glass-card p{color:rgba(255,255,255,.68);margin:0 0 20px}
+    .service-pills{display:flex;flex-wrap:wrap;gap:9px}.service-pills span{padding:9px 12px;border-radius:999px;background:rgba(0,0,0,.27);border:1px solid rgba(255,255,255,.1);font-size:.82rem}
+    .glass-card.mini{z-index:3;padding:16px 18px;border-radius:20px;display:grid;gap:3px;animation:mini-float 7s ease-in-out infinite}
+    .glass-card.mini strong{font-size:1rem}.glass-card.mini small{color:rgba(255,255,255,.55)}
+    .glass-card.mini.a{right:-2%;top:7%;animation-delay:-1.5s}.glass-card.mini.b{left:-5%;top:23%;animation-delay:-3.2s}.glass-card.mini.c{right:0;bottom:1%;animation-delay:-4.8s}
+    .scroll-cue{bottom:22px}
+    @keyframes lux-copy-in{from{opacity:0;transform:translate3d(-34px,20px,0)}to{opacity:1;transform:none}}
+    @keyframes orb-float{0%,100%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(-18px,22px,0) scale(1.05)}}
+    @keyframes ring-turn{to{transform:rotate(360deg)}}
+    @keyframes food-float{0%,100%{transform:translate(34px,28px) rotate(-5deg)}50%{transform:translate(22px,8px) rotate(-2deg)}}
+    @keyframes halo-breathe{0%,100%{opacity:.65;transform:scale(.95)}50%{opacity:1;transform:scale(1.06)}}
+    @keyframes card-float{0%,100%{transform:rotateY(-8deg) rotateX(4deg) translateY(0)}50%{transform:rotateY(-5deg) rotateX(2deg) translateY(-12px)}}
+    @keyframes mini-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+    @keyframes shine{0%,55%{transform:translateX(-120%)}80%,100%{transform:translateX(140%)}}
+    @media(max-width:1000px){.lux-stage{grid-template-columns:1fr;min-height:1040px;gap:20px;align-content:center}.lux-showcase{min-height:450px}.lux-ring{right:-10%;top:51%;width:420px;height:420px}.lux-orb.one{top:55%;right:2%}.food-plate{width:390px}}
+    @media(max-width:700px){.lux-hero,.lux-stage{min-height:980px}.lux-stage{padding:62px 0 78px}.lux-title{font-size:clamp(3.5rem,17vw,5rem)}.lux-showcase{min-height:390px}.food-plate{width:300px;transform:translate(28px,8px) rotate(-4deg)}.glass-card.main{width:92%;padding:22px;left:4%;bottom:0}.glass-card.mini{display:none}.lux-ring{width:330px;height:330px;right:-28%;top:62%}.lux-orb.one{width:260px;height:260px;top:64%;right:-8%}.lux-proof{gap:18px}.lux-actions .btn{width:100%}}
+    @media(prefers-reduced-motion:reduce){.lux-copy,.lux-orb,.lux-ring,.glass-card,.food-plate,.food-halo{animation:none!important}}
+  </style>
 </head>
-<body>
+<body class="cinematic-home">
   <header class="topbar">
     <div class="wrap nav">
       <a class="brand" href="index.html"><img src="assets/images/logo.jpeg" alt="318 Food Co logo"></a>
-      <nav class="links">
-        <a href="index.html">Home</a><a href="catering.html">Catering</a><a href="corporate.html">Corporate</a>
-        <a href="about.html">About Us</a><a href="gallery.html">Gallery</a><a href="contact.html">Contact</a>
-      </nav>
-      <a class="phone" href="tel:3185720137">☎ (318) 572-0137</a>
-      <a class="nav-cta" href="quote-builder.html">Plan My Event</a>
-      <button class="menu-btn" aria-label="Open menu">☰</button>
+      <nav class="links"><a href="index.html">Home</a><a href="catering.html">Catering</a><a href="corporate.html">Corporate</a><a href="about.html">About Us</a><a href="gallery.html">Gallery</a><a href="contact.html">Contact</a></nav>
+      <a class="phone" href="tel:3185720137">☎ (318) 572-0137</a><a class="nav-cta" href="quote-builder.html">Plan My Event</a><button class="menu-btn" aria-label="Open menu">☰</button>
     </div>
   </header>
-
   <main>
-    <section class="hero">
-      <div class="wrap">
-        <div class="hero-copy">
-          <span class="script" data-content="hero_eyebrow">Fresh Catering</span>
-          <h1 class="display" data-content="hero_heading">Catering Made Easy</h1>
+    <section class="hero lux-hero" data-cinematic-hero>
+      <div class="lux-grid"></div><div class="lux-noise"></div><div class="lux-orb one" data-depth="0.16"></div><div class="lux-orb two" data-depth="0.22"></div><div class="lux-ring"></div>
+      <div class="wrap lux-stage">
+        <div class="lux-copy">
+          <span class="script" data-content="hero_eyebrow">Catering that brings people together</span>
+          <h1 class="lux-title" data-content="hero_heading">Real Food.<br><span class="outline">Real People.</span><br><span class="accent">Real Impact.</span></h1>
           <p data-content="hero_text">Office lunches, employee events, weddings and celebrations—delivered and set up across Shreveport, Bossier City and Northwest Louisiana.</p>
-          <div class="actions">
-            <a class="btn" href="quote-builder.html" data-content="hero_button" data-content-link="hero_button_link">▣ Get My Catering Quote</a>
-            <a class="btn alt" href="catering.html" data-content="hero_secondary_button" data-content-link="hero_secondary_button_link">View Catering Menus</a>
-          </div>
-          <div class="minimum" data-content="minimum_order">★ Minimum order: 15 people</div>
+          <div class="lux-actions"><a class="btn btn-lift" href="quote-builder.html" data-content="hero_button" data-content-link="hero_button_link">Get My Catering Quote</a><a class="btn alt btn-lift" href="catering.html" data-content="hero_secondary_button" data-content-link="hero_secondary_button_link">View Catering Menus</a></div>
+          <div class="lux-proof"><div><strong>15+</strong><small>Guest minimum</small></div><div><strong>318</strong><small>Locally owned</small></div><div><strong>Fresh</strong><small>Made for your event</small></div></div>
+        </div>
+        <div class="lux-showcase" aria-label="Premium catering presentation">
+          <div class="food-halo"></div>
+          <div class="food-plate"><img src="assets/images/bbq-professional.jpg" alt="318 Food Co catered BBQ presentation"></div>
+          <div class="glass-card main" data-tilt-card><span class="eyebrow">Catering made simple</span><h2>Food worth gathering around.</h2><p>Flexible menus, polished setup, and dependable service built around your event.</p><div class="service-pills"><span>Corporate</span><span>Weddings</span><span>Schools</span><span>Private Events</span><span>Food Truck</span></div></div>
+          <div class="glass-card mini a"><strong>Delivery & Setup</strong><small>Available for your event</small></div>
+          <div class="glass-card mini b"><strong>Built for Groups</strong><small>From 15 guests and up</small></div>
+          <div class="glass-card mini c"><strong>Local & Dependable</strong><small>Northwest Louisiana</small></div>
         </div>
       </div>
+      <a class="scroll-cue" href="#catering-options" aria-label="Scroll to catering options">↓</a>
     </section>
-
-    <section class="trust-strip">
-      <div class="wrap trust-grid">
-        <div class="trust-item"><span class="icon">♨</span><div><strong data-content="trust_1_title">Fresh, Crowd-Pleasing Menus</strong><small data-content="trust_1_text">Familiar favorites prepared for groups of 15 or more.</small></div></div>
-        <div class="trust-item"><span class="icon">▣</span><div><strong data-content="trust_2_title">Delivery & Setup Available</strong><small data-content="trust_2_text">Choose the service level that fits your event.</small></div></div>
-        <div class="trust-item"><span class="icon">♟</span><div><strong data-content="trust_3_title">Built for Groups</strong><small data-content="trust_3_text">Office lunches, employee events, weddings and celebrations.</small></div></div>
-        <div class="trust-item"><span class="icon">★</span><div><strong data-content="trust_4_title">Easy Planning</strong><small data-content="trust_4_text">Share your date, headcount and menu preferences in minutes.</small></div></div>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="wrap">
-        <div class="section-title">
-          <h2 data-content="menu_section_heading">Catering Options</h2>
-          <p data-content="menu_section_text">Choose from crowd-pleasing favorites for every type of event.</p>
-        </div>
-
-        <div class="menu-grid">
-          <div class="menu-card"><img src="assets/images/taco-professional.jpg" alt="Taco bar"><div class="body"><h3 class="tag-taco" data-content="featured_taco_heading">Taco Bar</h3><p data-content="featured_taco_text">Seasoned proteins, classic sides and a full spread of fresh toppings.</p><div class="price">Starting at <span>$15.99</span> per person</div><a class="btn" href="catering.html#taco">View Menu</a></div></div>
-          <div class="menu-card"><img src="assets/images/fajita-professional.jpg" alt="Fajita bar"><div class="body"><h3 class="tag-fajita" data-content="featured_fajita_heading">Fajita Bar</h3><p data-content="featured_fajita_text">Sizzling chicken and steak fajitas with peppers, onions and sides.</p><div class="price">Starting at <span>$16.99</span> per person</div><a class="btn" href="catering.html#fajita">View Menu</a></div></div>
-          <div class="menu-card"><img src="assets/images/bbq-professional.jpg" alt="BBQ bar"><div class="body"><h3 class="tag-bbq" data-content="featured_bbq_heading">BBQ Bar</h3><p data-content="featured_bbq_text">Pulled pork, smoked sausage and down-home sides.</p><div class="price">Starting at <span>$16.99</span> per person</div><a class="btn" href="catering.html#bbq">View Menu</a></div></div>
-          <div class="menu-card"><img src="assets/images/deli-professional.jpg" alt="Deli buffet"><div class="body"><h3 class="tag-deli" data-content="featured_deli_heading">Deli Buffet</h3><p data-content="featured_deli_text">Premium meats, cheeses, fresh toppings, chips and cookies.</p><div class="price">Starting at <span>$15.99</span> per person</div><a class="btn" href="catering.html#deli">View Menu</a></div></div>
-          <div class="menu-card"><img src="assets/images/pasta-professional.jpg" alt="Pasta bar"><div class="body"><h3 class="tag-pasta" data-content="featured_pasta_heading">Pasta Bar</h3><p data-content="featured_pasta_text">Comforting pasta entrées with salad, garlic bread, and cookies or brownies.</p><div class="price">Starting at <span>$15.99</span> per person</div><a class="btn" href="catering.html#pasta">View Menu</a></div></div>
-          <div class="menu-card"><img src="assets/images/pizza-professional.jpg" alt="Pizza and salad"><div class="body"><h3 class="tag-pizza" data-content="featured_pizza_heading">Pizza & Salad</h3><p data-content="featured_pizza_text">Fresh pizzas, crisp salads, hearty sides, and cookies or brownies.</p><div class="price">Starting at <span>$15.99</span> per person</div><a class="btn" href="catering.html#pizza">View Menu</a></div></div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section light">
-      <div class="wrap split">
-        <img class="feature-photo" src="assets/images/catering-brochure.jpeg" alt="318 Food Co catering menu">
-        <div class="big-copy">
-          <span class="kicker">Catering made simple</span>
-          <h2 data-content="feature_heading">Made for Your Next Event</h2>
-          <p data-content="feature_text">Tell us your guest count, budget, and service needs. We will help you build the right catering plan.</p>
-          <ul class="checks"><li>Corporate lunches</li><li>Employee appreciation</li><li>Weddings</li><li>Graduation parties</li><li>Church events</li><li>Family gatherings</li></ul>
-          <div class="actions"><a class="btn" href="quote-builder.html">Help Me Choose a Menu</a><a class="btn alt" style="color:#111;border-color:#111" href="corporate.html">Corporate Catering</a></div>
-        </div>
-      </div>
-    </section>
-
-    <section class="cta-band">
-      <div class="wrap">
-        <h2 data-content="cta_heading">Let Us Cater Your Next Event</h2>
-        <p data-content="cta_text">Start your request today and our team will follow up with menu and service options.</p>
-        <a class="btn alt" href="quote-builder.html" data-content="cta_button">Check Availability</a>
-      </div>
-    </section>
+    <section class="trust-strip cinematic-trust" data-reveal><div class="wrap trust-grid"><div class="trust-item"><span class="icon">♨</span><div><strong data-content="trust_1_title">Fresh, Crowd-Pleasing Menus</strong><small data-content="trust_1_text">Familiar favorites prepared for groups of 15 or more.</small></div></div><div class="trust-item"><span class="icon">▣</span><div><strong data-content="trust_2_title">Delivery & Setup Available</strong><small data-content="trust_2_text">Choose the service level that fits your event.</small></div></div><div class="trust-item"><span class="icon">♟</span><div><strong data-content="trust_3_title">Built for Groups</strong><small data-content="trust_3_text">Office lunches, employee events, weddings and celebrations.</small></div></div><div class="trust-item"><span class="icon">★</span><div><strong data-content="trust_4_title">Easy Planning</strong><small data-content="trust_4_text">Share your date, headcount and menu preferences in minutes.</small></div></div></div></section>
+    <section class="section cinematic-menu-section" id="catering-options"><div class="wrap"><div class="section-title" data-reveal><span class="kicker">We cater every occasion</span><h2 data-content="menu_section_heading">Catering Options</h2><p data-content="menu_section_text">Choose from crowd-pleasing favorites for every type of event.</p></div><div class="menu-grid cinematic-menu-grid"><div class="menu-card" data-tilt-card data-reveal><img src="assets/images/taco-professional.jpg" alt="Taco bar"><div class="body"><h3 class="tag-taco">Taco Bar</h3><p>Seasoned proteins, classic sides and a full spread of fresh toppings.</p><div class="price">Starting at <span>$15.99</span> per person</div><a class="btn" href="catering.html#taco">View Menu</a></div></div><div class="menu-card" data-tilt-card data-reveal><img src="assets/images/fajita-professional.jpg" alt="Fajita bar"><div class="body"><h3 class="tag-fajita">Fajita Bar</h3><p>Sizzling chicken and steak fajitas with peppers, onions and sides.</p><div class="price">Starting at <span>$16.99</span> per person</div><a class="btn" href="catering.html#fajita">View Menu</a></div></div><div class="menu-card" data-tilt-card data-reveal><img src="assets/images/bbq-professional.jpg" alt="BBQ bar"><div class="body"><h3 class="tag-bbq">BBQ Bar</h3><p>Pulled pork, smoked sausage and down-home sides.</p><div class="price">Starting at <span>$16.99</span> per person</div><a class="btn" href="catering.html#bbq">View Menu</a></div></div><div class="menu-card" data-tilt-card data-reveal><img src="assets/images/deli-professional.jpg" alt="Deli buffet"><div class="body"><h3 class="tag-deli">Deli Buffet</h3><p>Premium meats, cheeses, fresh toppings, chips and cookies.</p><div class="price">Starting at <span>$15.99</span> per person</div><a class="btn" href="catering.html#deli">View Menu</a></div></div><div class="menu-card" data-tilt-card data-reveal><img src="assets/images/pasta-professional.jpg" alt="Pasta bar"><div class="body"><h3 class="tag-pasta">Pasta Bar</h3><p>Comforting pasta entrées with salad, garlic bread, and cookies or brownies.</p><div class="price">Starting at <span>$15.99</span> per person</div><a class="btn" href="catering.html#pasta">View Menu</a></div></div><div class="menu-card" data-tilt-card data-reveal><img src="assets/images/pizza-professional.jpg" alt="Pizza and salad"><div class="body"><h3 class="tag-pizza">Pizza & Salad</h3><p>Fresh pizzas, crisp salads, hearty sides, and cookies or brownies.</p><div class="price">Starting at <span>$15.99</span> per person</div><a class="btn" href="catering.html#pizza">View Menu</a></div></div></div></div></section>
+    <section class="section light cinematic-feature"><div class="wrap split"><div class="feature-photo-frame" data-tilt-card data-reveal><img class="feature-photo" src="assets/images/catering-brochure.jpeg" alt="318 Food Co catering menu"></div><div class="big-copy" data-reveal><span class="kicker">Catering made simple</span><h2>Made for Your Next Event</h2><p>Tell us your guest count, budget, and service needs. We will help you build the right catering plan.</p><ul class="checks"><li>Corporate lunches</li><li>Employee appreciation</li><li>Weddings</li><li>Graduation parties</li><li>Church events</li><li>Family gatherings</li></ul><div class="actions"><a class="btn btn-lift" href="quote-builder.html">Help Me Choose a Menu</a><a class="btn alt btn-lift" style="color:#111;border-color:#111" href="corporate.html">Corporate Catering</a></div></div></div></section>
+    <section class="cta-band cinematic-cta"><div class="wrap" data-reveal><h2>Let Us Cater Your Next Event</h2><p>Start your request today and our team will follow up with menu and service options.</p><a class="btn alt btn-lift" href="quote-builder.html">Check Availability</a></div></section>
   </main>
-
-  <footer class="footer">
-    <div class="wrap footer-grid">
-      <div><img src="assets/images/logo.jpeg" alt="318 Food Co"><p data-content="footer_text">318 Food Co. Catering Made Simple.</p></div>
-      <div><h4>Contact</h4><p><a href="tel:3185720137">(318) 572-0137</a><br><a href="mailto:318FoodCompany@gmail.com">318FoodCompany@gmail.com</a><br><span data-setting="address">Serving Shreveport, Bossier City, and surrounding Northwest Louisiana communities.</span><br><span data-setting="hours">By appointment</span><br><a data-setting-social="facebook" href="#" hidden>Facebook</a> <a data-setting-social="instagram" href="#" hidden>Instagram</a></p></div>
-      <div><h4>Quick Links</h4><p><a href="catering.html">Catering Menus</a><br><a href="about.html">About Us</a><br><a href="quote-builder.html">Plan My Event</a></p></div>
-    </div>
-    <div class="wrap copyright">© 318 Food Co. All rights reserved.</div>
-  </footer>
-
-  <script src="js/marketing-attribution.js"></script>
-  <script src="script.js"></script>
-  <script src="/api/runtime-config"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/supabase.js"></script>
-  <script src="js/site-settings.js"></script>
-  <script src="js/site-content.js"></script>
-  <script src="js/site-photos.js"></script>
+  <footer class="footer"><div class="wrap footer-grid"><div><img src="assets/images/logo.jpeg" alt="318 Food Co"><p>318 Food Co. Catering Made Simple.</p></div><div><h4>Contact</h4><p><a href="tel:3185720137">(318) 572-0137</a><br><a href="mailto:318FoodCompany@gmail.com">318FoodCompany@gmail.com</a><br><span data-setting="address">Serving Shreveport, Bossier City, and surrounding Northwest Louisiana communities.</span><br><span data-setting="hours">By appointment</span></p></div><div><h4>Quick Links</h4><p><a href="catering.html">Catering Menus</a><br><a href="about.html">About Us</a><br><a href="quote-builder.html">Plan My Event</a></p></div></div><div class="wrap copyright">© 318 Food Co. All rights reserved.</div></footer>
+  <script src="js/marketing-attribution.js"></script><script src="script.js"></script><script src="/api/runtime-config"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="js/supabase.js"></script><script src="js/site-settings.js"></script><script src="js/site-content.js"></script><script src="js/site-photos.js"></script>
 </body>
 </html>

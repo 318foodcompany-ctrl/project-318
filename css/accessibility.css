@@ -2,4 +2,39 @@
 :where(a,button,input,select,textarea,[tabindex]):focus-visible{outline:3px solid #f4b400;outline-offset:3px}
 .links a[aria-current="page"]{color:var(--red);font-weight:700}
 main:focus{outline:none}
+
+/* PR #31 hero refinement: make the actual food unmistakable. */
+.lux-showcase .food-plate{width:min(500px,94%);aspect-ratio:4/3;border-radius:34px;transform:translate(24px,-24px) rotate(-2deg);box-shadow:0 48px 120px rgba(0,0,0,.72),0 0 80px rgba(213,43,34,.24)}
+.lux-showcase .food-plate:after{border-radius:34px;background:linear-gradient(180deg,transparent 45%,rgba(0,0,0,.58) 100%),linear-gradient(145deg,rgba(255,255,255,.13),transparent 34%)}
+.lux-showcase .glass-card.main{left:-3%;bottom:-4px;width:min(390px,78%);padding:24px}
+.lux-showcase .glass-card.main h2{font-size:clamp(1.9rem,3vw,3rem)}
+
+@media(max-width:700px){
+  .lux-hero,.lux-stage{min-height:auto!important}
+  .lux-stage{display:flex!important;flex-direction:column;gap:24px!important;padding:48px 0 56px!important}
+  .lux-copy{width:100%}
+  .lux-title{font-size:clamp(3rem,15vw,4.35rem)!important;margin-bottom:18px!important}
+  .lux-copy p{font-size:1rem!important}
+  .lux-actions{margin-top:24px!important}
+  .lux-proof{margin-top:24px!important;padding-top:20px!important;justify-content:space-between;gap:10px!important}
+  .lux-proof strong{font-size:1.05rem!important}
+  .lux-proof small{font-size:.72rem}
+  .lux-showcase{order:2;width:100%;min-height:340px!important;margin-top:4px;display:block!important}
+  .lux-showcase .food-halo{width:290px;height:290px;right:-8%;top:0}
+  .lux-showcase .food-plate{position:absolute;top:0;left:0;width:100%!important;height:250px;aspect-ratio:auto;border-radius:26px;transform:none!important;animation:mobile-food-rise .8s cubic-bezier(.2,.75,.2,1) both!important}
+  .lux-showcase .food-plate img{object-position:center 48%;transform:scale(1.03)}
+  .lux-showcase .food-plate:after{border-radius:26px}
+  .lux-showcase .glass-card.main{left:5%!important;right:5%;bottom:0!important;width:90%!important;padding:18px 20px!important;border-radius:22px;transform:none!important;animation:mobile-card-rise .8s .15s cubic-bezier(.2,.75,.2,1) both!important}
+  .lux-showcase .glass-card.main h2{font-size:1.8rem!important;margin:8px 0 10px}
+  .lux-showcase .glass-card.main p{font-size:.9rem;margin-bottom:12px}
+  .lux-showcase .service-pills{gap:6px}
+  .lux-showcase .service-pills span{font-size:.7rem;padding:6px 9px}
+  .lux-showcase .glass-card.mini,.lux-ring,.lux-orb.two{display:none!important}
+  .lux-orb.one{width:220px!important;height:220px!important;top:auto!important;bottom:40px!important;right:-70px!important}
+  .scroll-cue{display:none!important}
+}
+
+@keyframes mobile-food-rise{from{opacity:0;transform:translateY(24px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes mobile-card-rise{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto!important}*,*:before,*:after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
