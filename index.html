@@ -24,6 +24,8 @@
 
   <main>
     <section class="hero home-hero">
+      <div class="hero-light hero-light-a" aria-hidden="true"></div>
+      <div class="hero-light hero-light-b" aria-hidden="true"></div>
       <div class="wrap">
         <div class="hero-copy hero-copy-3d">
           <span class="hero-chip script" data-content="hero_eyebrow">Fresh Catering</span>
@@ -40,24 +42,16 @@
           </div>
         </div>
 
-        <div class="food-stage" data-food-stage aria-label="A dimensional showcase of 318 Food Co catering menus">
-          <div class="food-orbit" aria-hidden="true"></div>
-          <figure class="food-card taco" data-depth-card data-depth=".55" data-label="Taco Bar">
-            <img src="assets/images/taco-professional.jpg" alt="Taco bar catering spread">
-          </figure>
-          <figure class="food-card primary" data-depth-card data-depth="1" data-label="Pizza & Salad">
-            <img src="assets/images/pizza-professional.jpg" alt="Pizza and salad catering spread">
-          </figure>
-          <figure class="food-card bbq" data-depth-card data-depth=".72" data-label="BBQ Bar">
-            <img src="assets/images/bbq-professional.jpg" alt="BBQ catering spread">
-          </figure>
-          <figure class="food-card pasta" data-depth-card data-depth=".9" data-label="Pasta Bar">
-            <img src="assets/images/pasta-professional.jpg" alt="Pasta bar catering spread">
-          </figure>
-          <figure class="food-card deli" data-depth-card data-depth=".42" data-label="Deli Buffet">
-            <img src="assets/images/deli-professional.jpg" alt="Deli buffet catering spread">
-          </figure>
-          <div class="stage-badge"><span><strong>6</strong> ways to feed a crowd</span></div>
+        <div class="webgl-food-stage" data-webgl-food aria-label="Interactive 3D pizza and floating ingredients">
+          <div class="webgl-fallback" aria-hidden="true">
+            <img src="assets/images/pizza-professional.jpg" alt="">
+          </div>
+          <div class="scene-copy scene-copy-top"><strong>Fresh.</strong><span>Built for a crowd.</span></div>
+          <div class="scene-copy scene-copy-bottom"><span>Move your phone</span><strong>See the flavor.</strong></div>
+          <div class="flavor-pill flavor-pill-one">Pizza</div>
+          <div class="flavor-pill flavor-pill-two">Tacos</div>
+          <div class="flavor-pill flavor-pill-three">BBQ</div>
+          <div class="stage-badge"><span><strong>3D</strong> food experience</span></div>
         </div>
       </div>
       <div class="scroll-cue" aria-hidden="true">Explore</div>
@@ -124,6 +118,7 @@
   <script src="js/marketing-attribution.js"></script>
   <script src="script.js"></script>
   <script src="js/home-3d.js"></script>
+  <script type="module" src="js/home-webgl.js"></script>
   <script src="/api/runtime-config"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase.js"></script>
