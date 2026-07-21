@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const attribution = window.Project318Attribution?.snapshot?.() || {};
-            const { error } = await window.supabaseClient.rpc('submit_quote_with_attribution', {
+            const { data: quoteId, error } = await window.supabaseClient.rpc('submit_quote_with_attribution', {
                 p_name: lead.name,
                 p_company: lead.company || '',
                 p_email: lead.email,
@@ -75,6 +75,12 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             if (error) throw error;
 
+            const persistedQuoteId = Number(Array.isArray(quoteId) ? quoteId[0] : quoteId);
+            if (!Number.isSafeInteger(persistedQuoteId) || persistedQuoteId <= 0) {
+                throw new Error('The database did not confirm a saved quote record.');
+            }
+
+            form.dataset.savedQuoteId = String(persistedQuoteId);
             form.hidden = true;
             const progress = document.querySelector('.progress-wrap');
             if (progress) progress.hidden = true;
@@ -82,13 +88,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (success) {
                 success.hidden = false;
                 const text = success.querySelector('p');
-                if (text) text.textContent = 'Your request has been sent to 318 Food Co. We will follow up with you shortly.';
+                if (text) text.textContent = 'Your request has been saved and sent to 318 Food Co. We will follow up with you shortly.';
             }
             window.scrollTo({ top: 0, behavior: 'smooth' });
         } catch (error) {
             console.error('Quote submission failed:', error);
             submitMessage.classList.add('error');
-            submitMessage.textContent = 'Your request could not be submitted. Please try again or call 318 Food Co.';
+            submitMessage.textContent = 'Your request was not confirmed as saved. Please try again or call 318 Food Co.';
             submitButton.disabled = false;
         }
     }, true);
