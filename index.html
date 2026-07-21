@@ -6,8 +6,10 @@
   <title>318 Food Co. | Catering Made Simple. Made Fresh.</title>
   <meta name="description" content="Fresh catering for office lunches, employee events, weddings and celebrations across Shreveport, Bossier City and Northwest Louisiana.">
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="css/home-3d.css">
+  <link rel="stylesheet" href="css/home-webgl.css">
 </head>
-<body>
+<body class="home-3d">
   <header class="topbar">
     <div class="wrap nav">
       <a class="brand" href="index.html"><img src="assets/images/logo.jpeg" alt="318 Food Co logo"></a>
@@ -22,63 +24,82 @@
   </header>
 
   <main>
-    <section class="hero">
+    <section class="hero home-hero">
+      <div class="hero-light hero-light-a" aria-hidden="true"></div>
+      <div class="hero-light hero-light-b" aria-hidden="true"></div>
       <div class="wrap">
-        <div class="hero-copy">
-          <span class="script" data-content="hero_eyebrow">Fresh Catering</span>
-          <h1 class="display" data-content="hero_heading">Catering Made Easy</h1>
+        <div class="hero-copy hero-copy-3d">
+          <span class="hero-chip script" data-content="hero_eyebrow">Fresh Catering</span>
+          <h1 class="home-display display" data-content="hero_heading">Catering Made Easy</h1>
           <p data-content="hero_text">Office lunches, employee events, weddings and celebrations—delivered and set up across Shreveport, Bossier City and Northwest Louisiana.</p>
           <div class="actions">
             <a class="btn" href="quote-builder.html" data-content="hero_button" data-content-link="hero_button_link">▣ Get My Catering Quote</a>
             <a class="btn alt" href="catering.html" data-content="hero_secondary_button" data-content-link="hero_secondary_button_link">View Catering Menus</a>
           </div>
-          <div class="minimum" data-content="minimum_order">★ Minimum order: 15 people</div>
+          <div class="hero-proof">
+            <span class="minimum" data-content="minimum_order">★ Minimum order: 15 people</span>
+            <span>Delivery & setup available</span>
+            <span>Northwest Louisiana</span>
+          </div>
+        </div>
+
+        <div class="webgl-food-stage" data-webgl-food aria-label="Interactive 3D pizza and floating ingredients">
+          <div class="webgl-fallback" aria-hidden="true">
+            <img src="assets/images/pizza-professional.jpg" alt="">
+          </div>
+          <div class="scene-copy scene-copy-top"><strong>Fresh.</strong><span>Built for a crowd.</span></div>
+          <div class="scene-copy scene-copy-bottom"><span>Move your phone</span><strong>See the flavor.</strong></div>
+          <div class="flavor-pill flavor-pill-one">Pizza</div>
+          <div class="flavor-pill flavor-pill-two">Tacos</div>
+          <div class="flavor-pill flavor-pill-three">BBQ</div>
+          <div class="stage-badge"><span><strong>3D</strong> food experience</span></div>
         </div>
       </div>
+      <div class="scroll-cue" aria-hidden="true">Explore</div>
     </section>
 
     <section class="trust-strip">
       <div class="wrap trust-grid">
-        <div class="trust-item"><span class="icon">♨</span><div><strong data-content="trust_1_title">Fresh, Crowd-Pleasing Menus</strong><small data-content="trust_1_text">Familiar favorites prepared for groups of 15 or more.</small></div></div>
-        <div class="trust-item"><span class="icon">▣</span><div><strong data-content="trust_2_title">Delivery & Setup Available</strong><small data-content="trust_2_text">Choose the service level that fits your event.</small></div></div>
-        <div class="trust-item"><span class="icon">♟</span><div><strong data-content="trust_3_title">Built for Groups</strong><small data-content="trust_3_text">Office lunches, employee events, weddings and celebrations.</small></div></div>
-        <div class="trust-item"><span class="icon">★</span><div><strong data-content="trust_4_title">Easy Planning</strong><small data-content="trust_4_text">Share your date, headcount and menu preferences in minutes.</small></div></div>
+        <div class="trust-item reveal-3d"><span class="icon">♨</span><div><strong data-content="trust_1_title">Fresh, Crowd-Pleasing Menus</strong><small data-content="trust_1_text">Familiar favorites prepared for groups of 15 or more.</small></div></div>
+        <div class="trust-item reveal-3d"><span class="icon">▣</span><div><strong data-content="trust_2_title">Delivery & Setup Available</strong><small data-content="trust_2_text">Choose the service level that fits your event.</small></div></div>
+        <div class="trust-item reveal-3d"><span class="icon">♟</span><div><strong data-content="trust_3_title">Built for Groups</strong><small data-content="trust_3_text">Office lunches, employee events, weddings and celebrations.</small></div></div>
+        <div class="trust-item reveal-3d"><span class="icon">★</span><div><strong data-content="trust_4_title">Easy Planning</strong><small data-content="trust_4_text">Share your date, headcount and menu preferences in minutes.</small></div></div>
       </div>
     </section>
 
-    <section class="section">
+    <section class="section home-menu-section">
       <div class="wrap">
-        <div class="section-title">
+        <div class="section-title reveal-3d">
           <h2 data-content="menu_section_heading">Catering Options</h2>
           <p data-content="menu_section_text">Choose from crowd-pleasing favorites for every type of event.</p>
         </div>
 
         <div class="menu-grid">
-          <div class="menu-card"><img src="assets/images/taco-professional.jpg" alt="Taco bar"><div class="body"><h3 class="tag-taco" data-content="featured_taco_heading">Taco Bar</h3><p data-content="featured_taco_text">Seasoned proteins, classic sides and a full spread of fresh toppings.</p><div class="price">Starting at <span>$15.99</span> per person</div><a class="btn" href="catering.html#taco">View Menu</a></div></div>
-          <div class="menu-card"><img src="assets/images/fajita-professional.jpg" alt="Fajita bar"><div class="body"><h3 class="tag-fajita" data-content="featured_fajita_heading">Fajita Bar</h3><p data-content="featured_fajita_text">Sizzling chicken and steak fajitas with peppers, onions and sides.</p><div class="price">Starting at <span>$16.99</span> per person</div><a class="btn" href="catering.html#fajita">View Menu</a></div></div>
-          <div class="menu-card"><img src="assets/images/bbq-professional.jpg" alt="BBQ bar"><div class="body"><h3 class="tag-bbq" data-content="featured_bbq_heading">BBQ Bar</h3><p data-content="featured_bbq_text">Pulled pork, smoked sausage and down-home sides.</p><div class="price">Starting at <span>$16.99</span> per person</div><a class="btn" href="catering.html#bbq">View Menu</a></div></div>
-          <div class="menu-card"><img src="assets/images/deli-professional.jpg" alt="Deli buffet"><div class="body"><h3 class="tag-deli" data-content="featured_deli_heading">Deli Buffet</h3><p data-content="featured_deli_text">Premium meats, cheeses, fresh toppings, chips and cookies.</p><div class="price">Starting at <span>$15.99</span> per person</div><a class="btn" href="catering.html#deli">View Menu</a></div></div>
-          <div class="menu-card"><img src="assets/images/pasta-professional.jpg" alt="Pasta bar"><div class="body"><h3 class="tag-pasta" data-content="featured_pasta_heading">Pasta Bar</h3><p data-content="featured_pasta_text">Comforting pasta entrées with salad, garlic bread, and cookies or brownies.</p><div class="price">Starting at <span>$15.99</span> per person</div><a class="btn" href="catering.html#pasta">View Menu</a></div></div>
-          <div class="menu-card"><img src="assets/images/pizza-professional.jpg" alt="Pizza and salad"><div class="body"><h3 class="tag-pizza" data-content="featured_pizza_heading">Pizza & Salad</h3><p data-content="featured_pizza_text">Fresh pizzas, crisp salads, hearty sides, and cookies or brownies.</p><div class="price">Starting at <span>$15.99</span> per person</div><a class="btn" href="catering.html#pizza">View Menu</a></div></div>
+          <div class="menu-card reveal-3d"><img src="assets/images/taco-professional.jpg" alt="Taco bar"><div class="body"><h3 class="tag-taco" data-content="featured_taco_heading">Taco Bar</h3><p data-content="featured_taco_text">Seasoned proteins, classic sides and a full spread of fresh toppings.</p><div class="price">Starting at <span>$15.99</span> per person</div><a class="btn" href="catering.html#taco">View Menu</a></div></div>
+          <div class="menu-card reveal-3d"><img src="assets/images/fajita-professional.jpg" alt="Fajita bar"><div class="body"><h3 class="tag-fajita" data-content="featured_fajita_heading">Fajita Bar</h3><p data-content="featured_fajita_text">Sizzling chicken and steak fajitas with peppers, onions and sides.</p><div class="price">Starting at <span>$16.99</span> per person</div><a class="btn" href="catering.html#fajita">View Menu</a></div></div>
+          <div class="menu-card reveal-3d"><img src="assets/images/bbq-professional.jpg" alt="BBQ bar"><div class="body"><h3 class="tag-bbq" data-content="featured_bbq_heading">BBQ Bar</h3><p data-content="featured_bbq_text">Pulled pork, smoked sausage and down-home sides.</p><div class="price">Starting at <span>$16.99</span> per person</div><a class="btn" href="catering.html#bbq">View Menu</a></div></div>
+          <div class="menu-card reveal-3d"><img src="assets/images/deli-professional.jpg" alt="Deli buffet"><div class="body"><h3 class="tag-deli" data-content="featured_deli_heading">Deli Buffet</h3><p data-content="featured_deli_text">Premium meats, cheeses, fresh toppings, chips and cookies.</p><div class="price">Starting at <span>$15.99</span> per person</div><a class="btn" href="catering.html#deli">View Menu</a></div></div>
+          <div class="menu-card reveal-3d"><img src="assets/images/pasta-professional.jpg" alt="Pasta bar"><div class="body"><h3 class="tag-pasta" data-content="featured_pasta_heading">Pasta Bar</h3><p data-content="featured_pasta_text">Comforting pasta entrées with salad, garlic bread, and cookies or brownies.</p><div class="price">Starting at <span>$15.99</span> per person</div><a class="btn" href="catering.html#pasta">View Menu</a></div></div>
+          <div class="menu-card reveal-3d"><img src="assets/images/pizza-professional.jpg" alt="Pizza and salad"><div class="body"><h3 class="tag-pizza" data-content="featured_pizza_heading">Pizza & Salad</h3><p data-content="featured_pizza_text">Fresh pizzas, crisp salads, hearty sides, and cookies or brownies.</p><div class="price">Starting at <span>$15.99</span> per person</div><a class="btn" href="catering.html#pizza">View Menu</a></div></div>
         </div>
       </div>
     </section>
 
-    <section class="section light">
+    <section class="section light immersive-story">
       <div class="wrap split">
-        <img class="feature-photo" src="assets/images/catering-brochure.jpeg" alt="318 Food Co catering menu">
-        <div class="big-copy">
+        <div class="immersive-photo-wrap reveal-3d"><img class="feature-photo" src="assets/images/catering-brochure.jpeg" alt="318 Food Co catering menu"></div>
+        <div class="big-copy reveal-3d">
           <span class="kicker">Catering made simple</span>
           <h2 data-content="feature_heading">Made for Your Next Event</h2>
           <p data-content="feature_text">Tell us your guest count, budget, and service needs. We will help you build the right catering plan.</p>
           <ul class="checks"><li>Corporate lunches</li><li>Employee appreciation</li><li>Weddings</li><li>Graduation parties</li><li>Church events</li><li>Family gatherings</li></ul>
-          <div class="actions"><a class="btn" href="quote-builder.html">Help Me Choose a Menu</a><a class="btn alt" style="color:#111;border-color:#111" href="corporate.html">Corporate Catering</a></div>
+          <div class="actions"><a class="btn" href="quote-builder.html">Help Me Choose a Menu</a><a class="btn alt" href="corporate.html">Corporate Catering</a></div>
         </div>
       </div>
     </section>
 
     <section class="cta-band">
-      <div class="wrap">
+      <div class="wrap reveal-3d">
         <h2 data-content="cta_heading">Let Us Cater Your Next Event</h2>
         <p data-content="cta_text">Start your request today and our team will follow up with menu and service options.</p>
         <a class="btn alt" href="quote-builder.html" data-content="cta_button">Check Availability</a>
@@ -97,6 +118,8 @@
 
   <script src="js/marketing-attribution.js"></script>
   <script src="script.js"></script>
+  <script src="js/home-3d.js"></script>
+  <script type="module" src="js/home-webgl.js"></script>
   <script src="/api/runtime-config"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase.js"></script>
