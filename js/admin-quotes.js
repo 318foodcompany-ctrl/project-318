@@ -226,7 +226,9 @@
       if (!window.quoteStatusService) throw new Error("Quote status service is unavailable.");
       const updatedQuote = await window.quoteStatusService.update(supabaseClient, id, status);
       const quote = quotes.find((item) => String(item.id) === String(updatedQuote.id));
-      if (quote) quote.status = updatedQuote.status;
+      if (quote) {
+        quote.status = updatedQuote.status;
+      }
       updateSummary();
       renderQuotes();
       setMessage(`Moved to ${displayStatus(updatedQuote.status)}.`);
