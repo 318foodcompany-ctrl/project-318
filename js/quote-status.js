@@ -19,6 +19,8 @@
 
   window.quoteStatusService = { update };
 
+  if (typeof document === "undefined") return;
+
   [
     "js/admin-command-center.js",
     "js/admin-booking-enhancements.js",

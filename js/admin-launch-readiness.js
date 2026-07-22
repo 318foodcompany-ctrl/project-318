@@ -57,6 +57,21 @@
       } catch (error) {
         checks.push(result("session", "Administrator session", "blocked", error.message));
       }
+
+      const today = new Date().toISOString().slice(0, 10);
+      const reportingArgs = { p_start: today, p_end: today, p_model: "last_non_direct" };
+      const reports = [
+        ["marketing_revenue_attribution", "Revenue attribution migration"],
+        ["marketing_quote_funnel", "Marketing funnel migration"],
+        ["marketing_spend_summary", "Marketing spend migration"]
+      ];
+      const reportChecks = await Promise.all(reports.map(async ([rpc, label]) => {
+        const { error } = await win.supabaseClient.rpc(rpc, reportingArgs);
+        return error
+          ? result(`rpc:${rpc}`, label, "blocked", error.message, "Apply the required marketing migration in Supabase.")
+          : result(`rpc:${rpc}`, label, "ready", `${rpc} is available.`);
+      }));
+      checks.push(...reportChecks);
     }
 
     const pageResults = await Promise.all(PAGES.map(async path => {
@@ -73,6 +88,19 @@
       }
     }));
     checks.push(...pageResults);
+
+    const publicFiles = [["/sitemap.xml", "XML sitemap"], ["/robots.txt", "Robots directives"]];
+    const publicFileChecks = await Promise.all(publicFiles.map(async ([path, label]) => {
+      try {
+        const response = await win.fetch(path, { cache: "no-store", credentials: "same-origin" });
+        return response.ok
+          ? result(`public:${path}`, label, "ready", `${path} is available.`)
+          : result(`public:${path}`, label, "blocked", `HTTP ${response.status}`, "Check the production deployment.");
+      } catch (error) {
+        return result(`public:${path}`, label, "blocked", error.message, "Check the production deployment.");
+      }
+    }));
+    checks.push(...publicFileChecks);
 
     try {
       const home = await fetchDocument(win, "/");
