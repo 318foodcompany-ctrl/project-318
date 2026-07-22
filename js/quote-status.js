@@ -17,7 +17,18 @@
     return data[0];
   }
 
+  function loadAdminCommandCenter() {
+    if (typeof document === "undefined") return;
+    if (document.querySelector('script[src="js/admin-command-center.js"]')) return;
+
+    const script = document.createElement("script");
+    script.src = "js/admin-command-center.js";
+    script.defer = true;
+    document.head.appendChild(script);
+  }
+
   if (typeof window !== "undefined") {
     window.quoteStatusService = { update };
+    loadAdminCommandCenter();
   }
 })();
