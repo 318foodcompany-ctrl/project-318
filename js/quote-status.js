@@ -17,20 +17,22 @@
     return data[0];
   }
 
-  window.quoteStatusService = { update };
+  function loadAdminScript(src) {
+    if (typeof document === "undefined") return;
+    if (document.querySelector(`script[src="${src}"]`)) return;
 
-  [
-    "js/admin-command-center.js",
-    "js/admin-booking-enhancements.js",
-    "js/admin-invoice-enhancements.js",
-    "js/admin-editor-enhancements.js",
-    "js/admin-marketing-dashboard.js",
-    "js/admin-experience.js",
-    "js/admin-launch-readiness.js"
-  ].forEach((src) => {
     const script = document.createElement("script");
     script.src = src;
     script.defer = true;
     document.head.appendChild(script);
-  });
+  }
+
+  if (typeof window !== "undefined") {
+    window.quoteStatusService = { update };
+    loadAdminScript("js/admin-command-center.js");
+    loadAdminScript("js/admin-editor-enhancements.js");
+    loadAdminScript("js/admin-experience.js");
+    loadAdminScript("js/admin-marketing-dashboard.js");
+    loadAdminScript("js/admin-booking-enhancements.js");
+  }
 })();
