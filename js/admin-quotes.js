@@ -229,7 +229,7 @@
       if (quote) quote.status = updatedQuote.status;
       updateSummary();
       renderQuotes();
-      setMessage(`Moved to ${displayStatus(updatedQuote.status)}.`);
+      setMessage("Quote status saved.");
       return true;
     } catch (error) {
       console.error("Quote status save failed:", error);
@@ -255,6 +255,11 @@
     container.innerHTML = `<div class="quote-detail-grid">${detailItem("First source", attribution.first_source)}${detailItem("First medium", attribution.first_medium)}${detailItem("First campaign", attribution.first_campaign || "—")}${detailItem("First landing page", attribution.first_landing_path || "—")}${detailItem("Last source", attribution.last_source || attribution.first_source)}${detailItem("Last medium", attribution.last_medium || attribution.first_medium)}${detailItem("Last campaign", attribution.last_campaign || "—")}${detailItem("Last landing page", attribution.last_landing_path || "—")}</div>`;
   }
 
+  function openBookingFromQuote(quote, isSnapshot = false) {
+    if (isSnapshot) return window.bookingCalendar.openFromQuote(quote);
+    return window.bookingCalendar.openFromQuote({ ...quote });
+  }
+
   function openQuote(id) {
     const quote = quotes.find((item) => String(item.id) === String(id));
     if (!quote) return;
@@ -269,7 +274,7 @@
     internalNotes.addEventListener("input", () => scheduleNoteSave(internalNotes.value));
     internalNotes.addEventListener("blur", () => flushInternalNotes());
     document.getElementById("quoteOpenCustomerButton")?.addEventListener("click", async () => { const closed = await closeQuote(); if (closed && window.customerCRM) { showPanel("customersPanel"); window.customerCRM.openCustomer(quote.customer_id); } });
-    document.getElementById("quoteCreateBookingButton")?.addEventListener("click", async () => { if (!window.bookingCalendar) { setNoteSaveState("Booking Calendar is still loading. Try again in a moment.", true); return; } const closed = await closeQuote(); if (closed) window.bookingCalendar.openFromQuote({ ...quote }); });
+    document.getElementById("quoteCreateBookingButton")?.addEventListener("click", async () => { if (!window.bookingCalendar) { setNoteSaveState("Booking Calendar is still loading. Try again in a moment.", true); return; } const bookingQuote = { ...quote }; const closed = await closeQuote(); if (closed) openBookingFromQuote(bookingQuote, true); });
     document.getElementById("quoteCreateInvoiceButton")?.addEventListener("click", async () => { if (!window.invoiceManager) { setNoteSaveState("Invoice management is still loading. Try again in a moment.", true); return; } const closed = await closeQuote(); if (closed) window.invoiceManager.openFromQuote({ ...quote }); });
   }
 
