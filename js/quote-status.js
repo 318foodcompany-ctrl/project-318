@@ -31,5 +31,6 @@
     window.quoteStatusService = { update };
     loadAdminScript("js/admin-command-center.js");
     loadAdminScript("js/admin-editor-enhancements.js");
+    loadAdminScript("js/admin-experience.js");
   }
 })();
