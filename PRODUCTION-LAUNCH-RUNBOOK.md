@@ -14,9 +14,21 @@ Use this checklist after the approved application commit and required Supabase m
 
 Apply the approved migrations in this order if they have not already been applied:
 
-1. `supabase/marketing-attribution.sql`
-2. `supabase/marketing-funnel-reporting.sql`
-3. `supabase/marketing-spend-roas.sql`
+1. `supabase/baseline-schema.sql`
+2. `supabase/website-settings.sql`
+3. `supabase/booking-calendar.sql`
+4. `supabase/quote-internal-notes.sql`
+5. `supabase/customer-crm.sql`
+6. `supabase/customer-crm-status-fix.sql`
+7. `supabase/invoicing-payments.sql`
+8. `supabase/marketing-attribution.sql`
+9. `supabase/marketing-funnel-reporting.sql`
+10. `supabase/marketing-spend-roas.sql`
+11. `supabase/website-settings-admin-hardening.sql`
+12. `supabase/migrations/20260722190000_admin_rls_hardening.sql`
+13. `supabase/migrations/20260722200000_website_images_storage.sql`
+
+Both timestamped migrations require `public.crm_is_admin()` from `customer-crm.sql`. Apply them before deploying the release so direct database access and website uploads enforce administrator permissions.
 
 Do not run rollback files during a normal deployment.
 

@@ -49,6 +49,28 @@ test("website image storage is bounded and administrator-only for writes", () =>
   assert.match(migration, /public\.crm_is_admin\(\)/);
 });
 
+test("website image storage is included in the timestamped migration chain", () => {
+  const migration = read("supabase/migrations/20260722200000_website_images_storage.sql").toLowerCase();
+  assert.match(migration, /to_regprocedure\('public\.crm_is_admin\(\)'\)/);
+  assert.match(migration, /raise exception 'required function public\.crm_is_admin\(\) is missing/);
+  assert.match(migration, /on conflict \(id\) do update/);
+  assert.match(migration, /file_size_limit = excluded\.file_size_limit/);
+  assert.match(migration, /for insert to authenticated/);
+  assert.match(migration, /for update to authenticated/);
+  assert.match(migration, /for delete to authenticated/);
+});
+
+test("timestamped RLS hardening removes authenticated-user admin access", () => {
+  const migration = read("supabase/migrations/20260722190000_admin_rls_hardening.sql").toLowerCase();
+  assert.match(migration, /drop policy if exists "authenticated users can view leads"/);
+  assert.match(migration, /drop policy if exists "anyone can insert leads"/);
+  assert.match(migration, /crm administrators can read leads/);
+  assert.match(migration, /website administrators can manage website content/);
+  assert.match(migration, /website administrators can manage menu items/);
+  assert.equal((migration.match(/public\.crm_is_admin\(\)/g) || []).length >= 7, true);
+  assert.match(migration, /revoke all on public\.leads from anon, authenticated/);
+});
+
 test("production deployment applies baseline security headers", () => {
   const config = JSON.parse(read("vercel.json"));
   const headers = new Map(config.headers[0].headers.map(header => [header.key.toLowerCase(), header.value]));
