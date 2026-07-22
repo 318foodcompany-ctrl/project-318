@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
   <title>318 Website Manager</title>
   <link rel="stylesheet" href="booking-calendar.css">
   <link rel="stylesheet" href="crm.css">
@@ -1039,6 +1040,13 @@
 
       if (error || !session) {
         window.location.replace("login.html");
+        return;
+      }
+
+      const { data: isAdmin, error: adminError } = await supabaseClient.rpc("crm_is_admin");
+      if (adminError || isAdmin !== true) {
+        await supabaseClient.auth.signOut();
+        window.location.replace("login.html?error=unauthorized");
         return;
       }
 

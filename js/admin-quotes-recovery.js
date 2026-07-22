@@ -86,7 +86,7 @@
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
         if (payload.code === "QUOTE_RECOVERY_NOT_CONFIGURED") {
-          console.warn("Quote recovery requires SUPABASE_SERVICE_ROLE_KEY in Vercel.");
+          console.warn("Quote recovery requires the public Supabase runtime configuration in Vercel.");
           return;
         }
         throw new Error(payload.error || `Quote recovery failed (${response.status}).`);

@@ -37,15 +37,9 @@ async function handler(request, response) {
 
   const supabaseUrl = String(process.env.PUBLIC_SUPABASE_URL || "").trim().replace(/\/$/, "");
   const anonKey = String(process.env.PUBLIC_SUPABASE_ANON_KEY || "").trim();
-  const serviceKey = String(
-    process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    process.env.SUPABASE_SERVICE_KEY ||
-    process.env.SERVICE_ROLE_KEY ||
-    ""
-  ).trim();
   const token = bearerToken(request);
 
-  if (!supabaseUrl || !anonKey || !serviceKey) {
+  if (!supabaseUrl || !anonKey) {
     json(response, 503, {
       error: "Server-side quote recovery is not configured.",
       code: "QUOTE_RECOVERY_NOT_CONFIGURED"
@@ -66,12 +60,26 @@ async function handler(request, response) {
       return;
     }
 
+    const isAdmin = await supabaseRequest(`${supabaseUrl}/rest/v1/rpc/crm_is_admin`, {
+      method: "POST",
+      headers: {
+        apikey: anonKey,
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: "{}"
+    });
+    if (isAdmin !== true) {
+      json(response, 403, { error: "Administrator access required." });
+      return;
+    }
+
     const rows = await supabaseRequest(
       `${supabaseUrl}/rest/v1/leads?select=*&order=created_at.desc&limit=500`,
       {
         headers: {
-          apikey: serviceKey,
-          Authorization: `Bearer ${serviceKey}`,
+          apikey: anonKey,
+          Authorization: `Bearer ${token}`,
           Accept: "application/json"
         }
       }
@@ -83,8 +91,9 @@ async function handler(request, response) {
     });
   } catch (error) {
     console.error("Server-side quote recovery failed:", error);
-    json(response, error.status === 401 ? 401 : 502, {
-      error: error.message || "Quote recovery failed.",
+    const status = error.status === 401 ? 401 : error.status === 403 ? 403 : 502;
+    json(response, status, {
+      error: status === 502 ? "Quote recovery failed." : error.message,
       code: "QUOTE_RECOVERY_FAILED"
     });
   }
