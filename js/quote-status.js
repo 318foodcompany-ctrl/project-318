@@ -20,21 +20,4 @@
   if (typeof window !== "undefined") {
     window.quoteStatusService = { update };
   }
-
-  if (typeof document !== "undefined") {
-    [
-      "js/admin-command-center.js",
-      "js/admin-booking-enhancements.js",
-      "js/admin-invoice-enhancements.js",
-      "js/admin-editor-enhancements.js",
-      "js/admin-marketing-dashboard.js",
-      "js/admin-experience.js",
-      "js/admin-launch-readiness.js"
-    ].forEach((src) => {
-      const script = document.createElement("script");
-      script.src = src;
-      script.defer = true;
-      document.head.appendChild(script);
-    });
-  }
 })();
