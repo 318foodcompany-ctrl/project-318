@@ -33,5 +33,6 @@
     loadAdminScript("js/admin-editor-enhancements.js");
     loadAdminScript("js/admin-experience.js");
     loadAdminScript("js/admin-marketing-dashboard.js");
+    loadAdminScript("js/admin-booking-enhancements.js");
   }
 })();
