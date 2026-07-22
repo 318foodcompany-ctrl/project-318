@@ -17,18 +17,19 @@
     return data[0];
   }
 
-  function loadAdminCommandCenter() {
+  function loadAdminScript(src) {
     if (typeof document === "undefined") return;
-    if (document.querySelector('script[src="js/admin-command-center.js"]')) return;
+    if (document.querySelector(`script[src="${src}"]`)) return;
 
     const script = document.createElement("script");
-    script.src = "js/admin-command-center.js";
+    script.src = src;
     script.defer = true;
     document.head.appendChild(script);
   }
 
   if (typeof window !== "undefined") {
     window.quoteStatusService = { update };
-    loadAdminCommandCenter();
+    loadAdminScript("js/admin-command-center.js");
+    loadAdminScript("js/admin-editor-enhancements.js");
   }
 })();
