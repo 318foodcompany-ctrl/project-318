@@ -89,6 +89,7 @@
       .then(() => loadAdminScript("js/admin-marketing.js", "data-admin-marketing"))
       .then(() => loadAdminScript("js/admin-marketing-spend.js", "data-admin-marketing-spend"))
       .then(() => loadAdminScript("js/admin-campaign-links.js", "data-admin-campaign-links"))
+      .then(() => loadAdminScript("js/admin-marketing-assistant.js", "data-admin-marketing-assistant"))
       .then(() => loadAdminScript("js/admin-launch-readiness.js", "data-admin-launch-readiness"))
       .then(() => loadAdminScript("js/admin-quotes-recovery.js", "data-admin-quotes-recovery"))
       .catch((error) => console.error("Administrator dashboard tools could not be loaded:", error));
