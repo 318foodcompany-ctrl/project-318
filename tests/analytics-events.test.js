@@ -40,3 +40,30 @@ test("classifies phone, email, download, directions and CTA links", () => {
   assert.equal(analytics.linkKind(anchor("https://www.google.com/maps/place/example")), "directions_click");
   assert.equal(analytics.linkKind(anchor("quote.html")), "cta_click");
 });
+
+test("deduplicates conversion events by stable once key", () => {
+  const dispatched = [];
+  const document = {
+    title: "Quote",
+    readyState: "complete",
+    documentElement: { scrollHeight: 1000 },
+    addEventListener() {},
+    querySelectorAll() { return []; }
+  };
+  const win = {
+    document,
+    location: { pathname: "/quote-builder.html" },
+    innerHeight: 500,
+    scrollY: 0,
+    crypto: { randomUUID: () => "event-123" },
+    Project318Consent: { permits: () => true },
+    CustomEvent: class { constructor(type, options) { this.type = type; this.detail = options.detail; } },
+    addEventListener() {},
+    dispatchEvent(event) { dispatched.push(event); }
+  };
+  const tracker = analytics.createTracker(win);
+  assert.equal(tracker.track("quote_submitted", {}, { onceKey: "quote:abc", eventId: "quote-abc" }), true);
+  assert.equal(tracker.track("quote_submitted", {}, { onceKey: "quote:abc", eventId: "quote-abc" }), false);
+  assert.equal(dispatched.filter(event => event.detail.event === "quote_submitted").length, 1);
+  assert.equal(win.dataLayer.filter(event => event.event === "quote_submitted").length, 1);
+});

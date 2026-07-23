@@ -5,7 +5,7 @@ const assert = require("node:assert/strict");
 const {
   validPixelId,
   cleanParameters,
-  STANDARD_EVENTS
+  EVENT_MAP
 } = require("../js/meta-pixel-provider.js");
 const runtimeConfig = require("../api/runtime-config.js");
 
@@ -37,10 +37,12 @@ test("cleanParameters keeps only primitive event values", () => {
 });
 
 test("standard event mapping uses conservative Meta events", () => {
-  assert.equal(STANDARD_EVENTS.page_view, "PageView");
-  assert.equal(STANDARD_EVENTS.quote_submitted, "Lead");
-  assert.equal(STANDARD_EVENTS.phone_click, "Contact");
-  assert.equal(STANDARD_EVENTS.email_click, "Contact");
+  assert.deepEqual(EVENT_MAP.page_view.standard, ["PageView"]);
+  assert.deepEqual(EVENT_MAP.quote_submitted.standard, ["Lead"]);
+  assert.deepEqual(EVENT_MAP.quote_submitted.custom, ["QuoteSubmitted"]);
+  assert.deepEqual(EVENT_MAP.quote_started.custom, ["QuoteStarted"]);
+  assert.deepEqual(EVENT_MAP.phone_click.standard, ["Contact"]);
+  assert.deepEqual(EVENT_MAP.email_click.standard, ["Contact"]);
 });
 
 test("runtime config exposes only a valid Meta Pixel ID", () => {
@@ -56,4 +58,18 @@ test("runtime config exposes only a valid Meta Pixel ID", () => {
     ...base,
     PUBLIC_META_PIXEL_ID: "not-a-pixel"
   }).metaPixelId, undefined);
+});
+
+test("Meta suppresses concurrent duplicate event IDs", async () => {
+  const calls = [];
+  const document = { getElementById: () => null, createElement: () => ({ dataset: {} }), head: { appendChild(script) { script.onload(); } } };
+  const win = { document, __APP_CONFIG__: { metaPixelId: "123456789012345" }, Project318Consent: { permits: () => true }, fbq(...args) { calls.push(args); }, addEventListener() {} };
+  const instance = require("../js/meta-pixel-provider.js").createProvider(win);
+  const [first, second] = await Promise.all([
+    instance.send({ event: "quote_submitted", event_id: "quote-1" }),
+    instance.send({ event: "quote_submitted", event_id: "quote-1" })
+  ]);
+  assert.deepEqual([first, second].sort(), [false, true]);
+  assert.equal(calls.filter(args => args[0] === "track" && args[1] === "Lead").length, 1);
+  assert.equal(calls.filter(args => args[0] === "trackCustom" && args[1] === "QuoteSubmitted").length, 1);
 });

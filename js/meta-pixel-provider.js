@@ -3,11 +3,12 @@
 
   const PIXEL_PATTERN = /^\d{5,20}$/;
   const SCRIPT_ID = "project318-meta-pixel-script";
-  const STANDARD_EVENTS = Object.freeze({
-    page_view: "PageView",
-    quote_submitted: "Lead",
-    phone_click: "Contact",
-    email_click: "Contact"
+  const EVENT_MAP = Object.freeze({
+    page_view: { standard: ["PageView"] },
+    quote_started: { custom: ["QuoteStarted"] },
+    quote_submitted: { standard: ["Lead"], custom: ["QuoteSubmitted"] },
+    phone_click: { standard: ["Contact"] },
+    email_click: { standard: ["Contact"] }
   });
 
   function validPixelId(value) {
@@ -28,6 +29,7 @@
   function createProvider(win) {
     const doc = win.document;
     const pixelId = String(win.__APP_CONFIG__?.metaPixelId || "").trim();
+    const deliveredEventIds = new Set();
     let initialized = false;
     let loading = null;
 
@@ -82,12 +84,21 @@
 
     async function send(detail) {
       if (!detail || !detail.event || !advertisingAllowed()) return false;
+      const eventId = String(detail.event_id || "").trim();
+      if (eventId && deliveredEventIds.has(eventId)) return false;
+      if (eventId) deliveredEventIds.add(eventId);
       const ready = await load();
-      if (!ready || typeof win.fbq !== "function") return false;
-      const standard = STANDARD_EVENTS[detail.event];
+      if (!ready || typeof win.fbq !== "function") {
+        if (eventId) deliveredEventIds.delete(eventId);
+        return false;
+      }
+      const mapping = EVENT_MAP[detail.event];
       const parameters = cleanParameters(detail);
-      if (standard) win.fbq("track", standard, parameters);
-      else win.fbq("trackCustom", detail.event, parameters);
+      const options = eventId ? { eventID: eventId } : undefined;
+      if (mapping) {
+        (mapping.standard || []).forEach((name) => win.fbq("track", name, parameters, options));
+        (mapping.custom || []).forEach((name) => win.fbq("trackCustom", name, parameters, options));
+      } else win.fbq("trackCustom", detail.event, parameters, options);
       return true;
     }
 
@@ -108,7 +119,7 @@
     return api;
   }
 
-  const api = { validPixelId, cleanParameters, createProvider, STANDARD_EVENTS };
+  const api = { validPixelId, cleanParameters, createProvider, EVENT_MAP };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (globalScope && globalScope.document) createProvider(globalScope);
 })(typeof window !== "undefined" ? window : globalThis);
