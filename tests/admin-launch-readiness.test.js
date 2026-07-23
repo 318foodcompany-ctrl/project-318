@@ -27,3 +27,11 @@ test("normalizes contact text for production checks", () => {
   assert.match(normalized, /3185720137/);
   assert.match(normalized, /318foodcompany@gmailcom/);
 });
+
+test("persists account-owner confirmations without credentials", () => {
+  const values = new Map();
+  const storage = { getItem: key => values.get(key) || null, setItem: (key, value) => values.set(key, value) };
+  readiness.writeOwnerActions(storage, { sitemap: true });
+  assert.deepEqual(readiness.readOwnerActions(storage), { sitemap: true });
+  assert.equal(readiness.OWNER_ACTIONS.length, 7);
+});

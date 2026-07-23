@@ -5,6 +5,16 @@
   const PAGES = ["/", "/catering.html", "/corporate.html", "/about.html", "/gallery.html", "/contact.html", "/quote-builder.html"];
   const PHONE_DIGITS = "3185720137";
   const EMAIL = "318foodcompany@gmail.com";
+  const OWNER_ACTIONS_KEY = "p318_launch_owner_actions_v1";
+  const OWNER_ACTIONS = [
+    ["ga4-property", "Create and verify the GA4 property", "Confirm Realtime receives a consented test visit."],
+    ["search-console", "Verify Google Search Console ownership", "Use the account owner's DNS verification method."],
+    ["sitemap", "Submit the XML sitemap", "Submit https://www.318foodco.com/sitemap.xml in Search Console."],
+    ["meta-pixel", "Create and verify the Meta Pixel", "Confirm PageView and conversion events in Meta Test Events."],
+    ["conversions", "Configure conversion goals", "Mark qualified lead and completed quote events as conversions in the account interfaces."],
+    ["consent", "Approve consent language", "Confirm analytics and advertising tags remain denied until the visitor opts in."],
+    ["campaign", "Review the first campaign", "Verify destination URL, UTM values, audience, budget, and conversion destination before launch."]
+  ];
 
   function validGa4(value) { return /^G-[A-Z0-9]{6,20}$/.test(String(value || "").toUpperCase()); }
   function validMeta(value) { return /^\d{5,20}$/.test(String(value || "")); }
@@ -20,6 +30,13 @@
   function score(summary) { return summary.total ? Math.round((summary.ready / summary.total) * 100) : 0; }
   function statusLabel(status) { return status === "ready" ? "Ready" : status === "warning" ? "Needs attention" : "Blocked"; }
   function normalizedText(value) { return String(value || "").toLowerCase().replace(/[^a-z0-9@]/g, ""); }
+  function readOwnerActions(storage) {
+    try {
+      const value = JSON.parse(storage?.getItem(OWNER_ACTIONS_KEY) || "{}");
+      return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+    } catch (_) { return {}; }
+  }
+  function writeOwnerActions(storage, value) { storage?.setItem(OWNER_ACTIONS_KEY, JSON.stringify(value)); }
 
   async function fetchDocument(win, path) {
     const response = await win.fetch(path, { cache: "no-store", credentials: "same-origin" });
@@ -149,11 +166,22 @@
     panel.innerHTML = `<div class="panel-heading"><h2>Launch Readiness</h2><p>Automated production checks plus campaign-link preparation.</p></div>
       <div class="launch-toolbar card"><div><strong id="launchScore">Checking…</strong><span id="launchSummary">Running checks.</span></div><button id="launchRun" type="button">Run checks again</button></div>
       <div id="launchChecks" class="launch-check-grid" aria-live="polite"></div>
+      <section class="card launch-owner"><h3>Account-owner launch steps</h3><p>These confirmations require access to Google, Meta, DNS, or advertising accounts. Checking an item records only this administrator's confirmation; it does not configure an external account.</p><div id="launchOwnerActions" class="launch-owner-list"></div></section>
       <section class="card launch-campaign"><h3>Facebook campaign link</h3><div class="launch-campaign-grid"><label>Source<input data-utm="source" value="facebook"></label><label>Medium<input data-utm="medium" value="paid_social"></label><label>Campaign<input data-utm="campaign" value="catering_launch"></label><label>Ad name<input data-utm="content" placeholder="office_lunch_video"></label></div><code id="launchCampaignUrl"></code><button id="launchCopyUrl" class="save-button" type="button">Copy campaign link</button><p>GA4 and Meta IDs remain manual because they are account-specific. After adding them in Vercel, verify GA4 Realtime and Meta Test Events.</p></section>`;
     doc.querySelector(".content")?.appendChild(panel);
 
     const showPanel = () => win.showPanel ? win.showPanel(panel.id) : doc.querySelectorAll(".panel").forEach(item => item.classList.toggle("active", item === panel));
     nav.addEventListener("click", showPanel);
+
+    const ownerState = readOwnerActions(win.localStorage);
+    const ownerTarget = panel.querySelector("#launchOwnerActions");
+    ownerTarget.innerHTML = OWNER_ACTIONS.map(([id, label, help]) => `<label><input type="checkbox" data-owner-action="${escapeHtml(id)}" ${ownerState[id] ? "checked" : ""}><span><strong>${escapeHtml(label)}</strong><small>${escapeHtml(help)}</small></span><em>Account owner</em></label>`).join("");
+    ownerTarget.addEventListener("change", event => {
+      const input = event.target.closest("[data-owner-action]");
+      if (!input) return;
+      ownerState[input.dataset.ownerAction] = input.checked;
+      writeOwnerActions(win.localStorage, ownerState);
+    });
 
     const updateCampaign = () => {
       const params = new URLSearchParams();
@@ -184,7 +212,7 @@
     refresh();
   }
 
-  const api = { validGa4, validMeta, summarizeChecks, score, statusLabel, result, normalizedText, runChecks, createDashboard };
+  const api = { OWNER_ACTIONS, validGa4, validMeta, summarizeChecks, score, statusLabel, result, normalizedText, readOwnerActions, writeOwnerActions, runChecks, createDashboard };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (globalScope?.document) {
     if (globalScope.document.readyState === "loading") globalScope.document.addEventListener("DOMContentLoaded", () => createDashboard(globalScope));
