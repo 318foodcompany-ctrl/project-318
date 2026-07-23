@@ -84,6 +84,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             form.dataset.savedQuoteId = String(persistedQuoteId);
+            window.Project318Analytics?.track?.(
+                'quote_submitted',
+                { form_id: form.id || 'quote_builder' },
+                { onceKey: `quote_submitted:${persistedQuoteId}` }
+            );
             form.hidden = true;
             const progress = document.querySelector('.progress-wrap');
             if (progress) progress.hidden = true;

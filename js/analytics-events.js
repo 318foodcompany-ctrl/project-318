@@ -36,19 +36,29 @@
     return "cta_click";
   }
 
+  function createEventId(cryptoObject) {
+    if (cryptoObject && typeof cryptoObject.randomUUID === "function") return cryptoObject.randomUUID();
+    return `evt_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 12)}`;
+  }
+
   function createTracker(win) {
     const doc = win.document;
     const sentScrollDepths = new Set();
+    const sentOnceKeys = new Set();
     let quoteStarted = false;
 
     function analyticsAllowed() {
       return Boolean(win.Project318Consent && win.Project318Consent.permits("analytics"));
     }
 
-    function track(name, properties = {}) {
+    function track(name, properties = {}, options = {}) {
       const normalizedName = eventName(name);
+      const onceKey = safeText(options.onceKey, 200);
+      if (onceKey && sentOnceKeys.has(onceKey)) return false;
+      if (onceKey) sentOnceKeys.add(onceKey);
       const detail = {
         event: normalizedName,
+        event_id: safeText(options.eventId, 100) || createEventId(win.crypto),
         page_path: safeText(win.location && win.location.pathname, 500) || "/",
         page_title: safeText(doc.title, 160),
         ...cleanProperties(properties)
@@ -92,7 +102,7 @@
           quoteStarted = true;
           track("quote_started", { form_id: form.id || "quote_form" });
         }, { once: true });
-        form.addEventListener("submit", () => track("quote_submitted", { form_id: form.id || "quote_form" }));
+        form.addEventListener("submit", () => track("quote_attempted", { form_id: form.id || "quote_form" }));
       });
     }
 
@@ -125,7 +135,7 @@
     return api;
   }
 
-  const api = { safeText, cleanProperties, eventName, linkKind, createTracker };
+  const api = { safeText, cleanProperties, eventName, linkKind, createEventId, createTracker };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (globalScope && globalScope.document) createTracker(globalScope);
 })(typeof window !== "undefined" ? window : globalThis);

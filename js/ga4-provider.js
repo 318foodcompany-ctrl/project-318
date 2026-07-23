@@ -22,6 +22,7 @@
   function createProvider(win) {
     const doc = win.document;
     const measurementId = String(win.__APP_CONFIG__?.ga4MeasurementId || "").trim().toUpperCase();
+    const deliveredEventIds = new Set();
     let initialized = false;
     let loading = null;
 
@@ -73,8 +74,14 @@
 
     async function send(detail) {
       if (!detail || !detail.event || !analyticsAllowed()) return false;
+      const eventId = String(detail.event_id || "").trim();
+      if (eventId && deliveredEventIds.has(eventId)) return false;
+      if (eventId) deliveredEventIds.add(eventId);
       const ready = await load();
-      if (!ready || typeof win.gtag !== "function") return false;
+      if (!ready || typeof win.gtag !== "function") {
+        if (eventId) deliveredEventIds.delete(eventId);
+        return false;
+      }
       win.gtag("event", detail.event, cleanParameters(detail));
       return true;
     }
