@@ -15,7 +15,7 @@ function calculateEstimate(form) {
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('quoteBuilder');
 
-    if (!form || !window.supabaseClient) return;
+    if (!form) return;
 
     form.addEventListener('submit', async (event) => {
         event.preventDefault();
@@ -59,6 +59,9 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         try {
+            if (!window.supabaseClient) {
+                throw new Error('Catering request services are temporarily unavailable.');
+            }
             const attribution = window.Project318Attribution?.snapshot?.() || {};
             const { data: quoteId, error } = await window.supabaseClient.rpc('submit_quote_with_attribution', {
                 p_name: lead.name,

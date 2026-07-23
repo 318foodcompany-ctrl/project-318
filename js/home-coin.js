@@ -5,8 +5,9 @@ const finale=document.querySelector('[data-coin-finale]');
 const progressBar=document.querySelector('.coin-progress span');
 const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const saveData=navigator.connection?.saveData;
+function supportsWebGL(){try{const canvas=document.createElement('canvas');return Boolean(window.WebGLRenderingContext&&(canvas.getContext('webgl')||canvas.getContext('experimental-webgl')));}catch{return false;}}
 
-if(!host||reduced||saveData){host?.setAttribute('hidden','');finale?.classList.add('is-live');}
+if(!host||reduced||saveData||!supportsWebGL()){host?.setAttribute('hidden','');finale?.classList.add('is-live');}
 else{
   const scene=new THREE.Scene();
   scene.fog=new THREE.FogExp2(0x070707,.03);

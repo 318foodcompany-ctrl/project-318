@@ -19,6 +19,34 @@ test("crawlable public pages include static descriptions and canonical URLs", ()
   }
 });
 
+test("crawlable public pages include static social sharing metadata", () => {
+  const pages = ["index.html", "about.html", "catering.html", "corporate.html", "contact.html", "gallery.html", "privacy.html", "quote-builder.html"];
+  for (const page of pages) {
+    const html = read(page);
+    for (const property of ["og:type", "og:site_name", "og:title", "og:description", "og:url", "og:image"]) {
+      assert.match(html, new RegExp(`<meta[^>]+property=["']${property.replace(":", "\\:")}["']`, "i"), `${page} has ${property}`);
+    }
+    for (const name of ["twitter:card", "twitter:title", "twitter:description", "twitter:image"]) {
+      assert.match(html, new RegExp(`<meta[^>]+name=["']${name.replace(":", "\\:")}["']`, "i"), `${page} has ${name}`);
+    }
+  }
+});
+
+test("public quote submission fails closed instead of claiming a local preview save", () => {
+  const page = read("quote-builder.html");
+  const client = read("js/quote-live.js");
+  assert.doesNotMatch(page, /local 318 HQ|href=["']dashboard\.html/i);
+  assert.match(client, /if \(!form\) return;/);
+  assert.match(client, /if \(!window\.supabaseClient\)/);
+  assert.match(client, /temporarily unavailable/);
+});
+
+test("homepage animation has a non-WebGL fallback", () => {
+  const animation = read("js/home-coin.js");
+  assert.match(animation, /supportsWebGL/);
+  assert.match(animation, /finale\?\.classList\.add\('is-live'\)/);
+});
+
 test("private and duplicate routes are excluded from search indexing", () => {
   for (const page of ["admin.html", "login.html", "assistant.html", "dashboard.html", "OPEN-DASHBOARD.html", "START-HERE.html"]) {
     assert.match(read(page), /<meta[^>]+name=["']robots["'][^>]+noindex/i, `${page} is noindex`);
