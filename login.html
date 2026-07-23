@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
   <title>318 Owner Login</title>
 
   <style>
@@ -87,6 +88,9 @@
   <script>
     const form = document.getElementById("loginForm");
     const message = document.getElementById("message");
+    if (new URLSearchParams(window.location.search).get("error") === "unauthorized") {
+      message.textContent = "This account does not have administrator access.";
+    }
 
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
@@ -102,6 +106,13 @@
 
       if (error) {
         message.textContent = error.message;
+        return;
+      }
+
+      const { data: isAdmin, error: adminError } = await supabaseClient.rpc("crm_is_admin");
+      if (adminError || isAdmin !== true) {
+        await supabaseClient.auth.signOut();
+        message.textContent = "This account does not have administrator access.";
         return;
       }
 

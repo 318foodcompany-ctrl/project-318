@@ -2,4 +2,5 @@
 :where(a,button,input,select,textarea,[tabindex]):focus-visible{outline:3px solid #f4b400;outline-offset:3px}
 .links a[aria-current="page"]{color:var(--red);font-weight:700}
 main:focus{outline:none}
+.menu-btn,.links a{display:inline-flex;align-items:center;min-height:44px}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto!important}*,*:before,*:after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}

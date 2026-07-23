@@ -1,4 +1,16 @@
 const bucket = "website-images";
+const allowedPhotoTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
+const maxPhotoBytes = 10 * 1024 * 1024;
+
+function validatePhoto(file) {
+  if (!file || !allowedPhotoTypes.has(String(file.type || "").toLowerCase())) {
+    return "Choose a JPG, PNG, or WebP image.";
+  }
+  if (!Number.isFinite(file.size) || file.size <= 0 || file.size > maxPhotoBytes) {
+    return "Choose an image smaller than 10 MB.";
+  }
+  return "";
+}
 
 const photos = [
   { id: "hero", title: "Homepage Hero", file: "hero.jpg", description: "Main homepage background image." },
@@ -67,6 +79,11 @@ async function uploadPhoto(id, fileName) {
   }
 
   const file = input.files[0];
+  const validationError = validatePhoto(file);
+  if (validationError) {
+    alert(validationError);
+    return;
+  }
   const { error } = await supabaseClient.storage
     .from(bucket)
     .upload(fileName, file, {
@@ -85,4 +102,5 @@ async function uploadPhoto(id, fileName) {
   alert("Image Updated!");
 }
 
-loadPhotoManager();
+if (typeof document !== "undefined") loadPhotoManager();
+if (typeof module !== "undefined" && module.exports) module.exports = { validatePhoto, maxPhotoBytes };

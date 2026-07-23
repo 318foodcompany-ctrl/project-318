@@ -2,6 +2,8 @@
 
 const test=require("node:test");
 const assert=require("node:assert/strict");
+const fs=require("node:fs");
+const path=require("node:path");
 const builder=require("../js/admin-campaign-links.js");
 
 test("cleanToken normalizes campaign labels",()=>{
@@ -34,4 +36,10 @@ test("buildCampaignUrl requires core attribution fields",()=>{
 test("validDestination rejects unsafe protocols",()=>{
   assert.equal(builder.validDestination("javascript:alert(1)"),null);
   assert.equal(builder.validDestination("data:text/html,test"),null);
+});
+
+test("campaign builder defaults to the live quote route",()=>{
+  const source=fs.readFileSync(path.join(__dirname,"../js/admin-campaign-links.js"),"utf8");
+  assert.match(source,/value="\/quote-builder\.html"/);
+  assert.doesNotMatch(source,/value="\/quote\.html"/);
 });

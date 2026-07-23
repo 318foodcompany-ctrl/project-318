@@ -31,6 +31,17 @@ function publicConfigFromEnvironment(environment = process.env) {
 }
 
 function handler(request, response) {
+  const method = request.method || 'GET';
+  if (!['GET', 'HEAD'].includes(method)) {
+    response.statusCode = 405;
+    response.setHeader("Allow", "GET, HEAD");
+    response.setHeader("Content-Type", "application/javascript; charset=utf-8");
+    response.setHeader("Cache-Control", "no-store, max-age=0");
+    response.setHeader("X-Content-Type-Options", "nosniff");
+    response.end('window.__APP_CONFIG_ERROR__ = "Method not allowed.";');
+    return;
+  }
+
   const config = publicConfigFromEnvironment();
 
   response.setHeader("Content-Type", "application/javascript; charset=utf-8");
@@ -48,7 +59,7 @@ function handler(request, response) {
   }
 
   response.statusCode = 200;
-  response.end(`window.__APP_CONFIG__ = ${JSON.stringify(config)};`);
+  response.end(method === 'HEAD' ? '' : `window.__APP_CONFIG__ = ${JSON.stringify(config)};`);
 }
 
 module.exports = handler;

@@ -47,7 +47,7 @@
     section.innerHTML=`
       <div class="marketing-card-heading"><div><h3>Campaign link builder</h3><p>Create trackable links for Facebook posts, ads, email, flyers, and QR codes.</p></div></div>
       <div class="campaign-link-grid">
-        <label class="wide">Destination page<input id="campaignDestination" value="/quote.html" placeholder="/quote.html"></label>
+        <label class="wide">Destination page<input id="campaignDestination" value="/quote-builder.html" placeholder="/quote-builder.html"></label>
         <label>Source<input id="campaignSource" value="facebook" placeholder="facebook"></label>
         <label>Medium<input id="campaignMedium" value="social" placeholder="paid_social"></label>
         <label>Campaign<input id="campaignName" placeholder="office_catering_july"></label>

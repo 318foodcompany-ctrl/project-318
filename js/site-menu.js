@@ -102,7 +102,7 @@ async function loadMenuItems() {
                 src="${menuImageUrl(imageFile)}"
                 alt="${escapeHtml(item.name)} catering package"
                 loading="lazy"
-                onerror="this.onerror=null;this.src='${fallbackImage}'"
+                data-fallback-src="${escapeHtml(fallbackImage)}"
               >
             </div>
 
@@ -123,6 +123,14 @@ async function loadMenuItems() {
       `;
     })
     .join("");
+
+  menuContainer.querySelectorAll("img[data-fallback-src]").forEach((image) => {
+    image.addEventListener("error", () => {
+      if (image.dataset.fallbackApplied === "true") return;
+      image.dataset.fallbackApplied = "true";
+      image.src = image.dataset.fallbackSrc;
+    });
+  });
 }
 
 loadMenuItems();
