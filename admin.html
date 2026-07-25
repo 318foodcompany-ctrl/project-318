@@ -1030,14 +1030,14 @@
             </div>
             <div id="salesMetrics" class="sales-metrics" aria-live="polite"></div>
             <div class="sales-tabs" role="tablist" aria-label="Sales platform views">
-              <button class="active" type="button" data-sales-view="pipeline">Pipeline</button>
-              <button type="button" data-sales-view="proposals">Proposals</button>
-              <button type="button" data-sales-view="automation">Follow-up</button>
-              <button type="button" data-sales-view="reports">Reports</button>
-              <button type="button" data-sales-view="tools">Customer Tools</button>
+              <button class="active" role="tab" aria-selected="true" type="button" data-sales-view="pipeline">Pipeline</button>
+              <button role="tab" aria-selected="false" type="button" data-sales-view="proposals">Proposals</button>
+              <button role="tab" aria-selected="false" type="button" data-sales-view="automation">Follow-up</button>
+              <button role="tab" aria-selected="false" type="button" data-sales-view="reports">Reports</button>
+              <button role="tab" aria-selected="false" type="button" data-sales-view="tools">Customer Tools</button>
             </div>
             <p id="salesMessage" class="message" role="status" aria-live="polite"></p>
-            <div id="salesWorkspace" class="sales-workspace" aria-busy="true"></div>
+            <div id="salesWorkspace" class="sales-workspace" tabindex="-1" aria-busy="true"></div>
           </section>
         </div>
       </main>

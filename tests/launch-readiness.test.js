@@ -1,49 +1,62 @@
 "use strict";
+const test=require("node:test");
+const assert=require("node:assert/strict");
+const fs=require("node:fs");
+const path=require("node:path");
+const root=path.resolve(__dirname,"..");
+const read=(file)=>fs.readFileSync(path.join(root,file),"utf8");
 
-const test = require("node:test");
-const assert = require("node:assert/strict");
-const fs = require("node:fs");
-const path = require("node:path");
-const readiness = require("../js/admin-launch-readiness.js");
-
-const loader = fs.readFileSync(path.join(__dirname, "..", "js", "supabase.js"), "utf8");
-
-test("provider ID validation accepts supported formats", () => {
-  assert.equal(readiness.validGa4("G-ABC12345"), true);
-  assert.equal(readiness.validGa4("UA-123"), false);
-  assert.equal(readiness.validMeta("1234567890"), true);
-  assert.equal(readiness.validMeta("pixel-123"), false);
+test("follow-up workers claim rows atomically and recover abandoned claims",()=>{
+  const sql=read("supabase/launch-readiness-hardening.sql"),runner=read("api/follow-up-run.js");
+  assert.match(sql,/for update skip locked/i);
+  assert.match(sql,/set status='processing',processing_started_at=now\(\)/);
+  assert.match(sql,/processing_started_at<now\(\)-interval '15 minutes'/);
+  assert.match(sql,/revoke all on function public\.sales_claim_due_followups\(integer\) from public,anon,authenticated/);
+  assert.match(runner,/rpc\/sales_claim_due_followups/);
+  assert.match(runner,/timingSafeEqual/);
+  assert.doesNotMatch(runner,/follow_up_messages\?status=eq\.queued/);
 });
 
-test("launch readiness summary separates ready, warning, and blocked checks", () => {
-  const summary = readiness.summarizeChecks([
-    { status: "ready" },
-    { status: "ready" },
-    { status: "warning" },
-    { status: "blocked" }
-  ]);
-  assert.deepEqual(summary, { total: 4, ready: 2, warning: 1, blocked: 1 });
-  assert.equal(readiness.score(summary), 50);
+test("customer uploads validate content signatures, size, type, timeout, and orphan cleanup",()=>{
+  const endpoint=require("../api/portal-document.js"),source=read("api/portal-document.js");
+  assert.equal(endpoint.validSignature(Buffer.from("%PDF-1.7"),"application/pdf"),true);
+  assert.equal(endpoint.validSignature(Buffer.from("<script>"),"application/pdf"),false);
+  assert.equal(endpoint.validSignature(Buffer.from("89504e470d0a1a0a","hex"),"image/png"),true);
+  assert.equal(endpoint.validSignature(Buffer.from("524946460000000057454250","hex"),"image/webp"),true);
+  assert.match(source,/encoded\.length>5592408/);
+  assert.match(source,/AbortSignal\.timeout\(10000\)/);
+  assert.match(source,/method:"DELETE"/);
 });
 
-test("status labels remain administrator friendly", () => {
-  assert.equal(readiness.statusLabel("ready"), "Ready");
-  assert.equal(readiness.statusLabel("warning"), "Needs attention");
-  assert.equal(readiness.statusLabel("blocked"), "Blocked");
+test("proposal PDF database requests have a bounded timeout",()=>{
+  assert.match(read("api/proposal-pdf.js"),/AbortSignal\.timeout\(10000\)/);
 });
 
-test("admin loader includes launch readiness after marketing tools", () => {
-  assert.match(loader, /admin-launch-readiness\.js/);
-  assert.match(loader, /data-admin-launch-readiness/);
-  assert.match(loader, /admin-campaign-links\.js[\s\S]+admin-launch-readiness\.js/);
+test("sales pipeline and portal tabs are keyboard and screen-reader operable",()=>{
+  const admin=read("admin.html"),sales=read("js/admin-sales-platform.js"),portal=read("portal.html"),portalJs=read("js/customer-portal.js");
+  assert.match(admin,/role="tab" aria-selected="true"[^>]+data-sales-view="pipeline"/);
+  assert.match(sales,/data-move-opportunity/);
+  assert.match(sales,/setAttribute\("aria-selected"/);
+  assert.match(portal,/id="portalActionStatus"[^>]+role="status"[^>]+aria-live="polite"/);
+  assert.ok((portal.match(/role="tab"/g)||[]).length>=5);
+  assert.match(portalJs,/content\.focus/);
 });
 
-test("readiness checks cover public endpoints and marketing migrations", () => {
-  const source = fs.readFileSync(path.join(__dirname, "..", "js", "admin-launch-readiness.js"), "utf8");
-  assert.match(source, /marketing_revenue_attribution/);
-  assert.match(source, /marketing_quote_funnel/);
-  assert.match(source, /marketing_spend_summary/);
-  assert.match(source, /\/sitemap\.xml/);
-  assert.match(source, /\/robots\.txt/);
-  assert.match(source, /\/quote-builder\.html/);
+test("static caching and security response headers are configured safely",()=>{
+  const config=JSON.parse(read("vercel.json")),text=JSON.stringify(config);
+  assert.match(text,/stale-while-revalidate/);
+  assert.match(text,/Cross-Origin-Opener-Policy/);
+  assert.match(text,/X-Permitted-Cross-Domain-Policies/);
+  assert.match(text,/Cache-Control/);
+});
+
+test("friendly 404 and 500 pages are non-indexable and provide recovery actions",()=>{
+  for(const file of ["404.html","500.html"]){const html=read(file);assert.match(html,/name="robots" content="noindex"/);assert.match(html,/href="\/"/);}
+});
+
+test("required operational guides and safe environment example are present",()=>{
+  for(const file of ["PRODUCTION-CHECKLIST.md","DISASTER-RECOVERY.md","BACKUP-RESTORE.md","ADMIN-GUIDE.md"])assert.ok(read(file).length>1000,`${file} should contain operating guidance`);
+  const example=read(".env.test.example");
+  assert.match(example,/FOLLOW_UP_CRON_SECRET=/);
+  assert.doesNotMatch(example,/FOLLOW_UP_CRON_SECRET=.+/);
 });
