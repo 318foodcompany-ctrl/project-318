@@ -16,10 +16,11 @@
     <div id="portalApp" hidden>
       <section class="portal-welcome"><p class="kicker">Your event workspace</p><h1 id="portalGreeting">Welcome</h1><p>Review your proposals, invoices, events, payments, and messages in one place.</p></section>
       <nav class="portal-tabs" aria-label="Portal sections">
-        <button class="active" data-portal-view="proposals">Proposals</button><button data-portal-view="events">Events</button>
-        <button data-portal-view="invoices">Invoices & Payments</button><button data-portal-view="documents">Documents</button><button data-portal-view="messages">Questions</button>
+        <button class="active" role="tab" aria-selected="true" data-portal-view="proposals">Proposals</button><button role="tab" aria-selected="false" data-portal-view="events">Events</button>
+        <button role="tab" aria-selected="false" data-portal-view="invoices">Invoices & Payments</button><button role="tab" aria-selected="false" data-portal-view="documents">Documents</button><button role="tab" aria-selected="false" data-portal-view="messages">Questions</button>
       </nav>
-      <section id="portalContent" aria-live="polite"></section>
+      <p id="portalActionStatus" class="portal-action-status" role="status" aria-live="polite"></p>
+      <section id="portalContent" tabindex="-1" aria-live="polite"></section>
     </div>
   </main>
   <script src="/api/runtime-config"></script>

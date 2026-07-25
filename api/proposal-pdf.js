@@ -5,7 +5,7 @@ function sendJson(res, status, payload) {
   res.setHeader("Cache-Control","no-store"); res.end(JSON.stringify(payload));
 }
 async function request(url, options={}) {
-  const response=await fetch(url,options);const text=await response.text();let body;
+  const response=await fetch(url,{...options,signal:AbortSignal.timeout(10000)});const text=await response.text();let body;
   try{body=text?JSON.parse(text):null;}catch(_error){body=text;}
   if(!response.ok)throw new Error(body?.message||body?.error||`Database request failed (${response.status}).`);
   return body;
@@ -27,6 +27,7 @@ async function handler(req,res) {
   if(req.method!=="GET"){res.setHeader("Allow","GET");return sendJson(res,405,{error:"Method not allowed."});}
   const base=String(process.env.PUBLIC_SUPABASE_URL||"").replace(/\/$/,""),anon=String(process.env.PUBLIC_SUPABASE_ANON_KEY||""),service=String(process.env.SUPABASE_SERVICE_ROLE_KEY||"");
   const id=String(req.query?.id||"");if(!base||!anon||!service)return sendJson(res,503,{error:"Proposal PDF service is not configured."});
+  if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id))return sendJson(res,400,{error:"Invalid proposal identifier."});
   try {
     let authorized=false;
     const bearer=String(req.headers.authorization||"").replace(/^Bearer\s+/,"");
