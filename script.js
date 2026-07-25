@@ -104,3 +104,13 @@ if (quote) {
   calc();
 
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+  if (/\/(?:admin|login)\.html$/i.test(location.pathname) || document.querySelector(".final-book-cta")) return;
+  const cta = document.createElement("a");
+  cta.className = "final-book-cta";
+  cta.href = "quote-builder.html";
+  cta.setAttribute("aria-label", "Request a catering quote");
+  cta.innerHTML = "<span>Planning an event?</span><strong>Request Catering Quote →</strong>";
+  document.body.appendChild(cta);
+});

@@ -9,6 +9,8 @@
     "/corporate.html",
     "/about.html",
     "/gallery.html",
+    "/faq.html",
+    "/event-types.html",
     "/contact.html",
     "/quote-builder.html",
     "/privacy.html"
@@ -35,9 +37,9 @@
   }
 
   function businessSchema(url) {
-    return {
+    const business = {
       "@context": "https://schema.org",
-      "@type": ["FoodEstablishment", "Caterer"],
+      "@type": ["Organization", "LocalBusiness", "FoodEstablishment", "Caterer"],
       "@id": `${SITE_ORIGIN}/#business`,
       name: "318 Food Co.",
       url: SITE_ORIGIN,
@@ -53,6 +55,31 @@
       servesCuisine: ["American", "Pizza", "Barbecue", "Mexican", "Italian"],
       sameAs: [],
       mainEntityOfPage: url
+    };
+    business.makesOffer = {
+      "@type": "Offer",
+      itemOffered: {
+        "@type": "Service",
+        "@id": `${SITE_ORIGIN}/#catering-service`,
+        name: "318 Food Co. Catering Service",
+        serviceType: "Event catering",
+        provider: { "@id": `${SITE_ORIGIN}/#business` },
+        areaServed: business.areaServed,
+        url: `${SITE_ORIGIN}/catering.html`
+      }
+    };
+    return business;
+  }
+
+  function breadcrumbSchema(pathname, title) {
+    if (canonicalPath(pathname) === "/") return null;
+    return {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: `${SITE_ORIGIN}/` },
+        { "@type": "ListItem", position: 2, name: title.replace(/\s*\|\s*318 Food Co\.?$/i, ""), item: canonicalUrl(pathname) }
+      ]
     };
   }
 
@@ -92,10 +119,19 @@
       doc.head.appendChild(schema);
     }
 
+    const breadcrumb = breadcrumbSchema(win.location.pathname, title);
+    if (breadcrumb && !doc.getElementById("project318-breadcrumb-schema")) {
+      const schema = doc.createElement("script");
+      schema.id = "project318-breadcrumb-schema";
+      schema.type = "application/ld+json";
+      schema.textContent = JSON.stringify(breadcrumb);
+      doc.head.appendChild(schema);
+    }
+
     return canonical;
   }
 
-  const api = { SITE_ORIGIN, PUBLIC_PATHS, canonicalPath, canonicalUrl, businessSchema, apply };
+  const api = { SITE_ORIGIN, PUBLIC_PATHS, canonicalPath, canonicalUrl, businessSchema, breadcrumbSchema, apply };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (globalScope && globalScope.document) apply(globalScope);
 })(typeof window !== "undefined" ? window : globalThis);

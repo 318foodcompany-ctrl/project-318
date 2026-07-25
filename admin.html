@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="booking-calendar.css">
   <link rel="stylesheet" href="crm.css">
   <link rel="stylesheet" href="invoices.css">
+  <link rel="stylesheet" href="admin.css">
 <style>
     :root {
   --red: #e21b23;
@@ -547,6 +548,10 @@
           Manage Photos
         </button>
 
+        <button class="nav-button" data-panel="conversionPanel">
+          Conversion Content
+        </button>
+
         <button class="nav-button" data-panel="menuPanel">
           Menu & Pricing
         </button>
@@ -624,6 +629,12 @@
                 <h3>Manage Photos</h3>
                 <p>Replace website photos, logos, page hero images, and favicon files.</p>
                 <button data-open-panel="photosPanel">Open Photos</button>
+              </article>
+
+              <article class="dashboard-card">
+                <h3>Conversion Content</h3>
+                <p>Manage testimonials, review highlights, client logos, gallery, FAQ, statistics, trust badges, and event types.</p>
+                <button data-open-panel="conversionPanel">Manage Conversion Content</button>
               </article>
 
               <article class="dashboard-card">
@@ -768,6 +779,19 @@
 
             <div id="photoManager" class="photo-grid"></div>
             
+          </section>
+
+          <section id="conversionPanel" class="panel">
+            <div class="panel-heading">
+              <h2>Conversion Content</h2>
+              <p>Create, preview, publish, reorder, and remove customer-facing trust and planning content.</p>
+            </div>
+            <div id="conversionManagerTabs" class="conversion-admin-tabs" aria-label="Conversion content types"></div>
+            <p id="conversionManagerMessage" class="message" role="status" aria-live="polite"></p>
+            <div class="conversion-admin-layout">
+              <div id="conversionEditor" class="card"></div>
+              <div class="card"><h3>Published order</h3><p>Drag items to change their public display order.</p><div id="conversionItemList"></div></div>
+            </div>
           </section>
 
          
@@ -1073,6 +1097,7 @@
   <script src="js/admin-corporate-content.js"></script>
   <script src="js/admin-contact-content.js"></script>
   <script src="js/admin-photos.js"></script>
+  <script src="js/admin-conversion-content.js"></script>
   <script src="js/admin-menu.js"></script>
   <script src="js/admin-settings.js"></script>
   <script src="js/crm-utils.js"></script>
