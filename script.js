@@ -103,24 +103,4 @@ if (quote) {
 
   calc();
 
-  quote.addEventListener('submit', (event) => {
-    event.preventDefault();
-
-    const data = new FormData(quote);
-    const lines = ['318 Food Co. Catering Quote Request', ''];
-
-    for (const [key, value] of data.entries()) {
-      lines.push(`${key}: ${value}`);
-    }
-
-    lines.push(
-      '',
-      summary ? summary.textContent : '',
-      `Estimated subtotal: ${total ? total.textContent : '$0.00'}`,
-      'Final price is subject to confirmation, delivery, staffing, taxes, and menu selections.'
-    );
-
-    const destinationEmail = window.websiteSettings?.email || '318FoodCompany@gmail.com';
-    location.href = `mailto:${destinationEmail}?subject=${encodeURIComponent('Catering Quote Request')}&body=${encodeURIComponent(lines.join('\n'))}`;
-  });
 }

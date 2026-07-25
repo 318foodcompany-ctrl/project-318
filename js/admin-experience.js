@@ -16,7 +16,6 @@
     menuPanel: "Catering Menu",
     settingsPanel: "Website Settings",
     photosPanel: "Photos",
-    specialsPanel: "Specials"
   };
 
   function esc(value) {
