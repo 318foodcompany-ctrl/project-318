@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>Customer Portal | 318 Food Co.</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="portal.css">
+</head>
+<body>
+  <header class="portal-header"><a href="index.html"><img src="assets/images/logo.jpeg" alt="318 Food Co."></a><span>Secure Customer Portal</span></header>
+  <main class="portal-shell">
+    <div id="portalLoading" class="portal-state" role="status"><h1>Opening your event portal…</h1><p>Please wait while we securely load your information.</p></div>
+    <div id="portalError" class="portal-state portal-error" hidden><h1>This link is unavailable</h1><p id="portalErrorText">Ask 318 Food Co. for a fresh portal link.</p><a class="btn" href="contact.html">Contact Us</a></div>
+    <div id="portalApp" hidden>
+      <section class="portal-welcome"><p class="kicker">Your event workspace</p><h1 id="portalGreeting">Welcome</h1><p>Review your proposals, invoices, events, payments, and messages in one place.</p></section>
+      <nav class="portal-tabs" aria-label="Portal sections">
+        <button class="active" data-portal-view="proposals">Proposals</button><button data-portal-view="events">Events</button>
+        <button data-portal-view="invoices">Invoices & Payments</button><button data-portal-view="documents">Documents</button><button data-portal-view="messages">Questions</button>
+      </nav>
+      <section id="portalContent" aria-live="polite"></section>
+    </div>
+  </main>
+  <script src="/api/runtime-config"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/customer-portal.js"></script>
+</body>
+</html>

@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="crm.css">
   <link rel="stylesheet" href="invoices.css">
   <link rel="stylesheet" href="admin.css">
+  <link rel="stylesheet" href="sales-platform.css">
 <style>
     :root {
   --red: #e21b23;
@@ -576,6 +577,10 @@
           Customers
         </button>
 
+        <button class="nav-button" data-panel="salesPlatformPanel">
+          Sales Platform
+        </button>
+
         <button id="logoutButton" class="logout-button">
           Log Out
         </button>
@@ -905,6 +910,9 @@
                     <label>Guest count<input id="bookingGuestCount" name="guest_count" type="number" min="0" step="1"></label>
                     <label>Quote amount<input id="bookingQuoteAmount" name="quote_amount" type="number" min="0" step="0.01"></label>
                     <label>Status *<select id="bookingStatus" name="status" required></select></label>
+                    <label>Calendar color<input id="bookingCalendarColor" name="calendar_color" type="color" value="#e21b23"></label>
+                    <label>Kitchen start<input id="bookingKitchenStart" name="kitchen_start_at" type="datetime-local"></label>
+                    <label>Delivery departure<input id="bookingDeliveryDeparture" name="delivery_departure_at" type="datetime-local"></label>
                     <label>Venue name<input id="bookingVenueName" name="venue_name"></label>
                     <label class="wide">Venue address<textarea id="bookingVenueAddress" name="venue_address" rows="2"></textarea></label>
                     <label class="wide">Internal notes<textarea id="bookingInternalNotes" name="internal_notes" rows="4"></textarea></label>
@@ -1011,6 +1019,26 @@
             </div>
             <div id="customerDetailModal" class="crm-modal" hidden><div class="crm-modal-card" role="dialog" aria-modal="true" aria-labelledby="customerDetailTitle"><button id="customerDetailClose" class="crm-modal-close" type="button" aria-label="Close customer details">×</button><div id="customerDetailBody"></div></div></div>
           </section>
+
+          <section id="salesPlatformPanel" class="panel">
+            <div class="sales-panel-heading">
+              <div><h2>Sales Platform</h2><p>Manage opportunities, proposals, follow-ups, and sales performance.</p></div>
+              <div class="sales-heading-actions">
+                <button id="salesExportButton" class="crm-secondary-button" type="button">Export Customers</button>
+                <button id="salesNewProposalButton" class="save-button" type="button">New Proposal</button>
+              </div>
+            </div>
+            <div id="salesMetrics" class="sales-metrics" aria-live="polite"></div>
+            <div class="sales-tabs" role="tablist" aria-label="Sales platform views">
+              <button class="active" type="button" data-sales-view="pipeline">Pipeline</button>
+              <button type="button" data-sales-view="proposals">Proposals</button>
+              <button type="button" data-sales-view="automation">Follow-up</button>
+              <button type="button" data-sales-view="reports">Reports</button>
+              <button type="button" data-sales-view="tools">Customer Tools</button>
+            </div>
+            <p id="salesMessage" class="message" role="status" aria-live="polite"></p>
+            <div id="salesWorkspace" class="sales-workspace" aria-busy="true"></div>
+          </section>
         </div>
       </main>
     </div>
@@ -1110,5 +1138,8 @@
   <script src="js/booking-time.js"></script>
   <script src="js/admin-bookings.js"></script>
   <script src="js/admin-invoices.js"></script>
+  <script src="js/sales-platform-utils.js"></script>
+  <script src="js/sales-platform-service.js"></script>
+  <script src="js/admin-sales-platform.js"></script>
 </body>
 </html>
