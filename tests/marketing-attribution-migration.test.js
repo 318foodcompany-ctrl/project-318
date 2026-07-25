@@ -7,6 +7,7 @@ const test = require("node:test");
 const root = path.join(__dirname, "..");
 const sql = fs.readFileSync(path.join(root, "supabase", "marketing-attribution.sql"), "utf8");
 const quoteClient = fs.readFileSync(path.join(root, "js", "quote-live.js"), "utf8");
+const releaseSql = fs.readFileSync(path.join(root, "supabase", "release-1-lead-automation.sql"), "utf8");
 
 test("migration creates normalized attribution and permanent lead links", () => {
   for (const expected of ["marketing_visitors", "marketing_sessions", "marketing_touchpoints", "marketing_first_touchpoint_id", "marketing_last_touchpoint_id"]) assert.match(sql, new RegExp(expected));
@@ -25,8 +26,9 @@ test("admin reporting RPCs enforce the existing CRM authorization rule", () => {
 });
 
 test("public quote submission uses the attribution-aware atomic RPC", () => {
-  assert.match(quoteClient, /rpc\('submit_quote_with_attribution'/);
-  assert.match(quoteClient, /p_attribution:\s*attribution/);
+  assert.match(quoteClient, /Project318Attribution/);
+  assert.match(releaseSql, /public\.submit_quote_with_attribution/);
+  assert.match(releaseSql, /p_attribution/);
   assert.match(sql, /v_quote_id := public\.submit_quote_with_customer/);
   assert.match(sql, /perform public\.marketing_attach_quote_attribution/);
 });

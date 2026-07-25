@@ -6,6 +6,7 @@ const root = path.join(__dirname, "..");
 const admin = fs.readFileSync(path.join(root, "admin.html"), "utf8");
 const quotePage = fs.readFileSync(path.join(root, "quote-builder.html"), "utf8");
 const quoteLive = fs.readFileSync(path.join(root, "js", "quote-live.js"), "utf8");
+const leadApi = fs.readFileSync(path.join(root, "api", "lead-submit.js"), "utf8");
 const bookings = fs.readFileSync(path.join(root, "js", "admin-bookings.js"), "utf8");
 
 for (const script of ["crm-utils.js", "crm-service.js", "admin-customers.js", "quote-status.js"]) {
@@ -20,8 +21,8 @@ for (const id of ["customersPanel", "customerDetailModal", "bookingCustomerId", 
 
 assert.ok(quotePage.includes('src="js/quote-live.js"'), "quote page loads the CRM submission integration");
 assert.ok(
-  quoteLive.includes("submit_quote_with_attribution"),
-  "public quotes use the attribution-aware transactional CRM RPC"
+  leadApi.includes("submit_release1_lead"),
+  "public quotes use the secure unified server submission service"
 );
 assert.ok(quoteLive.includes("stopImmediatePropagation"), "legacy preview submission cannot report success first");
 assert.ok(bookings.includes("findOrCreateCustomer"), "manual bookings resolve a required customer");

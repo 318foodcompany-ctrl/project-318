@@ -497,3 +497,22 @@ It is suitable for continued controlled use if the owner:
 2. understands Contact requests depend on the customer sending an email draft;
 3. does not market automated specials, SMS, online payment, or AI content generation as live features;
 4. completes the blocker/high-severity remediation before scaling paid traffic.
+
+## Release 1 remediation status
+
+This status reflects the Release 1 implementation branch only. Production is
+unchanged until the migration, environment configuration, staging tests, review,
+and deployment are separately approved.
+
+| Audit finding | Status | Release 1 result |
+| --- | --- | --- |
+| PA-001 quote success falsely implies delivery | Fixed in code | Messages distinguish database persistence and each provider acceptance state. |
+| PA-002 Contact and guided planner diverge | Fixed in code | Both use `/api/lead-submit` and the same transactional CRM/attribution path. |
+| PA-003 marketing opt-in is lost | Fixed in code | Explicit grant or decline is appended with versioned disclosure evidence. |
+| PA-004 abuse/idempotency missing | Fixed in code | Honeypot, size limits, persistent server rate limit, request hash, and idempotent retry added. |
+| PA-005 content editors do not publish | Fixed in code | Home, About, and Contact restore safe text-only public loading with hard-coded fallbacks. |
+| PA-006 Specials/outbound automation absent | Partially fixed | Misleading placeholder removed; full marketing campaigns remain deferred. |
+| PA-007 legacy preview dashboard routes | Fixed in code | PIN dashboards, preview script, and obsolete preview help files removed. |
+| Owner/customer transactional email | Manual setup required | Resend provider abstraction is complete; sender domain, key, recipients, and staging verification remain owner actions. |
+| Automated email retries/webhooks | Deferred | Failures are visible and marked retry-available; no worker is enabled. |
+| Marketing unsubscribe/suppression | Deferred | No marketing messages are sent in Release 1. |
