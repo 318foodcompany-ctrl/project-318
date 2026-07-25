@@ -581,6 +581,10 @@
           Sales Platform
         </button>
 
+        <button class="nav-button" data-panel="marketingAiPanel">
+          Marketing AI
+        </button>
+
         <button id="logoutButton" class="logout-button">
           Log Out
         </button>
@@ -1039,6 +1043,15 @@
             <p id="salesMessage" class="message" role="status" aria-live="polite"></p>
             <div id="salesWorkspace" class="sales-workspace" tabindex="-1" aria-busy="true"></div>
           </section>
+
+          <section id="marketingAiPanel" class="panel">
+            <div class="panel-heading">
+              <h2>Marketing AI</h2>
+              <p>Create draft marketing content, campaigns, email templates, sequences, and reports. Nothing sends or publishes without administrator action.</p>
+            </div>
+            <p id="release4Message" class="message" role="status" aria-live="polite"></p>
+            <div id="release4Workspace" aria-busy="true"></div>
+          </section>
         </div>
       </main>
     </div>
@@ -1141,5 +1154,6 @@
   <script src="js/sales-platform-utils.js"></script>
   <script src="js/sales-platform-service.js"></script>
   <script src="js/admin-sales-platform.js"></script>
+  <script src="js/admin-release-4-marketing.js"></script>
 </body>
 </html>

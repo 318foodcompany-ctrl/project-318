@@ -18,6 +18,14 @@ function emailConfiguration(environment = process.env) {
 function safeHeader(value, maximum = 200) {
   return String(value || "").replace(/[\r\n]+/g, " ").trim().slice(0, maximum);
 }
+function safeHttpsUrl(value) {
+  try {
+    const url = new URL(String(value || ""));
+    return url.protocol === "https:" ? url.href : "";
+  } catch (_error) {
+    return "";
+  }
+}
 
 async function sendTransactionalEmail(message, options = {}) {
   const configuration = options.configuration || emailConfiguration(options.environment);
@@ -51,7 +59,12 @@ async function sendTransactionalEmail(message, options = {}) {
         to: [String(message.to).trim()],
         subject: safeHeader(message.subject),
         html: String(message.html || ""),
-        text: String(message.text || "")
+        text: String(message.text || ""),
+        ...(EMAIL_PATTERN.test(String(message.replyTo || "").trim()) ? { reply_to: String(message.replyTo).trim() } : {}),
+        ...(safeHttpsUrl(message.listUnsubscribe) ? { headers: {
+          "List-Unsubscribe": `<${safeHttpsUrl(message.listUnsubscribe)}>`,
+          "List-Unsubscribe-Post": "List-Unsubscribe=One-Click"
+        }} : {})
       }),
       signal: controller.signal
     });
@@ -77,4 +90,4 @@ async function sendTransactionalEmail(message, options = {}) {
   }
 }
 
-module.exports = { EMAIL_PATTERN, emailConfiguration, safeHeader, sendTransactionalEmail };
+module.exports = { EMAIL_PATTERN, emailConfiguration, safeHeader, safeHttpsUrl, sendTransactionalEmail };
