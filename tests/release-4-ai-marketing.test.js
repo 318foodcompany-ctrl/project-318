@@ -23,6 +23,16 @@ test("AI provider test mode never calls a live provider",async()=>{
   const result=await ai.generateMarketingContent(ai.validateInput(validInput),{configuration:{mode:"test",provider:"test",model:"test-model"},fetchImpl:async()=>{called=true;}});
   assert.equal(called,false);assert.equal(result.provider,"test");assert.match(result.output.body,/test-mode/i);
 });
+test("AI test mode deterministically covers every supported draft type",async()=>{
+  const required=["facebook_post","instagram_caption","google_business_post","promotional_email","blog_draft","google_ads","meta_ads","executive_summary"];
+  for(const content_type of required){
+    let called=false;
+    const input=ai.validateInput({...validInput,content_type});
+    const first=await ai.generateMarketingContent(input,{configuration:{mode:"test",provider:"test",model:"test-model"},fetchImpl:async()=>{called=true;}});
+    const second=await ai.generateMarketingContent(input,{configuration:{mode:"test",provider:"test",model:"test-model"},fetchImpl:async()=>{called=true;}});
+    assert.equal(called,false);assert.deepEqual(first,second);assert.match(first.output.body,/not sent or published/i);
+  }
+});
 test("AI provider fails safely when credentials are absent",async()=>{
   await assert.rejects(()=>ai.generateMarketingContent(ai.validateInput(validInput),{configuration:{mode:"unconfigured"}}),error=>error.code==="AI_NOT_CONFIGURED");
 });
