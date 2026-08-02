@@ -35,3 +35,23 @@ This is the authoritative variable inventory. Configure values separately for Pr
 | `ADMIN_BASE_URL` | Server origin; core email links | HTTPS admin/public deployment origin | Admin links in email disabled/fallback |
 
 Credential-dependent tests use only disposable staging values: `CRM_TEST_SUPABASE_URL`, `CRM_TEST_ANON_KEY`, `CRM_TEST_ADMIN_TOKEN`, `CRM_TEST_SERVICE_ROLE_KEY`, `INVOICE_TEST_SUPABASE_URL`, `INVOICE_TEST_ANON_KEY`, `INVOICE_TEST_ADMIN_TOKEN`, and `INVOICE_TEST_SERVICE_ROLE_KEY`. `PROJECT318_BASE_URL` is optional for remote smoke testing. Confirm all public variables are the only values returned by `/api/runtime-config`, inspect built browser assets for secret names/values, and redeploy after environment changes.
+
+## Staging-only validation variables
+
+These values never belong in Production. The automated suites use the `CRM_TEST_*` and `INVOICE_TEST_*` names; the `STAGING_*` names are operator inputs for migration and browser smoke testing.
+
+| Variable | Classification | Purpose |
+|---|---|---|
+| `STAGING_SUPABASE_URL` | Staging-only operator value; public-safe URL | Positively identify the disposable project before migration |
+| `STAGING_SUPABASE_ANON_KEY` | Staging-only browser-safe key | Anonymous/public RLS and UI testing |
+| `STAGING_SUPABASE_SERVICE_ROLE_KEY` | Staging-only server secret | Migration/server workflow setup; never expose to browser |
+| `STAGING_ADMIN_EMAIL` / `STAGING_ADMIN_PASSWORD` | Staging-only secrets | Obtain a fresh administrator JWT with `app_metadata.role=admin` |
+| `STAGING_TEST_USER_EMAIL` / `STAGING_TEST_USER_PASSWORD` | Staging-only secrets | Verify ordinary authenticated denial |
+| `CRM_TEST_SUPABASE_URL` / `CRM_TEST_ANON_KEY` | Staging-only test inputs | CRM and Release 4 database suites |
+| `CRM_TEST_ADMIN_TOKEN` / `CRM_TEST_SERVICE_ROLE_KEY` | Staging-only secrets | Administrator/service validation; rotate after use |
+| `INVOICE_TEST_SUPABASE_URL` / `INVOICE_TEST_ANON_KEY` | Staging-only test inputs | Invoice integrity and concurrency suites |
+| `INVOICE_TEST_ADMIN_TOKEN` / `INVOICE_TEST_SERVICE_ROLE_KEY` | Staging-only secrets | Invoice administrator/service validation; rotate after use |
+| `PROJECT318_BASE_URL` | Optional staging/local test input | Remote public-route smoke-test origin |
+| `VERCEL_ENV` | Platform-provided, environment-specific | Prevents AI test mode from operating in Production; do not set manually |
+
+Production-only values are the live variants of Supabase, Resend, OpenAI, sender, webhook, scheduler, site/admin URL, business contact, and optional analytics settings in the main table. Production values must be created and scoped in the hosting/provider accounts; they must never be copied into staging or committed.
