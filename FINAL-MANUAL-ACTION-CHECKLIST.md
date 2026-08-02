@@ -14,6 +14,5 @@ Only the account owner or an authenticated external-service administrator can co
 - [ ] Configure the authenticated scheduler with `FOLLOW_UP_CRON_SECRET`, but leave it disabled until the launch gate authorizes activation.
 - [ ] Approve business phone, email, lead-response wording, notification mailbox, canonical public URL, administrator URL, GA4 ID, Meta Pixel ID, and consent behavior.
 - [ ] Complete authenticated staging UI checks for CRM, proposals, portal, bookings, invoices/payments, uploads, marketing AI, campaigns, templates, sequences, reporting, and launch readiness.
-- [ ] Review `/preview/3d-home.html` separately and decide whether to pursue it later; do not replace or link it from the production homepage in this release.
 - [ ] Authorize the immutable production deployment and production migrations during a staffed rollback window.
 - [ ] Complete and sign off the post-deployment smoke test and first-24-hour monitoring checkpoints.
