@@ -19,7 +19,7 @@ This is the single launch authority for the integrated release candidate. Replac
 
 ## Staging release gate
 
-Deploy `RELEASE_COMMIT` to a preview environment tied only to disposable staging. Use `AI_PROVIDER=test` and `TRANSACTIONAL_EMAIL_PROVIDER=test`. Validate public quote/contact confirmations, owner notification rendering, HTML/plain text, marketing templates/unsubscribe links, suppression, signed/invalid/duplicate webhook events, scheduler authorization, atomic claim/recovery/cancellation/paused/suppression flows, AI generation/save/edit/duplicate/archive/summary, portal authorization, proposals/PDFs, bookings, invoices/payments, uploads, analytics consent, public/admin route smoke tests, links, structured data, and `/preview/3d-home.html`. Confirm no provider delivered a real message.
+Deploy `RELEASE_COMMIT` to a hosting preview environment tied only to disposable staging. Use `AI_PROVIDER=test` and `TRANSACTIONAL_EMAIL_PROVIDER=test`. Validate public quote/contact confirmations, owner notification rendering, HTML/plain text, marketing templates/unsubscribe links, suppression, signed/invalid/duplicate webhook events, scheduler authorization, atomic claim/recovery/cancellation/paused/suppression flows, AI generation/save/edit/duplicate/archive/summary, portal authorization, proposals/PDFs, bookings, invoices/payments, uploads, analytics consent, public/admin route smoke tests, links, and structured data. Confirm no provider delivered a real message.
 
 ## Production deployment procedure
 
@@ -40,4 +40,4 @@ Monitor deployment/API errors, Supabase auth/database/storage logs, lead accepta
 
 ## Known limitations and deferred work
 
-Payments are manually recorded; the UI must not claim online card collection. AI content is draft-only. No SMS, social publishing, paid-ad API, chatbot, bulk migration enrollment, or automated daily AI summary is included. Provider event reporting requires a configured webhook, and open/click measurements are approximate. The 3D route is preview-only, noindexed, not in navigation or sitemap, and is not the production homepage.
+Payments are manually recorded; the UI must not claim online card collection. AI content is draft-only. No SMS, social publishing, paid-ad API, chatbot, bulk migration enrollment, or automated daily AI summary is included. Provider event reporting requires a configured webhook, and open/click measurements are approximate. The rejected experimental 3D homepage route was removed; the current approved homepage remains unchanged.
