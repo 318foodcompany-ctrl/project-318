@@ -560,7 +560,17 @@ begin
     execute format('revoke all on public.%I from public,anon,authenticated',t);
     execute format('grant select,insert,update,delete on public.%I to authenticated',t);
   end loop;
-end $$;
+end $;
+
+grant select on table
+  public.marketing_campaigns,
+  public.marketing_ai_content,
+  public.marketing_email_templates,
+  public.marketing_email_sequences,
+  public.marketing_email_enrollments,
+  public.marketing_suppressions,
+  public.marketing_email_events
+to anon;
 
 -- Compliance history is written only by trusted functions/services.
 revoke insert,update,delete on public.marketing_email_events from authenticated;
