@@ -140,13 +140,23 @@ test("executive AI summary is manual, aggregate-only, and saved through draft ge
   assert.match(script,/r4ExecutiveSummary/);assert.match(script,/aggregate_counts/);assert.match(script,/period_days:30/);
   assert.doesNotMatch(script,/setInterval\([^)]*generateExecutiveSummary|customer.*email.*important_details/i);
 });
-test("Release 4 data is administrator-only except secure unsubscribe",()=>{
+test("Release 4 data allows only RLS-filtered anonymous reads",()=>{
   const sql=read("supabase/release-4-ai-marketing.sql");
+  const anonymousReadTables=[
+    "marketing_campaigns","marketing_ai_content","marketing_email_templates",
+    "marketing_email_sequences","marketing_email_enrollments","marketing_suppressions",
+    "marketing_email_events"
+  ];
   assert.match(sql,/using \(public\.crm_is_admin\(\)\) with check \(public\.crm_is_admin\(\)\)/);
   assert.match(sql,/revoke all on public\.%I from public,anon,authenticated/);
+  const grant=sql.match(/grant select on table([\s\S]*?)to anon;/i);
+  assert.ok(grant,"anonymous SELECT grant must exist");
+  const granted=[...grant[1].matchAll(/public\.([a-z_]+)/g)].map(match=>match[1]).sort();
+  assert.deepEqual(granted,[...anonymousReadTables].sort());
+  assert.doesNotMatch(sql,/grant\s+(?:all|insert|update|delete|truncate|references|trigger)[^;]*\bto\s+anon\b/i);
+  assert.doesNotMatch(sql,/grant\s+usage[^;]*sequence[^;]*\bto\s+anon\b/i);
   assert.match(sql,/revoke insert,update,delete on public\.marketing_email_events from authenticated/);
   assert.match(sql,/revoke insert,update,delete on public\.marketing_consent_audit from authenticated/);
-  assert.doesNotMatch(sql,/grant (select|insert|update|delete).* to anon/i);
 });
 test("rollback refuses to destroy business or compliance history",()=>{
   const sql=read("supabase/release-4-ai-marketing-rollback.sql");
