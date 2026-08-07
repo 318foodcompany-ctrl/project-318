@@ -64,6 +64,13 @@ begin
     where enabled and next_run_at is not null and next_run_at <= now()
     for update skip locked
   loop
+    if s.created_by is null then
+      update public.marketing_ai_automation_settings
+      set enabled=false
+      where id=s.id;
+      continue;
+    end if;
+
     for i in 1..s.items_per_run loop
       insert into public.marketing_ai_tasks(
         automation_setting_id,content_type,status,scheduled_for,generation_input,priority,created_by
