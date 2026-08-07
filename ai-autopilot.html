@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <title>318 AI Marketing Autopilot</title>
+  <link rel="stylesheet" href="css/admin-ai-autopilot.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="top">
+      <div><h1>AI Marketing Autopilot</h1><p>Scheduled AI work is drafted automatically and waits here for administrator approval.</p></div>
+      <div><div id="signedIn" class="muted"></div><a href="admin.html">← Back to Website Manager</a></div>
+    </header>
+    <p id="autopilotMessage" class="message" role="status" aria-live="polite"></p>
+    <nav class="tabs" aria-label="AI Autopilot views">
+      <button type="button" class="active" data-view="queueView">Approval Queue</button>
+      <button type="button" data-view="settingsView">Automation Settings</button>
+      <button type="button" data-view="brainView">Business Brain</button>
+      <button type="button" data-view="historyView">Audit History</button>
+    </nav>
+
+    <section id="queueView" class="view active">
+      <div class="grid">
+        <article class="card"><h2>Waiting for approval</h2><div id="queueCount" class="metric">0</div><p class="muted">Approval marks a draft as approved. It does not publish or send it.</p><button id="refreshQueue" type="button" class="primary">Refresh</button></article>
+        <article class="card"><h2>Safety rules</h2><p>Autopilot may generate and prioritize drafts. It may not publish website content, send marketing email, spend ad budget, post to social media, or enroll customers automatically.</p></article>
+      </div>
+      <section class="card" style="margin-top:18px"><h2>Drafts</h2><div id="queueList" class="empty">Loading…</div></section>
+    </section>
+
+    <section id="settingsView" class="view">
+      <article class="card"><h2>Automation preferences</h2><p class="muted">Turn individual generators on or off and change frequency, volume, audience, tone, and instructions at any time. Every automation remains approval-required.</p><div id="settingsList"></div></article>
+    </section>
+
+    <section id="brainView" class="view">
+      <div class="grid">
+        <article class="card"><h2>318 Food Co Business Brain</h2><label class="field">Mission<textarea id="mission"></textarea></label><label class="field">Business facts (JSON)<textarea id="businessFacts"></textarea></label><label class="field">Voice preferences (JSON)<textarea id="voicePreferences"></textarea></label><label class="field">Seasonal rules (JSON)<textarea id="seasonalRules"></textarea></label></article>
+        <article class="card"><h2>Growth guardrails</h2><label class="field">Growth priorities (JSON array)<textarea id="growthPriorities"></textarea></label><label class="field">Prohibited claims (JSON array)<textarea id="prohibitedClaims"></textarea></label><p class="muted">The default mission prioritizes profitable catering growth while protecting customer trust and the brand.</p><button id="saveBrain" type="button" class="primary">Save Business Brain</button></article>
+      </div>
+    </section>
+
+    <section id="historyView" class="view"><article class="card"><h2>AI audit history</h2><p class="muted">Generation, edits, approvals, rejections, regeneration, failures, and archival are recorded here.</p><div id="historyList"></div></article></section>
+  </main>
+  <script src="/api/runtime-config"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/admin-ai-autopilot.js"></script>
+</body>
+</html>
