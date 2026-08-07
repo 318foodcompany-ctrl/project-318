@@ -18,6 +18,7 @@
       <button type="button" class="active" data-view="queueView">Approval Queue</button>
       <button type="button" data-view="settingsView">Automation Settings</button>
       <button type="button" data-view="brainView">Business Brain</button>
+      <button type="button" data-view="learningView">Learning</button>
       <button type="button" data-view="historyView">Audit History</button>
     </nav>
 
@@ -39,6 +40,15 @@
         <article class="card"><h2>318 Food Co Business Brain</h2><label class="field">Mission<textarea id="mission"></textarea></label><label class="field">Business facts (JSON)<textarea id="businessFacts"></textarea></label><label class="field">Voice preferences (JSON)<textarea id="voicePreferences"></textarea></label><label class="field">Seasonal rules (JSON)<textarea id="seasonalRules"></textarea></label></article>
         <article class="card"><h2>Growth guardrails</h2><label class="field">Growth priorities (JSON array)<textarea id="growthPriorities"></textarea></label><label class="field">Prohibited claims (JSON array)<textarea id="prohibitedClaims"></textarea></label><p class="muted">The default mission prioritizes profitable catering growth while protecting customer trust and the brand.</p><button id="saveBrain" type="button" class="primary">Save Business Brain</button></article>
       </div>
+    </section>
+
+    <section id="learningView" class="view">
+      <div class="grid">
+        <article class="card"><h2>Approval learning</h2><p class="muted">Autopilot tracks what you approve, edit, reject, and regenerate so we can see patterns before changing the Business Brain.</p><div id="learningTotals" class="metric">0</div><p class="muted">feedback signals in the selected period</p></article>
+        <article class="card"><h2>Learning safety</h2><p>The system does not silently change brand rules from feedback. It collects evidence first so future preference updates remain reviewable and intentional.</p><button id="refreshLearning" type="button" class="primary">Refresh Learning</button></article>
+      </div>
+      <section class="card" style="margin-top:18px"><h2>Feedback by content type</h2><div id="learningByType" class="empty">Loading…</div></section>
+      <section class="card" style="margin-top:18px"><h2>Recent feedback reasons</h2><div id="learningReasons" class="empty">Loading…</div></section>
     </section>
 
     <section id="historyView" class="view"><article class="card"><h2>AI audit history</h2><p class="muted">Generation, edits, approvals, rejections, regeneration, failures, archival, and publication are recorded here.</p><div id="historyList"></div></article></section>
