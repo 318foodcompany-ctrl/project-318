@@ -16,6 +16,7 @@
     <p id="autopilotMessage" class="message" role="status" aria-live="polite"></p>
     <nav class="tabs" aria-label="AI Autopilot views">
       <button type="button" class="active" data-view="queueView">Approval Queue</button>
+      <button type="button" data-view="executiveView">Executive Pulse</button>
       <button type="button" data-view="settingsView">Automation Settings</button>
       <button type="button" data-view="brainView">Business Brain</button>
       <button type="button" data-view="learningView">Learning</button>
@@ -29,6 +30,12 @@
       </div>
       <section class="card" style="margin-top:18px"><h2>Waiting for approval</h2><div id="queueList" class="empty">Loading…</div></section>
       <section class="card" style="margin-top:18px"><h2>Approved content</h2><p class="muted">Approved blogs and FAQs can be published with a separate explicit click. Other approved content remains ready for manual use until its provider connector is enabled.</p><div id="approvedList" class="empty">Loading…</div></section>
+    </section>
+
+    <section id="executiveView" class="view">
+      <div class="card"><div class="switchline"><div><h2>Executive Pulse</h2><p id="executiveUpdated" class="muted">Aggregate business and AI workflow data only.</p></div><button id="refreshExecutive" type="button" class="primary">Refresh Pulse</button></div><p id="executiveMessage" class="message" role="status" aria-live="polite"></p></div>
+      <div id="executiveMetrics" class="grid" style="margin-top:18px"></div>
+      <section class="card" style="margin-top:18px"><h2>Priority actions</h2><p class="muted">These are deterministic alerts from recorded aggregate data, not invented market claims or arbitrary growth scores.</p><div id="executiveRecommendations" class="empty">Loading…</div></section>
     </section>
 
     <section id="settingsView" class="view">
@@ -57,5 +64,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase.js"></script>
   <script src="js/admin-ai-autopilot.js"></script>
+  <script src="js/admin-ai-executive.js"></script>
 </body>
 </html>
