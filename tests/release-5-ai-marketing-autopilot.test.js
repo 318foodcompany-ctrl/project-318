@@ -47,6 +47,15 @@ test("approval API requires an administrator and keeps approval separate from pu
   assert.doesNotMatch(source,/sendTransactionalEmail|publish_post|ad_spend/i);
 });
 
+test("approval queue enforces safe state transitions",()=>{
+  assert.doesNotThrow(()=>actions.requireStatus({status:"ready_for_approval"},["ready_for_approval"],"blocked"));
+  assert.throws(()=>actions.requireStatus({status:"approved"},["ready_for_approval"],"blocked"),error=>error.status===409&&/blocked/.test(error.message));
+  const source=read("api/admin-marketing-autopilot-action.js");
+  assert.match(source,/Only approval-ready drafts can be rejected/);
+  assert.match(source,/Approved or active AI work cannot be archived/);
+  assert.match(source,/Only reviewable, rejected, or failed AI work can be regenerated/);
+});
+
 test("approval UI supports editable preferences and complete review actions",()=>{
   const html=read("ai-autopilot.html"),ui=read("js/admin-ai-autopilot.js");
   assert.match(html,/Approval Queue/);assert.match(html,/Automation Settings/);assert.match(html,/Business Brain/);assert.match(html,/Audit History/);
