@@ -32,8 +32,8 @@ function buildInput(task,brand){
 }
 
 async function handler(req,res){
-  if(req.method!=="POST"){res.setHeader("Allow","POST");return reply(res,405,{error:"Method not allowed."});}
-  const expected=String(process.env.AI_AUTOPILOT_CRON_SECRET||process.env.FOLLOW_UP_CRON_SECRET||"");
+  if(!["GET","POST"].includes(req.method)){res.setHeader("Allow","GET, POST");return reply(res,405,{error:"Method not allowed."});}
+  const expected=String(process.env.AI_AUTOPILOT_CRON_SECRET||process.env.CRON_SECRET||process.env.FOLLOW_UP_CRON_SECRET||"");
   const provided=String(req.headers.authorization||"").replace(/^Bearer\s+/,"");
   if(expected.length<32||!safeEqual(expected,provided))return reply(res,401,{error:"Unauthorized."});
   const base=String(process.env.PUBLIC_SUPABASE_URL||"").replace(/\/$/,""),key=String(process.env.SUPABASE_SERVICE_ROLE_KEY||"");
