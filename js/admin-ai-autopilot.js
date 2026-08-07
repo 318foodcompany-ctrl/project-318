@@ -2,7 +2,7 @@
   "use strict";
   const TYPES=["blog_draft","faq_draft","seo_recommendation","facebook_post","instagram_caption","linkedin_post","google_business_post","email_newsletter","promotional_email","landing_page","seasonal_campaign","holiday_campaign","analytics_summary","growth_recommendation"];
   const AUTO_PUBLISHABLE=new Set(["blog_draft","faq_draft"]);
-  const state={settings:[],tasks:[],content:new Map(),brain:null,audit:[]};
+  const state={settings:[],tasks:[],content:new Map(),brain:null,audit:[],learning:null};
   const $=id=>document.getElementById(id);
   const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   function client(){if(!window.supabaseClient)throw new Error("Supabase is unavailable.");return window.supabaseClient;}
@@ -24,6 +24,19 @@
   }
   function renderHistory(){$("historyList").innerHTML=state.audit.length?state.audit.map(a=>`<article class="task"><header><strong>${esc(pretty(a.action))}</strong><span class="pill">${new Date(a.created_at).toLocaleString()}</span></header><div class="muted">Task ${esc(a.task_id||"—")}${a.details?.destination?` · ${esc(a.details.destination)}`:""}</div></article>`).join(""):'<div class="empty">No AI audit history yet.</div>';}
   function renderBrain(){const b=state.brain||{};$("mission").value=b.mission||"";$("businessFacts").value=JSON.stringify(b.business_facts||{},null,2);$("voicePreferences").value=JSON.stringify(b.voice_preferences||{},null,2);$("seasonalRules").value=JSON.stringify(b.seasonal_rules||{},null,2);$("growthPriorities").value=JSON.stringify(b.growth_priorities||[],null,2);$("prohibitedClaims").value=JSON.stringify(b.prohibited_claims||[],null,2);}
+  function renderLearning(){
+    if(!$("learningTotals"))return;
+    const summary=state.learning||{},byType=summary.by_content_type||{},reasons=summary.recent_reasons||[];
+    const rows=Object.entries(byType);let total=0;
+    for(const [,stats] of rows)total+=Number(stats.approved||0)+Number(stats.edited||0)+Number(stats.rejected||0)+Number(stats.regenerated||0);
+    $("learningTotals").textContent=String(total);
+    $("learningByType").innerHTML=rows.length?rows.map(([type,s])=>`<article class="task"><header><strong>${esc(pretty(type))}</strong><span class="pill">${Number(s.approved||0)} approved</span></header><div class="muted">${Number(s.edited||0)} edited · ${Number(s.rejected||0)} rejected · ${Number(s.regenerated||0)} regenerated</div></article>`).join(""):'<div class="empty">No feedback signals yet. Patterns will appear after you start reviewing drafts.</div>';
+    $("learningReasons").innerHTML=reasons.length?reasons.map(r=>`<article class="task"><header><strong>${esc(pretty(r.signal_type))} · ${esc(pretty(r.content_type))}</strong><span class="pill">${new Date(r.created_at).toLocaleString()}</span></header><div>${esc(r.reason)}</div></article>`).join(""):'<div class="empty">No written feedback reasons yet.</div>';
+  }
+  async function loadLearning(){
+    try{const s=await session(),r=await fetch("/api/admin-marketing-autopilot-learning?days=90",{headers:{Authorization:`Bearer ${s.access_token}`}}),payload=await r.json();if(!r.ok)throw new Error(payload.error||"Learning summary failed.");state.learning=payload.summary||null;renderLearning();}
+    catch(error){if($("learningByType"))$("learningByType").innerHTML=`<div class="empty">Learning summary unavailable: ${esc(error.message)}</div>`;}
+  }
   async function load(){
     msg("Loading AI Marketing Autopilot…");
     try{
@@ -36,7 +49,7 @@
       state.settings=settings;state.tasks=tasks;state.brain=brain[0]||null;state.audit=audit;
       const ids=[...new Set(tasks.map(t=>t.ai_content_id).filter(Boolean))];state.content.clear();
       if(ids.length){const rows=await unwrap(client().from("marketing_ai_content").select("id,title,structured_output,status,content_type").in("id",ids));rows.forEach(r=>state.content.set(r.id,r));}
-      renderSettings();renderQueue();renderBrain();renderHistory();msg("");
+      renderSettings();renderQueue();renderBrain();renderHistory();msg("");loadLearning();
     }catch(error){msg(`Autopilot could not load: ${error.message}. Confirm Release 5 migrations are applied.`,true);}
   }
   async function saveSetting(type){
@@ -54,8 +67,8 @@
   async function publish(taskId){try{const s=await session(),r=await fetch("/api/admin-marketing-autopilot-publish",{method:"POST",headers:{Authorization:`Bearer ${s.access_token}`,"Content-Type":"application/json"},body:JSON.stringify({task_id:taskId})}),payload=await r.json();if(!r.ok)throw new Error(payload.error||"Publish failed.");msg(`${payload.already_published?"Already published":"Published successfully"}${payload.destination?` to ${payload.destination}`:""}.`);await load();}catch(error){msg(`Approved content could not be published: ${error.message}`,true);}}
   async function copyTask(taskId){try{await navigator.clipboard.writeText(JSON.stringify(state.content.get(state.tasks.find(t=>t.id===taskId)?.ai_content_id)?.structured_output||{},null,2));msg("Approved draft copied.");}catch(error){msg("Could not copy the approved draft.",true);}}
   async function saveBrain(){try{const value={mission:$("mission").value.trim(),business_facts:JSON.parse($("businessFacts").value||"{}"),voice_preferences:JSON.parse($("voicePreferences").value||"{}"),seasonal_rules:JSON.parse($("seasonalRules").value||"{}"),growth_priorities:JSON.parse($("growthPriorities").value||"[]"),prohibited_claims:JSON.parse($("prohibitedClaims").value||"[]")};await unwrap(client().from("marketing_ai_brand_brain").update(value).eq("id",1).select("*"));msg("Business Brain saved.");await load();}catch(error){msg(`Business Brain was not saved: ${error.message}`,true);}}
-  function tabs(){document.querySelectorAll("[data-view]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-view]").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v.id===b.dataset.view));}));}
+  function tabs(){document.querySelectorAll("[data-view]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-view]").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v.id===b.dataset.view));if(b.dataset.view==="learningView")loadLearning();}));}
   async function protect(){const r=await client().auth.getSession(),s=r.data?.session;if(!s){location.replace("login.html");return false;}const a=await client().rpc("crm_is_admin");if(a.error||a.data!==true){location.replace("login.html?error=unauthorized");return false;}$("signedIn").textContent=s.user.email||"Administrator";return true;}
   document.addEventListener("click",e=>{const setting=e.target.closest("[data-save-setting]");if(setting)saveSetting(setting.dataset.saveSetting);const a=e.target.closest("[data-action]");if(a)action(a.dataset.taskId,a.dataset.action);const p=e.target.closest("[data-publish-task]");if(p)publish(p.dataset.publishTask);const c=e.target.closest("[data-copy-task]");if(c)copyTask(c.dataset.copyTask);});
-  $("saveBrain").addEventListener("click",saveBrain);$("refreshQueue").addEventListener("click",load);tabs();protect().then(ok=>ok&&load());
+  $("saveBrain").addEventListener("click",saveBrain);$("refreshQueue").addEventListener("click",load);$("refreshLearning").addEventListener("click",loadLearning);tabs();protect().then(ok=>ok&&load());
 })();
