@@ -13,6 +13,8 @@ async function handler(req,res){
     if(!taskId)return reply(res,400,{error:"Invalid task."});
     const tasks=await db(ctx.base,ctx.service,`marketing_ai_tasks?id=eq.${taskId}&select=*&limit=1`),task=tasks?.[0];
     if(!task||task.status!=="approved"||!task.ai_content_id)return reply(res,409,{error:"Only approved AI drafts can be published."});
+    const prior=await db(ctx.base,ctx.service,`marketing_ai_approval_audit?task_id=eq.${taskId}&action=eq.published&select=details&order=created_at.desc&limit=1`);
+    if(prior?.[0])return reply(res,200,{ok:true,published:true,already_published:true,destination:prior[0].details?.destination||""});
     const rows=await db(ctx.base,ctx.service,`marketing_ai_content?id=eq.${task.ai_content_id}&select=*&limit=1`),content=rows?.[0],out=content?.structured_output||{};
     if(!content)return reply(res,404,{error:"Approved AI content was not found."});
     let destination="";
@@ -28,7 +30,7 @@ async function handler(req,res){
       await db(ctx.base,ctx.service,"faq_items",{method:"POST",headers:{Prefer:"return=minimal"},body:JSON.stringify({category,question,answer,status:"published",sort_order:999})});destination="/faq.html";
     }else return reply(res,400,{error:"This approved draft type does not have an automatic publishing connector yet."});
     await db(ctx.base,ctx.service,"marketing_ai_approval_audit",{method:"POST",headers:{Prefer:"return=minimal"},body:JSON.stringify({task_id:task.id,ai_content_id:task.ai_content_id,action:"published",actor_id:ctx.user.id,details:{destination,content_type:task.content_type}})});
-    return reply(res,200,{ok:true,published:true,destination});
+    return reply(res,200,{ok:true,published:true,already_published:false,destination});
   }catch(error){console.error("AI approved publishing failed.",{message:error.message});return reply(res,error.status===401?401:error.status===403?403:500,{error:error.status===401||error.status===403?error.message:"Approved content could not be published."});}
 }
 module.exports=handler;module.exports.slugify=slugify;
