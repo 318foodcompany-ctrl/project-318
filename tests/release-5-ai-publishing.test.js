@@ -72,3 +72,23 @@ test("schedule preferences use timezone-aware next-run calculation",()=>{
   assert.match(sql,/America\/Chicago/);assert.match(sql,/at time zone zone/);
   assert.match(ui,/marketing_ai_next_run/);assert.match(ui,/Weekly day/);assert.match(ui,/Monthly day/);assert.match(ui,/Timezone/);
 });
+
+test("AI business snapshot is aggregate-only and excludes customer PII",()=>{
+  const sql=read("supabase/release-5-ai-intelligence-context.sql");
+  assert.match(sql,/marketing_ai_business_snapshot/);
+  assert.match(sql,/aggregate-only/i);
+  assert.match(sql,/count\(\*\)/);
+  assert.match(sql,/sum\(/);
+  assert.doesNotMatch(sql,/select\s+(?:[^;]*\.)?(?:name|email|phone|notes|internal_notes|venue_address)\b/i);
+  assert.doesNotMatch(sql,/customer_name|company_name|normalized_email/i);
+  assert.match(sql,/revoke all on function public\.marketing_ai_business_snapshot\(integer\) from public,anon,authenticated/);
+  assert.match(sql,/grant execute on function public\.marketing_ai_business_snapshot\(integer\) to service_role/);
+});
+
+test("autopilot grounds recommendations in the aggregate snapshot without exposing it to browser code",()=>{
+  const runner=read("api/marketing-autopilot-run.js"),ui=read("js/admin-ai-autopilot.js");
+  assert.match(runner,/rpc\/marketing_ai_business_snapshot/);
+  assert.match(runner,/Aggregate business\/content snapshot \(no customer PII\)/);
+  assert.match(runner,/snapshot_period_days/);
+  assert.doesNotMatch(ui,/marketing_ai_business_snapshot|customer_name|normalized_email/);
+});
