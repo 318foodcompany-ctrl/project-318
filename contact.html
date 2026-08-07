@@ -34,7 +34,7 @@
   <section class="page-hero">
     <div class="wrap">
       <h1 data-contact-content="hero_heading">Request a Quote</h1>
-      <p data-contact-content="hero_subheading">Tell us about your event and get a quick starting estimate. Submitting opens a ready-to-send email on your device.</p>
+      <p data-contact-content="hero_subheading">Tell us about your event and securely send your request to 318 Food Co.</p>
     </div>
   </section>
 
@@ -64,8 +64,10 @@
 <div class="field"><label for="extras">Optional Add-On Estimate</label><select id="extras" name="Add-On Estimate"><option value="0">No add-on</option><option value="2">Drinks (+$2/person)</option><option value="3">Enhanced dessert (+$3/person)</option><option value="5">Drinks + enhanced dessert (+$5/person)</option></select></div>
 <div class="field"><label for="contactServiceStyle">Service Style</label><select id="contactServiceStyle" name="Service Style"><option>Delivery only</option><option>Delivery and setup</option><option>Full service requested</option></select></div>
 <div class="field full"><label for="contactAddress">Event Address</label><input id="contactAddress" name="Event Address"></div>
-<div class="field full"><label for="contactDetails">Event Details / Special Requests</label><textarea id="contactDetails" name="Details"></textarea></div>
-            <div class="field full"><button class="btn" type="submit">Create Email Quote Request</button></div>
+<div class="field full"><label for="contactDetails">Event Details / Special Requests</label><textarea id="contactDetails" name="Details" maxlength="5000"></textarea></div>
+<label class="field full optin"><input type="checkbox" name="marketingOptIn" value="yes"><span>Send me occasional 318 Food Co. catering specials by email. I can unsubscribe at any time.</span></label>
+<div class="form-honeypot" aria-hidden="true"><label>Website<input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+            <div class="field full"><button class="btn" type="submit">Send My Catering Request</button></div>
           </div>
         </form>
 
@@ -101,6 +103,9 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase.js"></script>
   <script src="js/site-settings.js"></script>
+  <script src="js/site-content-loader.js"></script>
   <script src="js/site-contact-content.js"></script>
+  <script src="js/lead-submission.js"></script>
+  <script src="js/contact-live.js"></script>
 </body>
 </html>

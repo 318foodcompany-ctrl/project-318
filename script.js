@@ -103,24 +103,14 @@ if (quote) {
 
   calc();
 
-  quote.addEventListener('submit', (event) => {
-    event.preventDefault();
-
-    const data = new FormData(quote);
-    const lines = ['318 Food Co. Catering Quote Request', ''];
-
-    for (const [key, value] of data.entries()) {
-      lines.push(`${key}: ${value}`);
-    }
-
-    lines.push(
-      '',
-      summary ? summary.textContent : '',
-      `Estimated subtotal: ${total ? total.textContent : '$0.00'}`,
-      'Final price is subject to confirmation, delivery, staffing, taxes, and menu selections.'
-    );
-
-    const destinationEmail = window.websiteSettings?.email || '318FoodCompany@gmail.com';
-    location.href = `mailto:${destinationEmail}?subject=${encodeURIComponent('Catering Quote Request')}&body=${encodeURIComponent(lines.join('\n'))}`;
-  });
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+  if (/\/(?:admin|login)\.html$/i.test(location.pathname) || document.querySelector(".final-book-cta")) return;
+  const cta = document.createElement("a");
+  cta.className = "final-book-cta";
+  cta.href = "quote-builder.html";
+  cta.setAttribute("aria-label", "Request a catering quote");
+  cta.innerHTML = "<span>Planning an event?</span><strong>Request Catering Quote →</strong>";
+  document.body.appendChild(cta);
+});

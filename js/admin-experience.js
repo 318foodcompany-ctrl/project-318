@@ -16,7 +16,7 @@
     menuPanel: "Catering Menu",
     settingsPanel: "Website Settings",
     photosPanel: "Photos",
-    specialsPanel: "Specials"
+    conversionPanel: "Conversion Content",
   };
 
   function esc(value) {
@@ -86,7 +86,7 @@
     if (!host) return;
     let items = [];
     try { items = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); } catch (_) {}
-    host.innerHTML = `<h3>Recently viewed</h3>${items.length ? items.map((item) => `<button type="button" data-recent-panel="${esc(item.id)}">${esc(item.label)}</button>`).join("") : '<span style="color:#777;font-size:12px">Your recent areas will appear here.</span>'}`;
+    host.innerHTML = `<h3>Recently viewed</h3>${items.length ? items.map((item) => `<button type="button" data-recent-panel="${esc(item.id)}">${esc(item.label)}</button>`).join("") : '<span class="admin-recent-empty">Your recent areas will appear here.</span>'}`;
     host.querySelectorAll("[data-recent-panel]").forEach((button) => button.addEventListener("click", () => showPanel(button.dataset.recentPanel)));
   }
 

@@ -39,6 +39,31 @@ Only the public anon key is permitted. Never configure a service-role key,
 database password, signed-in access token, refresh token, or other privileged
 credential under either public variable.
 
+## Server-only Release 1 lead automation variables
+
+These values are consumed only by `/api/lead-submit`. None are returned by
+`/api/runtime-config`, and none may be prefixed into browser configuration.
+
+| Variable | Production | Preview | Development |
+| --- | --- | --- | --- |
+| `SUPABASE_SERVICE_ROLE_KEY` | Production service-role JWT | Staging service-role JWT | Staging/local service-role JWT |
+| `LEAD_RATE_LIMIT_SECRET` | Unique random secret, at least 32 characters | Different Preview secret | Different local secret |
+| `LEAD_RATE_LIMIT_MAX` | `5` recommended | `20` for QA | `50` for automated local QA |
+| `LEAD_RATE_LIMIT_WINDOW_SECONDS` | `900` recommended | `900` | `900` |
+| `TRANSACTIONAL_EMAIL_PROVIDER` | `resend` after provider approval | `test` or Resend sandbox | `test` |
+| `TRANSACTIONAL_EMAIL_FROM` | Verified sender, such as `318 Food Co. <quotes@domain>` | Sandbox sender | Optional in test mode |
+| `RESEND_API_KEY` | Production Resend secret | Separate sandbox secret, or unset in test mode | Unset in test mode |
+| `LEAD_NOTIFICATION_TO` | Owner notification mailbox | Staging sink mailbox | Test mailbox |
+| `ADMIN_BASE_URL` | `https://www.318foodco.com` | Current Preview origin | Local Vercel origin |
+| `BUSINESS_PHONE` | Public business phone used in confirmation copy | Test business phone | Test business phone |
+| `BUSINESS_EMAIL` | Public business email used in confirmation copy | Test business email | Test business email |
+| `LEAD_RESPONSE_EXPECTATION` | Approved promise, or unset | Test wording or unset | Test wording or unset |
+
+`SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, and `LEAD_RATE_LIMIT_SECRET` are
+privileged secrets. Scope each value to its matching Vercel environment. Never
+place them in HTML, browser JavaScript, `/api/runtime-config`, Git, screenshots,
+or support messages.
+
 ## Failure behavior
 
 If either required value is missing or the URL is not an HTTPS Supabase project

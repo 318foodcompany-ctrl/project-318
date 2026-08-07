@@ -8,6 +8,8 @@
   <link rel="stylesheet" href="booking-calendar.css">
   <link rel="stylesheet" href="crm.css">
   <link rel="stylesheet" href="invoices.css">
+  <link rel="stylesheet" href="admin.css">
+  <link rel="stylesheet" href="sales-platform.css">
 <style>
     :root {
   --red: #e21b23;
@@ -547,16 +549,16 @@
           Manage Photos
         </button>
 
+        <button class="nav-button" data-panel="conversionPanel">
+          Conversion Content
+        </button>
+
         <button class="nav-button" data-panel="menuPanel">
           Menu & Pricing
         </button>
 
         <button class="nav-button" data-panel="settingsPanel">
           Website Settings
-        </button>
-
-        <button class="nav-button" data-panel="specialsPanel">
-          Specials
         </button>
 
         <button class="nav-button" data-panel="leadsPanel">
@@ -573,6 +575,14 @@
 
         <button class="nav-button" data-panel="customersPanel">
           Customers
+        </button>
+
+        <button class="nav-button" data-panel="salesPlatformPanel">
+          Sales Platform
+        </button>
+
+        <button class="nav-button" data-panel="marketingAiPanel">
+          Marketing AI
         </button>
 
         <button id="logoutButton" class="logout-button">
@@ -628,6 +638,12 @@
                 <h3>Manage Photos</h3>
                 <p>Replace website photos, logos, page hero images, and favicon files.</p>
                 <button data-open-panel="photosPanel">Open Photos</button>
+              </article>
+
+              <article class="dashboard-card">
+                <h3>Conversion Content</h3>
+                <p>Manage testimonials, review highlights, client logos, gallery, FAQ, statistics, trust badges, and event types.</p>
+                <button data-open-panel="conversionPanel">Manage Conversion Content</button>
               </article>
 
               <article class="dashboard-card">
@@ -774,23 +790,21 @@
             
           </section>
 
-         
-          
-
-          <section id="specialsPanel" class="panel">
+          <section id="conversionPanel" class="panel">
             <div class="panel-heading">
-              <h2>Specials</h2>
-              <p>Control promotional wording and featured offers.</p>
+              <h2>Conversion Content</h2>
+              <p>Create, preview, publish, reorder, and remove customer-facing trust and planning content.</p>
             </div>
-
-            <div class="card placeholder">
-              <h3>Specials Manager</h3>
-              <p>
-                This section will let you turn promotions on and off and
-                change their wording.
-              </p>
+            <div id="conversionManagerTabs" class="conversion-admin-tabs" aria-label="Conversion content types"></div>
+            <p id="conversionManagerMessage" class="message" role="status" aria-live="polite"></p>
+            <div class="conversion-admin-layout">
+              <div id="conversionEditor" class="card"></div>
+              <div class="card"><h3>Published order</h3><p>Drag items to change their public display order.</p><div id="conversionItemList"></div></div>
             </div>
           </section>
+
+
+
 
           <section id="leadsPanel" class="panel">
             <div class="panel-heading">
@@ -900,6 +914,9 @@
                     <label>Guest count<input id="bookingGuestCount" name="guest_count" type="number" min="0" step="1"></label>
                     <label>Quote amount<input id="bookingQuoteAmount" name="quote_amount" type="number" min="0" step="0.01"></label>
                     <label>Status *<select id="bookingStatus" name="status" required></select></label>
+                    <label>Calendar color<input id="bookingCalendarColor" name="calendar_color" type="color" value="#e21b23"></label>
+                    <label>Kitchen start<input id="bookingKitchenStart" name="kitchen_start_at" type="datetime-local"></label>
+                    <label>Delivery departure<input id="bookingDeliveryDeparture" name="delivery_departure_at" type="datetime-local"></label>
                     <label>Venue name<input id="bookingVenueName" name="venue_name"></label>
                     <label class="wide">Venue address<textarea id="bookingVenueAddress" name="venue_address" rows="2"></textarea></label>
                     <label class="wide">Internal notes<textarea id="bookingInternalNotes" name="internal_notes" rows="4"></textarea></label>
@@ -1006,6 +1023,35 @@
             </div>
             <div id="customerDetailModal" class="crm-modal" hidden><div class="crm-modal-card" role="dialog" aria-modal="true" aria-labelledby="customerDetailTitle"><button id="customerDetailClose" class="crm-modal-close" type="button" aria-label="Close customer details">×</button><div id="customerDetailBody"></div></div></div>
           </section>
+
+          <section id="salesPlatformPanel" class="panel">
+            <div class="sales-panel-heading">
+              <div><h2>Sales Platform</h2><p>Manage opportunities, proposals, follow-ups, and sales performance.</p></div>
+              <div class="sales-heading-actions">
+                <button id="salesExportButton" class="crm-secondary-button" type="button">Export Customers</button>
+                <button id="salesNewProposalButton" class="save-button" type="button">New Proposal</button>
+              </div>
+            </div>
+            <div id="salesMetrics" class="sales-metrics" aria-live="polite"></div>
+            <div class="sales-tabs" role="tablist" aria-label="Sales platform views">
+              <button class="active" role="tab" aria-selected="true" type="button" data-sales-view="pipeline">Pipeline</button>
+              <button role="tab" aria-selected="false" type="button" data-sales-view="proposals">Proposals</button>
+              <button role="tab" aria-selected="false" type="button" data-sales-view="automation">Follow-up</button>
+              <button role="tab" aria-selected="false" type="button" data-sales-view="reports">Reports</button>
+              <button role="tab" aria-selected="false" type="button" data-sales-view="tools">Customer Tools</button>
+            </div>
+            <p id="salesMessage" class="message" role="status" aria-live="polite"></p>
+            <div id="salesWorkspace" class="sales-workspace" tabindex="-1" aria-busy="true"></div>
+          </section>
+
+          <section id="marketingAiPanel" class="panel">
+            <div class="panel-heading">
+              <h2>Marketing AI</h2>
+              <p>Create draft marketing content, campaigns, email templates, sequences, and reports. Nothing sends or publishes without administrator action.</p>
+            </div>
+            <p id="release4Message" class="message" role="status" aria-live="polite"></p>
+            <div id="release4Workspace" aria-busy="true"></div>
+          </section>
         </div>
       </main>
     </div>
@@ -1092,6 +1138,7 @@
   <script src="js/admin-corporate-content.js"></script>
   <script src="js/admin-contact-content.js"></script>
   <script src="js/admin-photos.js"></script>
+  <script src="js/admin-conversion-content.js"></script>
   <script src="js/admin-menu.js"></script>
   <script src="js/admin-settings.js"></script>
   <script src="js/crm-utils.js"></script>
@@ -1104,5 +1151,9 @@
   <script src="js/booking-time.js"></script>
   <script src="js/admin-bookings.js"></script>
   <script src="js/admin-invoices.js"></script>
+  <script src="js/sales-platform-utils.js"></script>
+  <script src="js/sales-platform-service.js"></script>
+  <script src="js/admin-sales-platform.js"></script>
+  <script src="js/admin-release-4-marketing.js"></script>
 </body>
 </html>

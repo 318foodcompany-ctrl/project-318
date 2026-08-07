@@ -35,10 +35,12 @@ test("crawlable public pages include static social sharing metadata", () => {
 test("public quote submission fails closed instead of claiming a local preview save", () => {
   const page = read("quote-builder.html");
   const client = read("js/quote-live.js");
+  const service = read("js/lead-submission.js");
   assert.doesNotMatch(page, /local 318 HQ|href=["']dashboard\.html/i);
-  assert.match(client, /if \(!form\) return;/);
-  assert.match(client, /if \(!window\.supabaseClient\)/);
-  assert.match(client, /temporarily unavailable/);
+  assert.doesNotMatch(page, /saved and sent to 318 Food Co/i);
+  assert.match(client, /Project318LeadSubmission/);
+  assert.match(service, /\/api\/lead-submit/);
+  assert.match(client, /Your request was not saved/);
 });
 
 test("homepage animation has a non-WebGL fallback", () => {
@@ -48,8 +50,11 @@ test("homepage animation has a non-WebGL fallback", () => {
 });
 
 test("private and duplicate routes are excluded from search indexing", () => {
-  for (const page of ["admin.html", "login.html", "assistant.html", "dashboard.html", "OPEN-DASHBOARD.html", "START-HERE.html"]) {
+  for (const page of ["admin.html", "login.html", "assistant.html", "START-HERE.html"]) {
     assert.match(read(page), /<meta[^>]+name=["']robots["'][^>]+noindex/i, `${page} is noindex`);
+  }
+  for (const removed of ["dashboard.html", "OPEN-DASHBOARD.html", "phase2.js"]) {
+    assert.equal(fs.existsSync(path.join(root, removed)), false, `${removed} is removed from production`);
   }
 });
 

@@ -40,10 +40,9 @@
   </section>
 
   <main class="section">
-    <div class="wrap gallery">
-      <img data-gallery-image="1" src="assets/images/taco-wordless.jpg" alt="Taco bar">
-      <img data-gallery-image="2" src="assets/images/fajita-wordless.jpg" alt="Fajita bar">
-      <img data-gallery-image="3" src="assets/images/bbq-wordless.jpg" alt="BBQ catering">
+    <div class="wrap">
+      <div class="gallery-filters" data-gallery-filters aria-label="Filter gallery"></div>
+      <div class="gallery dynamic-gallery" data-dynamic-gallery aria-live="polite"></div>
     </div>
   </main>
 
@@ -57,5 +56,6 @@
   <script src="js/supabase.js"></script>
   <script src="js/site-settings.js"></script>
   <script src="js/site-photos.js?v=4"></script>
+  <script src="js/gallery-content.js"></script>
 </body>
 </html>

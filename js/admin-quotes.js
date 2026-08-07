@@ -260,6 +260,25 @@
     return window.bookingCalendar.openFromQuote({ ...quote });
   }
 
+  async function loadLeadDeliveryDetails(quote) {
+    const container = document.getElementById("quoteDeliveryDetails");
+    if (!container) return;
+    const { data, error } = await supabaseClient
+      .from("lead_email_deliveries")
+      .select("message_type,status,provider,provider_reference,failure_code,attempted_at,retry_state")
+      .eq("lead_id", quote.id)
+      .order("attempted_at", { ascending: false });
+    if (error) {
+      container.textContent = "Delivery history is unavailable. Release 1 may still require database setup.";
+      return;
+    }
+    const latest = new Map();
+    (data || []).forEach(row => { if (!latest.has(row.message_type)) latest.set(row.message_type, row); });
+    const owner = latest.get("owner_notification");
+    const customer = latest.get("customer_confirmation");
+    container.innerHTML = `<div class="quote-detail-grid">${detailItem("Submission source", quote.submission_source || "legacy")}${detailItem("Customer confirmation", customer?.status || quote.customer_confirmation_status || "not attempted")}${detailItem("Owner notification", owner?.status || quote.owner_notification_status || "not attempted")}${detailItem("Last email attempt", dateText(owner?.attempted_at || customer?.attempted_at || quote.last_email_attempt_at, true))}${detailItem("Owner delivery reference", owner?.provider_reference || "—")}${detailItem("Customer delivery reference", customer?.provider_reference || "—")}${detailItem("Marketing consent", quote.marketing_consent_status || "unknown")}${detailItem("Deduplication", quote.deduplicated ? "Duplicate retry recognized" : "Original submission")}${detailItem("Abuse review", quote.abuse_review_required ? "Review required" : "No flag")}</div>${owner?.failure_code || customer?.failure_code ? `<p class="quote-save-state">Safe failure code: ${escapeHTML(owner?.failure_code || customer?.failure_code)}</p>` : ""}`;
+  }
+
   function openQuote(id) {
     const quote = quotes.find((item) => String(item.id) === String(id));
     if (!quote) return;
@@ -267,8 +286,13 @@
     const internalNotesValue = String(quote.internal_notes || "");
     activeNoteState = { quote, currentValue: internalNotesValue, savedValue: internalNotesValue };
     quoteDetailContent.innerHTML = `<h2 id="quoteDetailTitle">${escapeHTML(quote.name || "Quote details")}</h2><p>${escapeHTML(quote.company || "No company provided")}</p><div class="quote-detail-grid">${detailItem("Customer", quote.name || "—")}${detailItem("Company", quote.company || "—")}${detailItem("Phone", quote.phone || "—")}${detailItem("Email", quote.email || "—")}${detailItem("Event date", dateText(quote.event_date))}${detailItem("Guest count", quote.guests ?? "—")}${detailItem("Event type", quote.event_type || "—")}${detailItem("Menu", quote.menu || "—")}${detailItem("Budget", currency(quote.budget))}${detailItem("Submitted", dateText(quote.created_at, true))}<div><span>Current status</span><select id="quoteDetailStatus">${statusOptions(quote.status)}</select></div></div><div class="quote-detail-notes"><label>Customer Request Details</label><div class="quote-customer-notes">${escapeHTML(quote.notes || "No additional details were submitted.")}</div></div><div class="quote-detail-notes"><label>Marketing Attribution</label><div id="quoteAttributionDetails" class="quote-customer-notes">Loading attribution…</div></div><div class="quote-detail-notes"><label for="quoteInternalNotes">Private Internal Notes</label><textarea id="quoteInternalNotes" placeholder="Add private follow-up notes for this quote…">${escapeHTML(internalNotesValue)}</textarea><p id="quoteNoteSaveState" class="quote-save-state" role="status" aria-live="polite"></p></div>${quote.customer_id ? `<div class="quote-booking-action"><button id="quoteOpenCustomerButton" class="crm-secondary-button" type="button">Open Customer Record</button></div><div class="quote-booking-action"><button id="quoteCreateInvoiceButton" class="crm-secondary-button" type="button">Create Invoice</button><p>Create or open the accounting invoice linked to this quote.</p></div>` : ""}${canCreateBooking ? `<div class="quote-booking-action"><button id="quoteCreateBookingButton" class="save-button" type="button">Create Booking</button><p>Create a linked calendar booking using this quote’s customer and event details.</p></div>` : ""}`;
+    quoteDetailContent.querySelector(".quote-detail-notes")?.insertAdjacentHTML(
+      "beforebegin",
+      '<div class="quote-detail-notes"><label>Submission, Consent & Delivery</label><div id="quoteDeliveryDetails" class="quote-customer-notes">Loading delivery history…</div></div>'
+    );
     quoteDetailModal.hidden = false;
     loadQuoteAttribution(quote.id);
+    loadLeadDeliveryDetails(quote);
     document.getElementById("quoteDetailStatus").addEventListener("change", async (event) => saveStatus(quote.id, event.target.value, event.target));
     const internalNotes = document.getElementById("quoteInternalNotes");
     internalNotes.addEventListener("input", () => scheduleNoteSave(internalNotes.value));

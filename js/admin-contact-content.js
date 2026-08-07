@@ -4,7 +4,7 @@ const contactContentMessage = document.getElementById("contactContentMessage");
 
 const contactContentFields = [
   { group: "Hero", key: "hero_heading", label: "Hero Heading", fallback: "Request a Quote", required: true },
-  { key: "hero_subheading", label: "Hero Subheading", fallback: "Tell us about your event and get a quick starting estimate. Submitting opens a ready-to-send email on your device.", multiline: true, required: true },
+  { key: "hero_subheading", label: "Hero Subheading", fallback: "Tell us about your event and securely send your request to 318 Food Co.", multiline: true, required: true },
   { group: "Introduction", key: "intro_heading", label: "Introduction Heading", fallback: "Let’s Plan Your Event", required: true },
   { key: "intro_text", label: "Introduction Body Text", fallback: "Share a few details about your event and we’ll help you choose a catering option that fits your guests, schedule, and budget.", multiline: true, required: true },
   { group: "Quote Form", key: "form_heading", label: "Form Section Heading", fallback: "Tell Us What You Need", required: true },

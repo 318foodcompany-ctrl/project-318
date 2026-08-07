@@ -40,6 +40,9 @@
     venueAddress: document.getElementById("bookingVenueAddress"),
     quoteAmount: document.getElementById("bookingQuoteAmount"),
     status: document.getElementById("bookingStatus"),
+    calendarColor: document.getElementById("bookingCalendarColor"),
+    kitchenStart: document.getElementById("bookingKitchenStart"),
+    deliveryDeparture: document.getElementById("bookingDeliveryDeparture"),
     internalNotes: document.getElementById("bookingInternalNotes")
   };
   let bookings = [];
@@ -134,8 +137,13 @@
     return `${booking.status}: ${booking.event_title}, ${customer}, ${timeRange(booking)}`;
   }
 
+  function colorClass(value) {
+    const colors = { "#e21b23": "color-red", "#2563eb": "color-blue", "#16a34a": "color-green", "#9333ea": "color-purple", "#ea580c": "color-orange" };
+    return colors[String(value || "").toLowerCase()] || "color-red";
+  }
+
   function eventButton(booking) {
-    return `<button class="booking-event ${statusClass(booking.status)}" type="button" data-booking-id="${escapeHTML(booking.id)}" aria-label="${escapeHTML(bookingLabel(booking))}">
+    return `<button class="booking-event ${statusClass(booking.status)} ${colorClass(booking.calendar_color)}" type="button" data-booking-id="${escapeHTML(booking.id)}" aria-label="${escapeHTML(bookingLabel(booking))}">
       <strong>${escapeHTML(booking.event_title)}</strong>
       <small>${escapeHTML(timeRange(booking))} · ${escapeHTML(booking.status)}</small>
       <small>${escapeHTML(booking.company_name || booking.customer_name)}</small>
@@ -356,6 +364,9 @@
     fields.venueAddress.value = booking.venue_address || "";
     fields.quoteAmount.value = booking.quote_amount ?? "";
     fields.status.value = booking.status || "Pending";
+    fields.calendarColor.value = booking.calendar_color || "#e21b23";
+    fields.kitchenStart.value = String(booking.kitchen_start_at || "").slice(0, 16);
+    fields.deliveryDeparture.value = String(booking.delivery_departure_at || "").slice(0, 16);
     fields.internalNotes.value = booking.internal_notes || "";
     openModal();
   }
@@ -378,6 +389,9 @@
       customer_id: fields.customerId.value || null,
       quote_amount: fields.quoteAmount.value === "" ? null : Number(fields.quoteAmount.value),
       status: fields.status.value,
+      calendar_color: fields.calendarColor.value || "#e21b23",
+      kitchen_start_at: fields.kitchenStart.value || null,
+      delivery_departure_at: fields.deliveryDeparture.value || null,
       internal_notes: fields.internalNotes.value.trim()
     };
   }
