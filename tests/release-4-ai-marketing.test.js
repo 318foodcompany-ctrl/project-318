@@ -90,6 +90,7 @@ test("campaign schema supports lifecycle, AI drafts, tags, and attribution",()=>
 test("email schema supports templates, sequences, conditions, enrollment, and ordering",()=>{
   const sql=read("supabase/release-4-ai-marketing.sql");
   for(const value of ["marketing_email_templates","marketing_email_sequences","marketing_email_sequence_steps","marketing_email_enrollments","delay_minutes","conditions","marketing_reorder_step"])assert.match(sql,new RegExp(value));
+  assert.match(sql,/foreach t in array[\s\S]*?end loop;\s*end;\s*\$\$;/);
   assert.match(sql,/unique\(sequence_id,customer_id,trigger_key\)/);
   for(const condition of ["customer_not_replied","proposal_not_viewed","proposal_viewed","proposal_not_approved","customer_booked","customer_not_booked","corporate_lead","repeat_customer","event_not_passed"])assert.match(sql,new RegExp(condition));
 });

@@ -560,7 +560,8 @@ begin
     execute format('revoke all on public.%I from public,anon,authenticated',t);
     execute format('grant select,insert,update,delete on public.%I to authenticated',t);
   end loop;
-end $;
+end;
+$$;
 
 grant select on table
   public.marketing_campaigns,
