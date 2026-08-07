@@ -15,6 +15,7 @@ Administrator approval is mandatory for every generated task. Publishing is a se
 - Daily, weekly, monthly, or custom-interval scheduling with selectable day, hour, timezone, and items per run.
 - Durable AI task queue with atomic service-role claiming and stuck-claim recovery.
 - Approval queue with edit, approve, reject, regenerate, archive, and audit history.
+- Feedback-learning signals that record approvals, edits, rejections, and regeneration requests without automatically changing the Business Brain.
 - Aggregate-only business/content snapshot for analytics, SEO, content-gap, and growth reasoning. It deliberately excludes customer identity, contact information, addresses, and private CRM notes.
 - Explicit post-approval publishing connector for blog posts and FAQs.
 - Server-rendered public blog index and article routes.
@@ -30,6 +31,7 @@ Apply only after all Release 4 and launch-readiness migrations, in this order:
 4. `supabase/release-5-ai-content-publishing.sql`
 5. `supabase/release-5-ai-intelligence-context.sql`
 6. `supabase/release-5-ai-business-brain-seed.sql`
+7. `supabase/release-5-ai-learning.sql`
 
 The Business Brain seed uses verified public facts already present in Project 318's public SEO schema and only populates the default empty brain; it does not overwrite later owner customization.
 
@@ -58,6 +60,17 @@ For generated drafts the administrator can edit structured content, approve, rej
 Approved `blog_draft` and `faq_draft` tasks expose a separate Publish action. Blog publishing creates or updates a `blog_posts` row. FAQ publishing creates a published `faq_items` row. Publication is idempotency-protected by the approval audit.
 
 Approved social, Google Business, email, landing-page, SEO, analytics, and growth drafts remain approved work products until a separately reviewed connector exists.
+
+## Feedback learning
+
+Administrator choices are recorded as structured feedback signals in `marketing_ai_feedback_signals`.
+
+- Approve records a positive signal.
+- Edit records the before and after structured draft so future analysis can identify recurring owner preferences.
+- Reject and Regenerate can retain the administrator's reason.
+- `marketing_ai_feedback_summary()` returns aggregate counts and recent written reasons for service-side learning analysis.
+
+The learning layer deliberately does **not** rewrite the Business Brain or change generation policy automatically. A future preference recommendation must be reviewed before it becomes a persistent Business Brain rule. This prevents a few accidental approvals or edits from silently changing the brand.
 
 ## Business intelligence context
 
@@ -98,21 +111,22 @@ If using a platform scheduler that provides `CRON_SECRET`, the dedicated variabl
 - AI is instructed not to invent pricing, services, guarantees, reviews, rankings, search volume, market data, availability, or promotions.
 - Business Brain context contains approved public business facts and preferences, not customer lists or private CRM notes.
 - Analytics and growth drafts must separate observed facts from recommendations.
+- Feedback learning is explicit and reviewable; it does not autonomously mutate brand policy.
 - Marketing consent and suppression behavior from Release 4 is unchanged.
 - No social, ad-network, or Google Business publishing connector is included in this release.
 
 ## Validation before enabling scheduling
 
-1. Apply all six Release 5 migrations to isolated staging only.
+1. Apply all seven Release 5 migrations to isolated staging only.
 2. Confirm ordinary authenticated and anonymous users cannot read or mutate Release 5 management tables.
-3. Confirm only service role can call the aggregate business snapshot and task-scheduler RPCs.
+3. Confirm only service role can call the aggregate business snapshot, feedback summary, and task-scheduler RPCs.
 4. Confirm administrator access to `ai-autopilot.html`.
 5. Save one disabled automation preference and verify its timezone-aware `next_run_at`.
 6. Enable one test automation while `AI_PROVIDER=test`.
 7. Invoke the scheduler with a staging-only secret.
 8. Verify one task reaches `ready_for_approval` and that no website/email/provider action occurs.
 9. Inspect the generated input/audit metadata and confirm no customer PII was included.
-10. Edit, regenerate, reject, and approve test drafts.
+10. Edit, regenerate, reject, and approve test drafts; verify feedback signals are recorded.
 11. Publish one synthetic blog and one synthetic FAQ, verify public rendering, then remove the synthetic records.
 12. Verify dynamic sitemap output contains the synthetic blog only while published.
 13. Run the complete repository suite.
