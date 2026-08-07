@@ -24,10 +24,10 @@ test("autopilot exposes all planned configurable draft categories",()=>{
 });
 
 test("service-role queue preserves the administrator owner",()=>{
-  const fix=read("supabase/release-5-ai-marketing-autopilot-fix.sql");
-  assert.match(fix,/created_by uuid/);
-  assert.match(fix,/50,s\.created_by/);
-  assert.match(fix,/if s\.created_by is null[\s\S]*enabled=false/);
+  const runtime=read("supabase/release-5-ai-marketing-autopilot-runtime.sql");
+  assert.match(runtime,/created_by uuid/);
+  assert.match(runtime,/50,s\.created_by/);
+  assert.match(runtime,/if s\.created_by is null[\s\S]*enabled=false/);
 });
 
 test("autopilot runner generates drafts only and has no publication or send path",()=>{
