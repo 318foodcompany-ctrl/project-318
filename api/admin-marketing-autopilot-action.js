@@ -15,6 +15,7 @@ async function adminContext(req){
 async function db(base,key,path,options={}){return request(`${base}/rest/v1/${path}`,{...options,headers:{apikey:key,Authorization:`Bearer ${key}`,"Content-Type":"application/json",...(options.headers||{})}});}
 function uuid(value){return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value||""))?String(value):"";}
 async function audit(ctx,task,action,details={}){await db(ctx.base,ctx.service,"marketing_ai_approval_audit",{method:"POST",headers:{Prefer:"return=minimal"},body:JSON.stringify({task_id:task.id,ai_content_id:task.ai_content_id||null,action,actor_id:ctx.user.id,details})});}
+function requireStatus(task,allowed,message){if(!allowed.includes(task.status))throw Object.assign(new Error(message),{status:409});}
 async function handler(req,res){
   if(req.method!=="POST"){res.setHeader("Allow","POST");return reply(res,405,{error:"Method not allowed."});}
   if(Number(req.headers["content-length"]||0)>65536)return reply(res,413,{error:"Request is too large."});
@@ -26,7 +27,8 @@ async function handler(req,res){
     const contentId=uuid(task.ai_content_id);
 
     if(action==="edit"){
-      if(!contentId||task.status!=="ready_for_approval")return reply(res,409,{error:"Only approval-ready drafts can be edited."});
+      requireStatus(task,["ready_for_approval"],"Only approval-ready drafts can be edited.");
+      if(!contentId)return reply(res,409,{error:"Approval-ready draft content is missing."});
       const output=validateOutput(raw.structured_output);
       await db(ctx.base,ctx.service,`marketing_ai_content?id=eq.${contentId}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({structured_output:output,title:output.title,status:"draft"})});
       await audit(ctx,task,"edited",{source:"approval_queue"});
@@ -34,7 +36,8 @@ async function handler(req,res){
     }
 
     if(action==="approve"){
-      if(!contentId||task.status!=="ready_for_approval")return reply(res,409,{error:"Only approval-ready drafts can be approved."});
+      requireStatus(task,["ready_for_approval"],"Only approval-ready drafts can be approved.");
+      if(!contentId)return reply(res,409,{error:"Approval-ready draft content is missing."});
       await db(ctx.base,ctx.service,`marketing_ai_content?id=eq.${contentId}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({status:"approved"})});
       await db(ctx.base,ctx.service,`marketing_ai_tasks?id=eq.${task.id}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({status:"approved",completed_at:new Date().toISOString()})});
       await audit(ctx,task,"approved",{source:"approval_queue",publication_actions:0,send_actions:0});
@@ -42,6 +45,7 @@ async function handler(req,res){
     }
 
     if(action==="reject"){
+      requireStatus(task,["ready_for_approval"],"Only approval-ready drafts can be rejected.");
       if(contentId)await db(ctx.base,ctx.service,`marketing_ai_content?id=eq.${contentId}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({status:"archived",archived_at:new Date().toISOString()})});
       await db(ctx.base,ctx.service,`marketing_ai_tasks?id=eq.${task.id}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({status:"rejected",completed_at:new Date().toISOString()})});
       await audit(ctx,task,"rejected",{reason:String(raw.reason||"").slice(0,1000)});
@@ -49,6 +53,7 @@ async function handler(req,res){
     }
 
     if(action==="archive"){
+      requireStatus(task,["ready_for_approval","rejected","failed"],"Approved or active AI work cannot be archived from the approval queue.");
       if(contentId)await db(ctx.base,ctx.service,`marketing_ai_content?id=eq.${contentId}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({status:"archived",archived_at:new Date().toISOString()})});
       await db(ctx.base,ctx.service,`marketing_ai_tasks?id=eq.${task.id}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({status:"archived",completed_at:new Date().toISOString()})});
       await audit(ctx,task,"archived",{});
@@ -56,6 +61,7 @@ async function handler(req,res){
     }
 
     if(action==="regenerate"){
+      requireStatus(task,["ready_for_approval","rejected","failed"],"Only reviewable, rejected, or failed AI work can be regenerated.");
       if(contentId)await db(ctx.base,ctx.service,`marketing_ai_content?id=eq.${contentId}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({status:"archived",archived_at:new Date().toISOString()})});
       await db(ctx.base,ctx.service,`marketing_ai_tasks?id=eq.${task.id}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({status:"queued",ai_content_id:null,scheduled_for:new Date().toISOString(),claimed_at:null,claim_expires_at:null,completed_at:null,error_code:"",error_message:""})});
       await audit(ctx,{...task,ai_content_id:contentId||null},"regenerated",{source:"approval_queue"});
@@ -63,7 +69,8 @@ async function handler(req,res){
     }
   }catch(error){
     console.error("AI autopilot admin action failed.",{message:error.message});
-    return reply(res,error.status===401?401:error.status===403?403:error.status===404?404:500,{error:error.status===401||error.status===403?error.message:"AI autopilot action failed."});
+    const status=[401,403,404,409].includes(error.status)?error.status:500;
+    return reply(res,status,{error:status<500?error.message:"AI autopilot action failed."});
   }
 }
-module.exports=handler;module.exports.adminContext=adminContext;module.exports.uuid=uuid;
+module.exports=handler;module.exports.adminContext=adminContext;module.exports.uuid=uuid;module.exports.requireStatus=requireStatus;
