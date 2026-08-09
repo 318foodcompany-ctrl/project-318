@@ -20,12 +20,21 @@ test("AI publishing remains a second explicit administrator action",()=>{
   assert.doesNotMatch(read("api/marketing-autopilot-run.js"),/admin-marketing-autopilot-publish|blog_posts|faq_items/);
 });
 
-test("approved publishing is limited to blog and FAQ connectors",()=>{
+test("approved publishing supports website content and consent-checked email connectors",()=>{
   const source=read("server/api/admin-marketing-autopilot-publish.js");
-  assert.match(source,/task\.content_type===\"blog_draft\"/);
-  assert.match(source,/task\.content_type===\"faq_draft\"/);
-  assert.match(source,/does not have an automatic publishing connector yet/i);
+  assert.match(source,/task\.content_type==="blog_draft"/);
+  assert.match(source,/task\.content_type==="faq_draft"/);
+  assert.match(source,/task\.content_type==="email_newsletter"\|\|task\.content_type==="promotional_email"/);
+  assert.match(source,/marketing_has_consent/);
+  assert.match(source,/marketing_is_suppressed/);
+  assert.match(source,/classification:"marketing"/);
+  assert.match(source,/resolution=ignore-duplicates/);
   assert.doesNotMatch(source,/facebook\.com|instagram\.com|googleapis\.com|sendTransactionalEmail|ad_spend/i);
+});
+
+test("email drafts require safe bounded subject and body copy",()=>{
+  assert.deepEqual(publish.emailCopy({subject:" Hello ",body:" World "},{title:"Fallback"}),{subject:"Hello",body:"World"});
+  assert.equal(publish.emailCopy({},{title:"Fallback"}).subject,"Fallback");
 });
 
 test("publishing is idempotent and blog source IDs are unique",()=>{
