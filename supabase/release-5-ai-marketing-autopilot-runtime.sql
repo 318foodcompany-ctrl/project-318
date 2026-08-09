@@ -42,7 +42,7 @@ begin
 
   update public.marketing_ai_tasks
   set status='claimed',claimed_at=now(),claim_expires_at=now()+least(greatest(coalesce(p_claim_minutes,15),5),60)*interval '1 minute',
-      attempt_count=attempt_count+1,error_code='',error_message=''
+      attempt_count=marketing_ai_tasks.attempt_count+1,error_code='',error_message=''
   where marketing_ai_tasks.id=v_task.id;
 
   return query
