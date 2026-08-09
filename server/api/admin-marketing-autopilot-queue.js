@@ -3,7 +3,7 @@ const { adminContext }=require("./admin-marketing-autopilot-action.js");
 
 const TYPES=new Set(["blog_draft","faq_draft","seo_recommendation","facebook_post","instagram_caption","linkedin_post","google_business_post","email_newsletter","promotional_email","landing_page","seasonal_campaign","holiday_campaign","analytics_summary","growth_recommendation"]);
 function reply(res,status,payload){res.statusCode=status;res.setHeader("Content-Type","application/json; charset=utf-8");res.setHeader("Cache-Control","no-store");res.end(JSON.stringify(payload));}
-async function request(url,options={}){const response=await fetch(url,{...options,signal:AbortSignal.timeout(10000)}),text=await response.text();let body;try{body=text?JSON.parse(text):null;}catch(_e){body=text;}if(!response.ok){const error=new Error("Database request failed.");error.status=response.status;throw error;}return body;}
+async function request(url,options={}){const response=await fetch(url,{...options,signal:AbortSignal.timeout(10000)}),text=await response.text();let body;try{body=text?JSON.parse(text):null;}catch(_e){body=text;}if(!response.ok){const reason=body&&typeof body==="object"&&typeof body.message==="string"?body.message:"Database request failed.";console.error("AI queue database request rejected.",{status:response.status,reason});const error=new Error(reason);error.status=response.status;throw error;}return body;}
 function bounded(value,max){return String(value==null?"":value).trim().slice(0,max);}
 async function handler(req,res){
   if(req.method!=="POST"){res.setHeader("Allow","POST");return reply(res,405,{error:"Method not allowed."});}
