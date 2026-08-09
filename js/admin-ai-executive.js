@@ -14,6 +14,8 @@
       metric("AI approval queue",pulse.ai.waiting_for_approval,"drafts waiting"),
       metric("Draft approval rate",rate,"approved vs. rejected decisions"),
       metric("Automations enabled",`${pulse.ai.enabled_automations}/${pulse.ai.total_automations}`,"configurable generators"),
+      metric("Marketing email",pulse.connections?.email?.connected?"Connected":"Needs setup",pulse.connections?.email?.provider||"provider"),
+      metric("Google Business",pulse.connections?.google_business?.connected?"Connected":"Needs authorization","approval-only publishing"),
       metric("Published blogs",pulse.content.published_blogs,"content inventory"),
       metric("Published FAQs",pulse.content.published_faqs,"content inventory")
     ].join("");
