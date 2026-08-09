@@ -26,11 +26,11 @@
 
     <section id="queueView" class="view active">
       <div class="grid">
-        <article class="card"><h2>Waiting for approval</h2><div id="queueCount" class="metric">0</div><p class="muted">Approval marks a draft as approved. It does not publish or send it.</p><div class="actions"><button id="refreshQueue" type="button" class="primary">Refresh</button><button id="approveAllWaiting" type="button" class="secondary">Approve All Waiting</button></div></article>
-        <article class="card"><h2>Safety rules</h2><p>Autopilot may generate and prioritize drafts. It may not publish website content, send marketing email, spend ad budget, post to social media, or enroll customers automatically.</p></article>
+        <article class="card"><h2>Waiting for approval</h2><div id="queueCount" class="metric">0</div><p class="muted">Click Approve once. Blogs and FAQs publish immediately; connected external channels post to their selected destination.</p><div class="actions"><button id="refreshQueue" type="button" class="primary">Refresh</button><button id="approveAllWaiting" type="button" class="secondary">Approve All Waiting</button></div></article>
+        <article class="card"><h2>Safety rules</h2><p>Nothing posts until you click Approve. Advertising spend, customer enrollment, and channels without a connected account remain disabled.</p></article>
       </div>
       <section class="card" style="margin-top:18px"><h2>Waiting for approval</h2><div id="queueList" class="empty">Loadingâ€¦</div></section>
-      <section class="card" style="margin-top:18px"><h2>Approved content</h2><p class="muted">Approved blogs and FAQs can be published with a separate explicit click. Other approved content remains ready for manual use until its provider connector is enabled.</p><div id="approvedList" class="empty">Loadingâ€¦</div></section>
+      <section class="card" style="margin-top:18px"><h2>Approved content</h2><p class="muted">This section only shows items that still need a channel connection or a publishing retry.</p><div id="approvedList" class="empty">Loadingâ€¦</div></section>
     </section>
 
     <section id="executiveView" class="view">
