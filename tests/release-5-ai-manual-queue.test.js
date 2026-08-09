@@ -29,5 +29,17 @@ test("Autopilot settings expose Generate Draft Now without schedule changes",()=
   assert.match(html,/queue one draft immediately without changing the schedule/);
   assert.match(ui,/Generate 1 Draft Now/);
   assert.match(ui,/admin-marketing-autopilot-queue/);
-  assert.match(ui,/still require approval/);
+  assert.match(ui,/ready for approval/);
 });
+
+test("Generate Draft Now securely runs queued work for an administrator",()=>{
+  const endpoint=read("server/api/admin-marketing-autopilot-run-now.js"),router=read("api/admin-marketing.js"),ui=read("js/admin-ai-queue-now.js"),vercel=read("vercel.json");
+  assert.match(endpoint,/adminContext/);
+  assert.match(endpoint,/AI_AUTOPILOT_CRON_SECRET/);
+  assert.match(endpoint,/marketing-autopilot-run/);
+  assert.match(router,/autopilot-run-now/);
+  assert.match(vercel,/admin-marketing-autopilot-run-now/);
+  assert.match(ui,/admin-marketing-autopilot-run-now/);
+  assert.match(ui,/ready for approval/);
+});
+
