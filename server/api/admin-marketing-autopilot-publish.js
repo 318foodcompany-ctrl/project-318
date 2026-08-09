@@ -1,5 +1,6 @@
 "use strict";
 const crypto=require("node:crypto");
+const googleBusiness=require("../google-business.js");
 function reply(res,status,payload){res.statusCode=status;res.setHeader("Content-Type","application/json; charset=utf-8");res.setHeader("Cache-Control","no-store");res.end(JSON.stringify(payload));}
 async function request(url,options={}){const response=await fetch(url,{...options,signal:AbortSignal.timeout(10000)}),text=await response.text();let body;try{body=text?JSON.parse(text):null;}catch(_e){body=text;}if(!response.ok){const error=new Error("Database request failed.");error.status=response.status;throw error;}return body;}
 async function adminContext(req){const base=String(process.env.PUBLIC_SUPABASE_URL||"").replace(/\/$/,""),anon=String(process.env.PUBLIC_SUPABASE_ANON_KEY||""),service=String(process.env.SUPABASE_SERVICE_ROLE_KEY||""),token=String(req.headers.authorization||"").replace(/^Bearer\s+/,"");if(!base||!anon||!service||!token)throw Object.assign(new Error("Authentication required."),{status:401});const user=await request(`${base}/auth/v1/user`,{headers:{apikey:anon,Authorization:`Bearer ${token}`}});const admin=await request(`${base}/rest/v1/rpc/crm_is_admin`,{method:"POST",headers:{apikey:anon,Authorization:`Bearer ${token}`,"Content-Type":"application/json"},body:"{}"});if(!user?.id||admin!==true)throw Object.assign(new Error("Administrator access required."),{status:403});return {base,service,user};}
@@ -61,9 +62,10 @@ async function handler(req,res){
       if(!entries.length)return reply(res,400,{error:"FAQ draft is missing a question or answer."});
       await db(ctx.base,ctx.service,"faq_items",{method:"POST",headers:{Prefer:"return=minimal"},body:JSON.stringify(entries.map((entry,index)=>({category,...entry,status:"published",sort_order:900+index})))});destination="/faq.html";
     }else if(task.content_type==="email_newsletter"||task.content_type==="promotional_email"){const queued=await queueConsentEmail(ctx,task,content,out);destination=`email queue (${queued} opted-in recipient${queued===1?"":"s"})`;}
+    else if(task.content_type==="google_business_post"){const post=await googleBusiness.createPost(out);destination=post.searchUrl||post.name;}
     else return reply(res,400,{error:"This approved draft type does not have an automatic publishing connector yet."});
     await db(ctx.base,ctx.service,"marketing_ai_approval_audit",{method:"POST",headers:{Prefer:"return=minimal"},body:JSON.stringify({task_id:task.id,ai_content_id:task.ai_content_id,action:"published",actor_id:ctx.user.id,details:{destination,content_type:task.content_type}})});
     return reply(res,200,{ok:true,published:true,already_published:false,destination});
-  }catch(error){console.error("AI approved publishing failed.",{message:error.message});const status=[400,401,403,409].includes(error.status)?error.status:500;return reply(res,status,{error:status<500?error.message:"Approved content could not be published."});}
+  }catch(error){console.error("AI approved publishing failed.",{message:error.message});const status=[400,401,403,409,502].includes(error.status)?error.status:500;return reply(res,status,{error:status<500?error.message:"Approved content could not be published."});}
 }
 module.exports=handler;module.exports.slugify=slugify;module.exports.faqEntries=faqEntries;module.exports.emailCopy=emailCopy;
