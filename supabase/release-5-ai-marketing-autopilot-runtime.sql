@@ -1,6 +1,3 @@
-Exit code: 0
-Wall time: 0.7 seconds
-Output:
 -- Release 5 runtime helpers. Apply immediately after release-5-ai-marketing-autopilot.sql.
 begin;
 
