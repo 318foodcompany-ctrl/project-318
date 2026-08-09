@@ -22,12 +22,22 @@ test("AI publishing remains a second explicit administrator action",()=>{
 
 test("approved publishing supports website content and consent-checked email connectors",()=>{
   const source=read("server/api/admin-marketing-autopilot-publish.js");
-  assert.match(source,/task\.content_type===\"blog_draft\"/);
-  assert.match(source,/task\.content_type===\"faq_draft\"/);
-  assert.match(source,/task\\.content_type===\\\"email_newsletter\\\"\\|\\|task\\.content_type===\\\"promotional_email\\\"/);\n  assert.match(source,/marketing_has_consent/);assert.match(source,/marketing_is_suppressed/);\n  assert.match(source,/classification:\\\"marketing\\\"/);assert.match(source,/resolution=ignore-duplicates/);\n  assert.doesNotMatch(source,/facebook\\.com|instagram\\.com|googleapis\\.com|sendTransactionalEmail|ad_spend/i);
+  assert.match(source,/task\.content_type==="blog_draft"/);
+  assert.match(source,/task\.content_type==="faq_draft"/);
+  assert.match(source,/task\.content_type==="email_newsletter"\|\|task\.content_type==="promotional_email"/);
+  assert.match(source,/marketing_has_consent/);
+  assert.match(source,/marketing_is_suppressed/);
+  assert.match(source,/classification:"marketing"/);
+  assert.match(source,/resolution=ignore-duplicates/);
+  assert.doesNotMatch(source,/facebook\.com|instagram\.com|googleapis\.com|sendTransactionalEmail|ad_spend/i);
 });
 
-test("email drafts require safe bounded subject and body copy",()=>{\n  assert.deepEqual(publish.emailCopy({subject:" Hello ",body:" World "},{title:"Fallback"}),{subject:"Hello",body:"World"});\n  assert.equal(publish.emailCopy({},{title:"Fallback"}).subject,"Fallback");\n});\n\ntest("publishing is idempotent and blog source IDs are unique",()=>{
+test("email drafts require safe bounded subject and body copy",()=>{
+  assert.deepEqual(publish.emailCopy({subject:" Hello ",body:" World "},{title:"Fallback"}),{subject:"Hello",body:"World"});
+  assert.equal(publish.emailCopy({},{title:"Fallback"}).subject,"Fallback");
+});
+
+test("publishing is idempotent and blog source IDs are unique",()=>{
   const source=read("server/api/admin-marketing-autopilot-publish.js"),sql=read("supabase/release-5-ai-content-publishing.sql");
   assert.match(source,/already_published:true/);
   assert.match(source,/marketing_ai_approval_audit\?task_id=eq/);
