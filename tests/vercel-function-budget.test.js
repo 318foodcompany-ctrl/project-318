@@ -1,5 +1,5 @@
 Exit code: 0
-Wall time: 0.9 seconds
+Wall time: 1.3 seconds
 Output:
 "use strict";
 
