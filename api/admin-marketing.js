@@ -1,3 +1,6 @@
+Exit code: 0
+Wall time: 0.8 seconds
+Output:
 "use strict";
 
 const handlers = Object.freeze({
@@ -8,6 +11,7 @@ const handlers = Object.freeze({
   "autopilot-learning": require("../server/api/admin-marketing-autopilot-learning.js"),
   "autopilot-publish": require("../server/api/admin-marketing-autopilot-publish.js"),
   "autopilot-queue": require("../server/api/admin-marketing-autopilot-queue.js"),
+  "autopilot-run-now": require("../server/api/admin-marketing-autopilot-run-now.js"),
   content: require("../server/api/admin-marketing-content.js"),
   "test-email": require("../server/api/admin-marketing-test-email.js")
 });
@@ -25,3 +29,4 @@ module.exports = async function adminMarketingRouter(req, res) {
 };
 
 module.exports.handlers = handlers;
+
