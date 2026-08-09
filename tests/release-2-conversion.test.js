@@ -58,6 +58,8 @@ test("FAQ is searchable, expandable, dynamic, and emits FAQ structured data", ()
   assert.match(script, /createElement\("details"\)/);
   assert.match(script, /FAQPage/);
   assert.match(script, /acceptedAnswer/);
+  assert.match(script, /appendAnswer/);
+  assert.match(script, /createElement\(heading \? "h4" : "p"\)/);
 });
 
 test("event types include required conversion categories and editable SEO metadata", () => {
@@ -107,3 +109,4 @@ test("conversion UX adds a mobile CTA, improved thank-you suggestions, and a dis
   assert.match(reminder, /clientY <= 0/);
   assert.match(read("index.html"), /data-exit-reminder/);
 });
+

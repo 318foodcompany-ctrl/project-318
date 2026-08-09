@@ -1,4 +1,19 @@
 {
+  "rewrites": [
+    { "source": "/api/admin-marketing-assistant", "destination": "/api/admin-marketing?route=assistant" },
+    { "source": "/api/admin-marketing-autopilot-action", "destination": "/api/admin-marketing?route=autopilot-action" },
+    { "source": "/api/admin-marketing-autopilot-bulk", "destination": "/api/admin-marketing?route=autopilot-bulk" },
+    { "source": "/api/admin-marketing-autopilot-executive", "destination": "/api/admin-marketing?route=autopilot-executive" },
+    { "source": "/api/admin-marketing-autopilot-learning", "destination": "/api/admin-marketing?route=autopilot-learning" },
+    { "source": "/api/admin-marketing-autopilot-publish", "destination": "/api/admin-marketing?route=autopilot-publish" },
+    { "source": "/api/admin-marketing-autopilot-queue", "destination": "/api/admin-marketing?route=autopilot-queue" },
+    { "source": "/api/admin-marketing-autopilot-run-now", "destination": "/api/admin-marketing?route=autopilot-run-now" },
+    { "source": "/api/admin-marketing-content", "destination": "/api/admin-marketing?route=content" },
+    { "source": "/api/admin-marketing-test-email", "destination": "/api/admin-marketing?route=test-email" },
+    { "source": "/sitemap.xml", "destination": "/api/public-content?route=sitemap" },
+    { "source": "/blog", "destination": "/api/public-content?route=blog-index" },
+    { "source": "/blog/:slug", "destination": "/api/public-content?route=blog-post&slug=:slug" }
+  ],
   "headers": [
     {
       "source": "/(.*)",
@@ -27,3 +42,4 @@
     }
   ]
 }
+

@@ -4,7 +4,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const test = require("node:test");
-const assistant = require("../api/admin-marketing-assistant.js");
+const assistant = require("../server/api/admin-marketing-assistant.js");
 
 function responseRecorder() {
   return { headers: {}, setHeader(key, value) { this.headers[key] = value; }, end(value) { this.body = JSON.parse(value); } };
