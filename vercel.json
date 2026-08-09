@@ -7,6 +7,7 @@
     { "source": "/api/admin-marketing-autopilot-learning", "destination": "/api/admin-marketing?route=autopilot-learning" },
     { "source": "/api/admin-marketing-autopilot-publish", "destination": "/api/admin-marketing?route=autopilot-publish" },
     { "source": "/api/admin-marketing-autopilot-queue", "destination": "/api/admin-marketing?route=autopilot-queue" },
+    { "source": "/api/admin-marketing-autopilot-run-now", "destination": "/api/admin-marketing?route=autopilot-run-now" },
     { "source": "/api/admin-marketing-content", "destination": "/api/admin-marketing?route=content" },
     { "source": "/api/admin-marketing-test-email", "destination": "/api/admin-marketing?route=test-email" },
     { "source": "/sitemap.xml", "destination": "/api/public-content?route=sitemap" },
@@ -41,3 +42,4 @@
     }
   ]
 }
+
