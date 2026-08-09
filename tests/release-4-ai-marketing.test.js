@@ -9,7 +9,7 @@ const read=file=>fs.readFileSync(path.join(root,file),"utf8");
 const ai=require("../server/marketing-ai-provider.js");
 const email=require("../server/marketing-email.js");
 const webhook=require("../api/email-webhook.js");
-const contentApi=require("../api/admin-marketing-content.js");
+const contentApi=require("../server/api/admin-marketing-content.js");
 
 const validInput={content_type:"promotional_email",campaign_goal:"Book corporate lunches",target_audience:"Local office managers",offer:"Free brownies",event_type:"Corporate lunch",tone:"professional",length:"medium",important_details:"Orders require 15 guests.",call_to_action:"Request a Quote"};
 

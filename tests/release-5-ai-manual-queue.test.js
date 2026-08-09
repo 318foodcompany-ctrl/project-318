@@ -7,7 +7,7 @@ const root=path.resolve(__dirname,"..");
 const read=file=>fs.readFileSync(path.join(root,file),"utf8");
 
 test("manual queue endpoint is administrator-only and queues drafts without publishing",()=>{
-  const source=read("api/admin-marketing-autopilot-queue.js");
+  const source=read("server/api/admin-marketing-autopilot-queue.js");
   assert.match(source,/adminContext/);
   assert.match(source,/marketing_ai_tasks/);
   assert.match(source,/status:\"queued\"/);
@@ -18,7 +18,7 @@ test("manual queue endpoint is administrator-only and queues drafts without publ
 });
 
 test("manual queue is bounded and supports every Autopilot draft type",()=>{
-  const source=read("api/admin-marketing-autopilot-queue.js");
+  const source=read("server/api/admin-marketing-autopilot-queue.js");
   assert.match(source,/Math\.max\(1,Math\.min\(5/);
   for(const type of ["blog_draft","faq_draft","seo_recommendation","facebook_post","instagram_caption","linkedin_post","google_business_post","email_newsletter","promotional_email","landing_page","seasonal_campaign","holiday_campaign","analytics_summary","growth_recommendation"])assert.match(source,new RegExp(type));
 });

@@ -5,12 +5,12 @@ const fs=require("node:fs");
 const path=require("node:path");
 const root=path.resolve(__dirname,"..");
 const read=file=>fs.readFileSync(path.join(root,file),"utf8");
-const publish=require("../api/admin-marketing-autopilot-publish.js");
-const blogIndex=require("../api/blog-index.js");
-const blogPost=require("../api/blog-post.js");
+const publish=require("../server/api/admin-marketing-autopilot-publish.js");
+const blogIndex=require("../server/api/blog-index.js");
+const blogPost=require("../server/api/blog-post.js");
 
 test("AI publishing remains a second explicit administrator action",()=>{
-  const source=read("api/admin-marketing-autopilot-publish.js");
+  const source=read("server/api/admin-marketing-autopilot-publish.js");
   assert.match(source,/crm_is_admin/);
   assert.match(source,/task\.status!==\"approved\"/);
   assert.match(source,/action=eq\.published/);
@@ -18,7 +18,7 @@ test("AI publishing remains a second explicit administrator action",()=>{
 });
 
 test("approved publishing is limited to blog and FAQ connectors",()=>{
-  const source=read("api/admin-marketing-autopilot-publish.js");
+  const source=read("server/api/admin-marketing-autopilot-publish.js");
   assert.match(source,/task\.content_type===\"blog_draft\"/);
   assert.match(source,/task\.content_type===\"faq_draft\"/);
   assert.match(source,/does not have an automatic publishing connector yet/i);
@@ -26,7 +26,7 @@ test("approved publishing is limited to blog and FAQ connectors",()=>{
 });
 
 test("publishing is idempotent and blog source IDs are unique",()=>{
-  const source=read("api/admin-marketing-autopilot-publish.js"),sql=read("supabase/release-5-ai-content-publishing.sql");
+  const source=read("server/api/admin-marketing-autopilot-publish.js"),sql=read("supabase/release-5-ai-content-publishing.sql");
   assert.match(source,/already_published:true/);
   assert.match(source,/marketing_ai_approval_audit\?task_id=eq/);
   assert.match(sql,/source_ai_content_id uuid unique/);
@@ -41,14 +41,14 @@ test("blog storage exposes only published posts publicly",()=>{
 });
 
 test("blog routes are server-rendered with canonical metadata and schema",()=>{
-  const index=read("api/blog-index.js"),post=read("api/blog-post.js"),vercel=read("vercel.json");
+  const index=read("server/api/blog-index.js"),post=read("server/api/blog-post.js"),vercel=read("vercel.json");
   assert.match(index,/Catering Resources/);assert.match(index,/status=eq\.published/);
   assert.match(post,/BlogPosting/);assert.match(post,/rel=\"canonical\"/);assert.match(post,/status=eq\.published/);
   assert.match(vercel,/\"source\": \"\/blog\"/);assert.match(vercel,/\"source\": \"\/blog\/:slug\"/);
 });
 
 test("dynamic sitemap includes static pages and approved blog posts",()=>{
-  const sitemap=read("api/sitemap.js"),vercel=read("vercel.json");
+  const sitemap=read("server/api/sitemap.js"),vercel=read("vercel.json");
   assert.match(sitemap,/blog_posts\?status=eq\.published/);
   assert.match(sitemap,/\/quote-builder\.html/);assert.match(sitemap,/\/faq\.html/);
   assert.match(vercel,/\"source\": \"\/sitemap\.xml\"/);

@@ -14,7 +14,7 @@ test("AI Autopilot exposes reviewable learning insights without automatic brand 
 });
 
 test("learning summary endpoint is administrator authenticated and read-only",()=>{
-  const api=read("api/admin-marketing-autopilot-learning.js");
+  const api=read("server/api/admin-marketing-autopilot-learning.js");
   assert.match(api,/adminContext/);assert.match(api,/marketing_ai_feedback_summary/);assert.match(api,/req\.method!=="GET"/);
   assert.doesNotMatch(api,/method:\"POST\"[^\n]*(marketing_ai_brand_brain|marketing_ai_feedback_signals)/i);
 });

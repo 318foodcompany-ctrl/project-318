@@ -6,7 +6,7 @@ const path=require("node:path");
 const root=path.resolve(__dirname,"..");
 const read=file=>fs.readFileSync(path.join(root,file),"utf8");
 const runner=require("../api/marketing-autopilot-run.js");
-const actions=require("../api/admin-marketing-autopilot-action.js");
+const actions=require("../server/api/admin-marketing-autopilot-action.js");
 
 test("Release 5 schema is additive, approval-only, and administrator protected",()=>{
   const sql=read("supabase/release-5-ai-marketing-autopilot.sql");
@@ -39,7 +39,7 @@ test("autopilot runner generates drafts only and has no publication or send path
 });
 
 test("approval API requires an administrator and keeps approval separate from publication",()=>{
-  const source=read("api/admin-marketing-autopilot-action.js");
+  const source=read("server/api/admin-marketing-autopilot-action.js");
   assert.match(source,/crm_is_admin/);
   assert.match(source,/\[\"approve\",\"reject\",\"regenerate\",\"archive\",\"edit\"\]/);
   assert.match(source,/published:false,sent:false/);
@@ -50,7 +50,7 @@ test("approval API requires an administrator and keeps approval separate from pu
 test("approval queue enforces safe state transitions",()=>{
   assert.doesNotThrow(()=>actions.requireStatus({status:"ready_for_approval"},["ready_for_approval"],"blocked"));
   assert.throws(()=>actions.requireStatus({status:"approved"},["ready_for_approval"],"blocked"),error=>error.status===409&&/blocked/.test(error.message));
-  const source=read("api/admin-marketing-autopilot-action.js");
+  const source=read("server/api/admin-marketing-autopilot-action.js");
   assert.match(source,/Only approval-ready drafts can be rejected/);
   assert.match(source,/Approved or active AI work cannot be archived/);
   assert.match(source,/Only reviewable, rejected, or failed AI work can be regenerated/);

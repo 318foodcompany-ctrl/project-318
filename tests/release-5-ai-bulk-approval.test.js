@@ -7,7 +7,7 @@ const root=path.resolve(__dirname,"..");
 const read=file=>fs.readFileSync(path.join(root,file),"utf8");
 
 test("bulk approval is administrator-only and approval-only",()=>{
-  const api=read("api/admin-marketing-autopilot-bulk.js");
+  const api=read("server/api/admin-marketing-autopilot-bulk.js");
   assert.match(api,/adminContext/);
   assert.match(api,/approve_all_ready/);
   assert.match(api,/status:\"approved\"/);

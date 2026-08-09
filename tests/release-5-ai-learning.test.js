@@ -16,7 +16,7 @@ test("learning schema records administrator feedback without autonomous brand mu
 });
 
 test("approval actions emit explicit feedback signals",()=>{
-  const source=read("api/admin-marketing-autopilot-action.js");
+  const source=read("server/api/admin-marketing-autopilot-action.js");
   assert.match(source,/marketing_ai_feedback_signals/);
   for(const type of ["approved","edited","rejected","regenerated"])assert.match(source,new RegExp(`feedback\\(ctx,task,\\"${type}\\"`));
   assert.match(source,/before_output/);assert.match(source,/after_output/);

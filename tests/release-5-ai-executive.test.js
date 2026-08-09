@@ -5,7 +5,7 @@ const fs=require("node:fs");
 const path=require("node:path");
 const root=path.resolve(__dirname,"..");
 const read=file=>fs.readFileSync(path.join(root,file),"utf8");
-const executive=require("../api/admin-marketing-autopilot-executive.js");
+const executive=require("../server/api/admin-marketing-autopilot-executive.js");
 
 test("executive pulse uses recorded aggregates and deterministic workflow facts",()=>{
   const pulse=executive.buildExecutivePulse(
@@ -21,14 +21,14 @@ test("executive pulse uses recorded aggregates and deterministic workflow facts"
 });
 
 test("executive pulse does not fabricate a growth score or market data",()=>{
-  const source=read("api/admin-marketing-autopilot-executive.js"),html=read("ai-autopilot.html"),ui=read("js/admin-ai-executive.js");
+  const source=read("server/api/admin-marketing-autopilot-executive.js"),html=read("ai-autopilot.html"),ui=read("js/admin-ai-executive.js");
   assert.doesNotMatch(source,/growth_score|market share|search volume|random\(/i);
   assert.match(html,/deterministic alerts from recorded aggregate data/i);
   assert.match(ui,/Recorded paid value/);assert.match(ui,/Draft approval rate/);
 });
 
 test("executive endpoint remains administrator authenticated and aggregate-only",()=>{
-  const source=read("api/admin-marketing-autopilot-executive.js");
+  const source=read("server/api/admin-marketing-autopilot-executive.js");
   assert.match(source,/adminContext/);assert.match(source,/marketing_ai_business_snapshot/);assert.match(source,/marketing_ai_feedback_summary/);
   assert.doesNotMatch(source,/customer_name|email_address|phone|internal_notes|proposal_notes/i);
 });
