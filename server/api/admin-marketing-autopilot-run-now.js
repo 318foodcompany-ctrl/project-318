@@ -1,5 +1,5 @@
 Exit code: 0
-Wall time: 0.9 seconds
+Wall time: 1.2 seconds
 Output:
 "use strict";
 const { adminContext }=require("./admin-marketing-autopilot-action.js");
