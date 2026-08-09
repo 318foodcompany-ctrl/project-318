@@ -1,5 +1,7 @@
 "use strict";
 const { adminContext }=require("./admin-marketing-autopilot-action.js");
+const { emailConfiguration }=require("../transactional-email.js");
+const googleBusiness=require("../google-business.js");
 
 function reply(res,status,payload){res.statusCode=status;res.setHeader("Content-Type","application/json; charset=utf-8");res.setHeader("Cache-Control","no-store");res.end(JSON.stringify(payload));}
 async function request(url,options={}){const response=await fetch(url,{...options,signal:AbortSignal.timeout(10000)}),text=await response.text();let body;try{body=text?JSON.parse(text):null;}catch(_e){body=text;}if(!response.ok){const error=new Error("Database request failed.");error.status=response.status;throw error;}return body;}
@@ -39,7 +41,9 @@ async function handler(req,res){
       service(ctx,"marketing_ai_automation_settings?select=enabled,automation_type"),
       service(ctx,"rpc/marketing_ai_feedback_summary",{method:"POST",body:JSON.stringify({p_days:Math.max(days,30)})}).catch(()=>({period_days:days,by_content_type:{},recent_reasons:[]}))
     ]);
-    return reply(res,200,{ok:true,pulse:buildExecutivePulse(snapshot,tasks||[],settings||[],feedback||{})});
+    const pulse=buildExecutivePulse(snapshot,tasks||[],settings||[],feedback||{}),email=emailConfiguration(process.env),google=googleBusiness.configuration(process.env);
+    pulse.connections={email:{connected:email.mode==="send",provider:email.provider},google_business:{connected:google.configured}};
+    return reply(res,200,{ok:true,pulse});
   }catch(error){
     console.error("AI executive pulse failed.",{message:error.message});
     const status=[401,403].includes(error.status)?error.status:500;
