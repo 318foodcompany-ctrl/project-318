@@ -92,4 +92,3 @@ test("autopilot admin route remains noindex and admin-authenticated",()=>{
   assert.match(html,/noindex,nofollow,noarchive/);
   assert.match(ui,/crm_is_admin/);assert.match(ui,/login\.html\?error=unauthorized/);
 });
-
