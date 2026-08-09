@@ -62,6 +62,9 @@ test("approval UI supports editable preferences and complete review actions",()=
   const html=read("ai-autopilot.html"),ui=read("js/admin-ai-autopilot.js");
   assert.match(html,/Approval Queue/);assert.match(html,/Automation Settings/);assert.match(html,/Business Brain/);assert.match(html,/Audit History/);
   for(const action of ["approve","edit","regenerate","reject"])assert.match(ui,new RegExp(`data-action=\\"${action}\\"`));
+  assert.match(ui,/How this will look/);
+  assert.match(ui,/data-toggle-editor/);
+  assert.doesNotMatch(ui,/<pre[^>]*data-output/);
   for(const field of ["cadence","items_per_run","preferred_hour","interval_minutes","tone","target_audience","campaign_goal","custom_instructions"])assert.match(ui,new RegExp(field));
   assert.match(ui,/Nothing was published or sent/);
 });

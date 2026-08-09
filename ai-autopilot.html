@@ -6,12 +6,13 @@
   <meta name="robots" content="noindex,nofollow,noarchive">
   <title>318 AI Marketing Autopilot</title>
   <link rel="stylesheet" href="css/admin-ai-autopilot.css">
+  <link rel="stylesheet" href="css/admin-ai-autopilot-preview.css">
 </head>
 <body>
   <main class="shell">
     <header class="top">
       <div><h1>AI Marketing Autopilot</h1><p>Scheduled AI work is drafted automatically and waits here for administrator approval.</p></div>
-      <div><div id="signedIn" class="muted"></div><a href="admin.html">← Back to Website Manager</a></div>
+      <div><div id="signedIn" class="muted"></div><a href="admin.html">â† Back to Website Manager</a></div>
     </header>
     <p id="autopilotMessage" class="message" role="status" aria-live="polite"></p>
     <nav class="tabs" aria-label="AI Autopilot views">
@@ -28,14 +29,14 @@
         <article class="card"><h2>Waiting for approval</h2><div id="queueCount" class="metric">0</div><p class="muted">Approval marks a draft as approved. It does not publish or send it.</p><div class="actions"><button id="refreshQueue" type="button" class="primary">Refresh</button><button id="approveAllWaiting" type="button" class="secondary">Approve All Waiting</button></div></article>
         <article class="card"><h2>Safety rules</h2><p>Autopilot may generate and prioritize drafts. It may not publish website content, send marketing email, spend ad budget, post to social media, or enroll customers automatically.</p></article>
       </div>
-      <section class="card" style="margin-top:18px"><h2>Waiting for approval</h2><div id="queueList" class="empty">Loading…</div></section>
-      <section class="card" style="margin-top:18px"><h2>Approved content</h2><p class="muted">Approved blogs and FAQs can be published with a separate explicit click. Other approved content remains ready for manual use until its provider connector is enabled.</p><div id="approvedList" class="empty">Loading…</div></section>
+      <section class="card" style="margin-top:18px"><h2>Waiting for approval</h2><div id="queueList" class="empty">Loadingâ€¦</div></section>
+      <section class="card" style="margin-top:18px"><h2>Approved content</h2><p class="muted">Approved blogs and FAQs can be published with a separate explicit click. Other approved content remains ready for manual use until its provider connector is enabled.</p><div id="approvedList" class="empty">Loadingâ€¦</div></section>
     </section>
 
     <section id="executiveView" class="view">
       <div class="card"><div class="switchline"><div><h2>Executive Pulse</h2><p id="executiveUpdated" class="muted">Aggregate business and AI workflow data only.</p></div><button id="refreshExecutive" type="button" class="primary">Refresh Pulse</button></div><p id="executiveMessage" class="message" role="status" aria-live="polite"></p></div>
       <div id="executiveMetrics" class="grid" style="margin-top:18px"></div>
-      <section class="card" style="margin-top:18px"><h2>Priority actions</h2><p class="muted">These are deterministic alerts from recorded aggregate data, not invented market claims or arbitrary growth scores.</p><div id="executiveRecommendations" class="empty">Loading…</div></section>
+      <section class="card" style="margin-top:18px"><h2>Priority actions</h2><p class="muted">These are deterministic alerts from recorded aggregate data, not invented market claims or arbitrary growth scores.</p><div id="executiveRecommendations" class="empty">Loadingâ€¦</div></section>
     </section>
 
     <section id="settingsView" class="view">
@@ -54,8 +55,8 @@
         <article class="card"><h2>Approval learning</h2><p class="muted">Autopilot tracks what you approve, edit, reject, and regenerate so we can see patterns before changing the Business Brain.</p><div id="learningTotals" class="metric">0</div><p class="muted">feedback signals in the selected period</p></article>
         <article class="card"><h2>Learning safety</h2><p>The system does not silently change brand rules from feedback. It collects evidence first so future preference updates remain reviewable and intentional.</p><button id="refreshLearning" type="button" class="primary">Refresh Learning</button></article>
       </div>
-      <section class="card" style="margin-top:18px"><h2>Feedback by content type</h2><div id="learningByType" class="empty">Loading…</div></section>
-      <section class="card" style="margin-top:18px"><h2>Recent feedback reasons</h2><div id="learningReasons" class="empty">Loading…</div></section>
+      <section class="card" style="margin-top:18px"><h2>Feedback by content type</h2><div id="learningByType" class="empty">Loadingâ€¦</div></section>
+      <section class="card" style="margin-top:18px"><h2>Recent feedback reasons</h2><div id="learningReasons" class="empty">Loadingâ€¦</div></section>
     </section>
 
     <section id="historyView" class="view"><article class="card"><h2>AI audit history</h2><p class="muted">Generation, edits, approvals, rejections, regeneration, failures, archival, and publication are recorded here.</p><div id="historyList"></div></article></section>
