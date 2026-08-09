@@ -6,6 +6,20 @@ async function db(base,key,path,options={}){return request(`${base}/rest/v1/${pa
 function uuid(value){return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value||""))?String(value):"";}
 function slugify(value){return String(value||"").toLowerCase().normalize("NFKD").replace(/[^a-z0-9\s-]/g,"").trim().replace(/[\s_-]+/g,"-").replace(/^-+|-+$/g,"").slice(0,90)||`post-${Date.now()}`;}
 function text(value,max){return String(value==null?"":value).trim().slice(0,max);}
+function faqEntries(out,contentTitle){
+  const body=String(out.body||out.primary||"").replace(/\r\n?/g,"\n"),entries=[];
+  let question="",answer=[];
+  const flush=()=>{const q=text(question,500),a=text(answer.join("\n\n"),10000);if(q&&a)entries.push({question:q,answer:a});answer=[];};
+  for(const raw of body.split("\n")){
+    const heading=raw.match(/^\s*#{2,4}\s+(.+?)\s*$/);
+    if(heading){flush();question=heading[1];}
+    else if(raw.trim()&&question)answer.push(raw.trim());
+  }
+  flush();
+  if(entries.length)return entries.slice(0,20);
+  const fallbackQuestion=text(out.question||out.headline||out.title||contentTitle,500),fallbackAnswer=text(out.answer||out.body||out.primary,10000);
+  return fallbackQuestion&&fallbackAnswer?[{question:fallbackQuestion,answer:fallbackAnswer}]:[];
+}
 async function handler(req,res){
   if(req.method!=="POST"){res.setHeader("Allow","POST");return reply(res,405,{error:"Method not allowed."});}
   try{
@@ -25,12 +39,12 @@ async function handler(req,res){
       if(existing?.[0]){await db(ctx.base,ctx.service,`blog_posts?id=eq.${existing[0].id}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({title,excerpt,body,seo_title:text(out.headline||title,70),seo_description:text(out.description||excerpt,170),status:"published",published_at:new Date().toISOString()})});destination=`/blog/${existing[0].slug}`;}
       else{let slug=desired;for(let i=0;i<6;i++){const used=await db(ctx.base,ctx.service,`blog_posts?slug=eq.${encodeURIComponent(slug)}&select=id&limit=1`);if(!used.length)break;slug=`${desired}-${i+2}`;}const created=await db(ctx.base,ctx.service,"blog_posts",{method:"POST",headers:{Prefer:"return=representation"},body:JSON.stringify({source_ai_content_id:task.ai_content_id,slug,title,excerpt,body,seo_title:text(out.headline||title,70),seo_description:text(out.description||excerpt,170),status:"published",published_at:new Date().toISOString(),created_by:ctx.user.id})});destination=`/blog/${created?.[0]?.slug||slug}`;}
     }else if(task.content_type==="faq_draft"){
-      const question=text(out.title||out.headline||content.title,500),answer=text(out.body||out.primary,10000),category=text(raw.category||"General",100)||"General";
-      if(!question||!answer)return reply(res,400,{error:"FAQ draft is missing a question or answer."});
-      await db(ctx.base,ctx.service,"faq_items",{method:"POST",headers:{Prefer:"return=minimal"},body:JSON.stringify({category,question,answer,status:"published",sort_order:999})});destination="/faq.html";
+      const category=text(raw.category||"General",100)||"General",entries=faqEntries(out,content.title);
+      if(!entries.length)return reply(res,400,{error:"FAQ draft is missing a question or answer."});
+      await db(ctx.base,ctx.service,"faq_items",{method:"POST",headers:{Prefer:"return=minimal"},body:JSON.stringify(entries.map((entry,index)=>({category,...entry,status:"published",sort_order:900+index})))});destination="/faq.html";
     }else return reply(res,400,{error:"This approved draft type does not have an automatic publishing connector yet."});
     await db(ctx.base,ctx.service,"marketing_ai_approval_audit",{method:"POST",headers:{Prefer:"return=minimal"},body:JSON.stringify({task_id:task.id,ai_content_id:task.ai_content_id,action:"published",actor_id:ctx.user.id,details:{destination,content_type:task.content_type}})});
     return reply(res,200,{ok:true,published:true,already_published:false,destination});
   }catch(error){console.error("AI approved publishing failed.",{message:error.message});return reply(res,error.status===401?401:error.status===403?403:500,{error:error.status===401||error.status===403?error.message:"Approved content could not be published."});}
 }
-module.exports=handler;module.exports.slugify=slugify;
+module.exports=handler;module.exports.slugify=slugify;module.exports.faqEntries=faqEntries;
