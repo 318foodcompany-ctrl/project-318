@@ -26,6 +26,7 @@ test("autopilot exposes all planned configurable draft categories",()=>{
 test("service-role queue preserves the administrator owner",()=>{
   const runtime=read("supabase/release-5-ai-marketing-autopilot-runtime.sql");
   assert.match(runtime,/drop function if exists public\.marketing_ai_claim_due_task\(integer\)/);
+  assert.match(runtime,/attempt_count=marketing_ai_tasks\.attempt_count\+1/);
   assert.match(runtime,/created_by uuid/);
   assert.match(runtime,/50,s\.created_by/);
   assert.match(runtime,/if s\.created_by is null[\s\S]*enabled=false/);
