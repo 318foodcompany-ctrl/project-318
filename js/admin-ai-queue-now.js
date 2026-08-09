@@ -1,6 +1,3 @@
-Exit code: 0
-Wall time: 1.2 seconds
-Output:
 (function(){
   "use strict";
   const $=s=>document.querySelector(s);
