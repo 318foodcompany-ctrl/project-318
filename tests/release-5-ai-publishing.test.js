@@ -1,3 +1,6 @@
+Exit code: 0
+Wall time: 0.9 seconds
+Output:
 "use strict";
 const test=require("node:test");
 const assert=require("node:assert/strict");
@@ -66,6 +69,15 @@ test("SSR templates escape untrusted content",()=>{
   assert.doesNotMatch(postHtml,/<img src=x>/);assert.doesNotMatch(postHtml,/<script>x<\/script>/);
 });
 
+test("published blog bodies render safe headings and bullet lists",()=>{
+  const html=blogPost.page({slug:"planning",title:"Planning",excerpt:"hello",body:"Intro text.\n\n## Guest count\n\n- Adults\n- Children",seo_title:"Planning",seo_description:"Description",published_at:"2026-08-07T00:00:00Z"});
+  assert.match(html,/<p>Intro text\.<\/p>/);
+  assert.match(html,/<h2>Guest count<\/h2>/);
+  assert.match(html,/<ul><li>Adults<\/li><li>Children<\/li><\/ul>/);
+  const escaped=blogPost.page({slug:"safe",title:"Safe",body:"## <script>x<\/script>\n\n- <img src=x>",seo_title:"Safe",seo_description:"Safe"});
+  assert.doesNotMatch(escaped,/<script>x<\/script>|<img src=x>/);
+});
+
 test("schedule preferences use timezone-aware next-run calculation",()=>{
   const sql=read("supabase/release-5-ai-autopilot-scheduling.sql"),ui=read("js/admin-ai-autopilot.js");
   for(const field of ["timezone_name","day_of_week","day_of_month","preferred_hour","custom_interval"])assert.match(sql,new RegExp(field));
@@ -92,3 +104,4 @@ test("autopilot grounds recommendations in the aggregate snapshot without exposi
   assert.match(runner,/snapshot_period_days/);
   assert.doesNotMatch(ui,/marketing_ai_business_snapshot|customer_name|normalized_email/);
 });
+
