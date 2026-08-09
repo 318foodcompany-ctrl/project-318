@@ -6,6 +6,16 @@
     { category: "Service", question: "Do you offer delivery and setup?", answer: "Delivery and setup options are available based on the event location, schedule, and service needs." }
   ];
 
+  function appendAnswer(details, value) {
+    const lines = String(value || "").replace(/\r\n?/g, "\n").split(/\n+/).map((line) => line.trim()).filter(Boolean);
+    lines.forEach((line) => {
+      const heading = line.match(/^#{2,4}\s+(.+)$/) || line.match(/^\*\*(.+)\*\*$/);
+      const element = document.createElement(heading ? "h4" : "p");
+      element.textContent = heading ? heading[1] : line;
+      details.appendChild(element);
+    });
+  }
+
   function render(items) {
     const host = document.querySelector("[data-faq-list]");
     const search = document.querySelector("[data-faq-search]");
@@ -22,9 +32,8 @@
           const category = document.createElement("span");
           category.className = "faq-category";
           category.textContent = item.category;
-          const answer = document.createElement("p");
-          answer.textContent = item.answer;
-          details.append(summary, category, answer);
+          details.append(summary, category);
+          appendAnswer(details, item.answer);
           host.appendChild(details);
         });
       if (!host.children.length) {
@@ -61,10 +70,11 @@
     render(items);
   }
 
-  const api = { fallback, render, load };
+  const api = { fallback, appendAnswer, render, load };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (globalScope.document) {
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", load, { once: true });
     else load();
   }
 })(typeof window !== "undefined" ? window : globalThis);
+
