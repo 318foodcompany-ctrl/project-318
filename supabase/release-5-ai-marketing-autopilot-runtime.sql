@@ -1,5 +1,13 @@
+Exit code: 0
+Wall time: 0.7 seconds
+Output:
 -- Release 5 runtime helpers. Apply immediately after release-5-ai-marketing-autopilot.sql.
 begin;
+
+-- PostgreSQL cannot change a table-returning function's OUT columns through
+-- CREATE OR REPLACE. The base migration intentionally installs the initial
+-- five-column helper, so replace it explicitly with the owner-aware version.
+drop function if exists public.marketing_ai_claim_due_task(integer);
 
 create or replace function public.marketing_ai_claim_due_task(p_claim_minutes integer default 15)
 returns table(
@@ -107,3 +115,4 @@ revoke all on function public.marketing_ai_queue_due_automation() from public,an
 grant execute on function public.marketing_ai_queue_due_automation() to service_role;
 
 commit;
+
