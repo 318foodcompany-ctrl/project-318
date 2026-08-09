@@ -1,5 +1,5 @@
 "use strict";
-const { validateInput,generateMarketingContent }=require("../server/marketing-ai-provider.js");
+const { validateInput,generateMarketingContent }=require("../marketing-ai-provider.js");
 function json(res,status,payload){res.statusCode=status;res.setHeader("Content-Type","application/json; charset=utf-8");res.setHeader("Cache-Control","no-store");res.end(JSON.stringify(payload));}
 async function request(url,options={}){const response=await fetch(url,{...options,signal:AbortSignal.timeout(10000)}),text=await response.text();let body;try{body=text?JSON.parse(text):null;}catch(_error){body=text;}if(!response.ok){const error=new Error("Database request failed.");error.status=response.status;throw error;}return body;}
 async function handler(req,res){
