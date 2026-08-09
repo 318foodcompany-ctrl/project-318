@@ -112,4 +112,3 @@ revoke all on function public.marketing_ai_queue_due_automation() from public,an
 grant execute on function public.marketing_ai_queue_due_automation() to service_role;
 
 commit;
-
