@@ -1,4 +1,5 @@
 "use strict";
+const crypto=require("node:crypto");
 function reply(res,status,payload){res.statusCode=status;res.setHeader("Content-Type","application/json; charset=utf-8");res.setHeader("Cache-Control","no-store");res.end(JSON.stringify(payload));}
 async function request(url,options={}){const response=await fetch(url,{...options,signal:AbortSignal.timeout(10000)}),text=await response.text();let body;try{body=text?JSON.parse(text):null;}catch(_e){body=text;}if(!response.ok){const error=new Error("Database request failed.");error.status=response.status;throw error;}return body;}
 async function adminContext(req){const base=String(process.env.PUBLIC_SUPABASE_URL||"").replace(/\/$/,""),anon=String(process.env.PUBLIC_SUPABASE_ANON_KEY||""),service=String(process.env.SUPABASE_SERVICE_ROLE_KEY||""),token=String(req.headers.authorization||"").replace(/^Bearer\s+/,"");if(!base||!anon||!service||!token)throw Object.assign(new Error("Authentication required."),{status:401});const user=await request(`${base}/auth/v1/user`,{headers:{apikey:anon,Authorization:`Bearer ${token}`}});const admin=await request(`${base}/rest/v1/rpc/crm_is_admin`,{method:"POST",headers:{apikey:anon,Authorization:`Bearer ${token}`,"Content-Type":"application/json"},body:"{}"});if(!user?.id||admin!==true)throw Object.assign(new Error("Administrator access required."),{status:403});return {base,service,user};}
@@ -6,6 +7,23 @@ async function db(base,key,path,options={}){return request(`${base}/rest/v1/${pa
 function uuid(value){return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value||""))?String(value):"";}
 function slugify(value){return String(value||"").toLowerCase().normalize("NFKD").replace(/[^a-z0-9\s-]/g,"").trim().replace(/[\s_-]+/g,"-").replace(/^-+|-+$/g,"").slice(0,90)||`post-${Date.now()}`;}
 function text(value,max){return String(value==null?"":value).trim().slice(0,max);}
+function emailCopy(out,content){return {subject:text(out.subject||out.title||content.title,200),body:text(out.body||out.primary||out.description,50000)};}
+async function queueConsentEmail(ctx,task,content,out){
+  const copy=emailCopy(out,content);
+  if(!copy.subject||!copy.body)throw Object.assign(new Error("Email draft is missing a subject or body."),{status:400});
+  const customers=await db(ctx.base,ctx.service,"customers?archived=eq.false&email=not.is.null&select=id,email&limit=500"),eligible=[];
+  for(const customer of customers||[]){
+    const [consent,suppressed]=await Promise.all([
+      db(ctx.base,ctx.service,"rpc/marketing_has_consent",{method:"POST",body:JSON.stringify({p_customer_id:customer.id})}),
+      db(ctx.base,ctx.service,"rpc/marketing_is_suppressed",{method:"POST",body:JSON.stringify({p_email:customer.email,p_campaign_id:null})})
+    ]);
+    if(consent===true&&suppressed!==true)eligible.push(customer);
+  }
+  if(!eligible.length)throw Object.assign(new Error("No customers with active marketing email consent are available."),{status:409});
+  const messages=eligible.map(customer=>({customer_id:customer.id,channel:"email",recipient:text(customer.email,320),subject:copy.subject,body:copy.body,html_body:"",scheduled_for:new Date().toISOString(),idempotency_key:crypto.createHash("sha256").update(`ai-email:${task.id}:${customer.id}`).digest("hex"),status:"queued",classification:"marketing",max_retries:3}));
+  await db(ctx.base,ctx.service,"follow_up_messages",{method:"POST",headers:{Prefer:"resolution=ignore-duplicates,return=minimal"},body:JSON.stringify(messages)});
+  return messages.length;
+}
 function faqEntries(out,contentTitle){
   const body=String(out.body||out.primary||"").replace(/\r\n?/g,"\n"),entries=[];
   let question="",answer=[];
@@ -42,9 +60,10 @@ async function handler(req,res){
       const category=text(raw.category||"General",100)||"General",entries=faqEntries(out,content.title);
       if(!entries.length)return reply(res,400,{error:"FAQ draft is missing a question or answer."});
       await db(ctx.base,ctx.service,"faq_items",{method:"POST",headers:{Prefer:"return=minimal"},body:JSON.stringify(entries.map((entry,index)=>({category,...entry,status:"published",sort_order:900+index})))});destination="/faq.html";
-    }else return reply(res,400,{error:"This approved draft type does not have an automatic publishing connector yet."});
+    }else if(task.content_type==="email_newsletter"||task.content_type==="promotional_email"){const queued=await queueConsentEmail(ctx,task,content,out);destination=`email queue (${queued} opted-in recipient${queued===1?"":"s"})`;}
+    else return reply(res,400,{error:"This approved draft type does not have an automatic publishing connector yet."});
     await db(ctx.base,ctx.service,"marketing_ai_approval_audit",{method:"POST",headers:{Prefer:"return=minimal"},body:JSON.stringify({task_id:task.id,ai_content_id:task.ai_content_id,action:"published",actor_id:ctx.user.id,details:{destination,content_type:task.content_type}})});
     return reply(res,200,{ok:true,published:true,already_published:false,destination});
-  }catch(error){console.error("AI approved publishing failed.",{message:error.message});return reply(res,error.status===401?401:error.status===403?403:500,{error:error.status===401||error.status===403?error.message:"Approved content could not be published."});}
+  }catch(error){console.error("AI approved publishing failed.",{message:error.message});const status=[400,401,403,409].includes(error.status)?error.status:500;return reply(res,status,{error:status<500?error.message:"Approved content could not be published."});}
 }
-module.exports=handler;module.exports.slugify=slugify;module.exports.faqEntries=faqEntries;
+module.exports=handler;module.exports.slugify=slugify;module.exports.faqEntries=faqEntries;module.exports.emailCopy=emailCopy;
