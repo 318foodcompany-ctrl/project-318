@@ -2,9 +2,11 @@
   "use strict";
   const categories = ["All", "Corporate", "Weddings", "Schools", "Parties", "Pizza", "Pasta", "Desserts"];
   const fallback = [
-    { category: "Pizza", image_url: "assets/images/taco-wordless.jpg", alt_text: "Fresh catering spread", caption: "Fresh catering favorites", featured: true },
-    { category: "Parties", image_url: "assets/images/fajita-wordless.jpg", alt_text: "Fajita catering spread", caption: "Built for celebrations", featured: false },
-    { category: "Corporate", image_url: "assets/images/bbq-wordless.jpg", alt_text: "Barbecue catering spread", caption: "Professional group catering", featured: false }
+    { category: "Corporate", image_url: "assets/images/gallery-stock-buffet.jpg", alt_text: "Professional buffet service with polished chafing dishes", caption: "Buffet service, thoughtfully presented", featured: true },
+    { category: "Parties", image_url: "assets/images/gallery-stock-table.jpg", alt_text: "Colorful shared dishes arranged for a celebration", caption: "Fresh choices for every guest", featured: false },
+    { category: "Weddings", image_url: "assets/images/gallery-stock-wedding.jpg", alt_text: "Elegant reception table prepared for wedding guests", caption: "Gatherings made memorable", featured: false },
+    { category: "Corporate", image_url: "assets/images/gallery-stock-corporate.jpg", alt_text: "Colleagues gathering around a table for a business meal", caption: "Professional catering for teams", featured: false },
+    { category: "Parties", image_url: "assets/images/gallery-stock-spread.jpg", alt_text: "Freshly prepared dishes served family style", caption: "Crowd-pleasing food, beautifully served", featured: false }
   ];
 
   function safeImage(value) {
