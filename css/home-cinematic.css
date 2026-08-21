@@ -10,3 +10,6 @@
 /* Stable touch viewport and compositor isolation prevent mobile browser chrome from shaking the camera. */
 @media(max-width:1100px){.cin-stage{height:100lvh}.cin-scene{height:calc(100lvh - 82px);transition:none;backface-visibility:hidden;contain:strict;transform:translateZ(0)}}
 @media(max-width:760px){.cin-journey{height:650lvh}.cin-stage{height:100lvh}.cin-scene{height:calc(100lvh - 70px)}}
+/* Native scroll-linked touch camera: the browser compositor owns the pan, avoiding main-thread scroll lag. */
+@keyframes cinematic-touch-pan{from{transform:translate3d(0,0,0)}to{transform:translate3d(-62%,0,0)}}
+@media(max-width:1100px){.native-scroll-camera .cin-journey{view-timeline-name:--cinematic-journey;view-timeline-axis:block}.native-scroll-camera .cin-scene{animation:cinematic-touch-pan 1s linear both;animation-timeline:--cinematic-journey;animation-range:contain 0% contain 100%}.cin-nav{backdrop-filter:none}.cin-landing-copy{backdrop-filter:none}.cin-station{transition:opacity .22s linear,transform .28s ease-out}.cin-sunwash{background:linear-gradient(180deg,#fffaf526,transparent 42%)}}
