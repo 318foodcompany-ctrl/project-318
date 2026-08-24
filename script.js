@@ -68,7 +68,7 @@ const quote = document.querySelector('#quoteForm');
 if (quote) {
   const prices = {
     'Taco Bar': 15.99,
-    'Fajita Bar': 16.99,
+    'Fajita Bar': 18.99,
     'BBQ Bar': 16.99,
     'Deli Sandwich Buffet': 15.99,
     'Pasta Bar': 15.99,
