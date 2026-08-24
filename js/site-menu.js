@@ -28,9 +28,13 @@ const menuDetails = {
     ["Dessert", ["Cookies or brownies"]]
   ],
   fajita: [
-    ["Proteins", ["Chicken fajitas", "Steak fajitas"]],
+    ["Protein Options", [
+      "Chicken fajitas — $18.99 per person",
+      "Steak fajitas — $20.99 per person",
+      "Chicken and steak combo — $21.99 per person"
+    ]],
     ["Sides", ["Mexican rice", "Charro beans"]],
-    ["Extras", ["Flour tortillas", "Chips and queso"]],
+    ["Extras", ["Flour tortillas", "Chips, salsa and queso"]],
     ["Dessert", ["Cookies or brownies"]]
   ],
   bbq: [
@@ -92,6 +96,7 @@ async function loadMenuItems() {
       const imageFile = item.image_file || `menu-${item.slug}.jpg`;
       const fallbackImage = `assets/images/${encodeURIComponent(item.slug)}-professional.jpg`;
       const buttonText = item.button_text || `Request ${item.name}`;
+      const displayPrice = item.slug === "fajita" ? "$18.99 per person" : item.price;
 
       return `
         <section class="catering-package${index % 2 ? " alt-package" : ""}" id="${slug}">
@@ -110,7 +115,7 @@ async function loadMenuItems() {
               <span class="menu-number">${String(index + 1).padStart(2, "0")}</span>
               <p class="kicker">${escapeHtml(item.subtitle)}</p>
               <h2>${escapeHtml(item.name)}</h2>
-              <p class="package-price">Starting at <strong>${escapeHtml(item.price)}</strong></p>
+              <p class="package-price">Starting at <strong>${escapeHtml(displayPrice)}</strong></p>
               <div class="package-details">
                 ${detailsHtml(item.slug)}
               </div>
