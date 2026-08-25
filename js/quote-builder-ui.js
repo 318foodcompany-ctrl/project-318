@@ -3,12 +3,27 @@
   const form = document.getElementById("quoteBuilder");
   if (!form) return;
   const money = value => new Intl.NumberFormat("en-US", {
-    style: "currency", currency: "USD", maximumFractionDigits: 0
+    style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 2
   }).format(Number(value) || 0);
   const escapeHtml = value => String(value ?? "").replace(/[&<>'"]/g, character => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;"
   })[character]);
-  const estimate = () => globalScope.Project318QuoteLive?.calculateEstimate(form) || 0;
+  function calculateEstimate() {
+    const sharedCalculator = globalScope.Project318QuoteLive?.calculateEstimate;
+    if (typeof sharedCalculator === "function") {
+      const sharedTotal = Number(sharedCalculator(form));
+      if (Number.isFinite(sharedTotal) && sharedTotal > 0) return sharedTotal;
+    }
+
+    const guests = Math.max(15, Number(form.elements.guestCount?.value || 15));
+    const menu = form.querySelector('input[name="menu"]:checked');
+    let total = guests * Number(menu?.dataset.price || 0);
+    form.querySelectorAll('input[name="addons"]:checked').forEach(addon => {
+      total += guests * Number(addon.dataset.flat || 0);
+      total += Number(addon.dataset.once || 0);
+    });
+    return Math.round(total * 100) / 100;
+  }
   let step = 1;
   const steps = [...document.querySelectorAll(".builder-step")];
   const totalSteps = steps.length;
@@ -26,7 +41,7 @@
       ["Add-ons", addons],
       ["Date & time", `${data.get("eventDate") || ""} ${data.get("eventTime") || ""}`],
       ["Contact", `${data.get("name") || ""} · ${data.get("phone") || ""}`],
-      ["Planning estimate", money(estimate())]
+      ["Estimated total", money(calculateEstimate())]
     ].map(([label, value], index) =>
       `<div class="review-row${index === 6 ? " review-total" : ""}"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`
     ).join("");
