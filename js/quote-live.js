@@ -9,7 +9,7 @@
       total += guests * Number(addon.dataset.flat || 0);
       total += Number(addon.dataset.once || 0);
     });
-    return Math.round(total);
+    return Math.round(total * 100) / 100;
   }
 
   function payload(form) {
