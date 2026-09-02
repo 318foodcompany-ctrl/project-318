@@ -37,7 +37,7 @@
   async function submit(payload, options = {}) {
     const fetchImpl = options.fetchImpl || globalScope.fetch;
     if (typeof fetchImpl !== "function") throw new Error("Submission service is unavailable.");
-    const response = await fetchImpl("/api/lead-submit", {
+    const response = await fetchImpl("/api/lead-submit-v2", {
       method: "POST",
       headers: { "Content-Type": "application/json", "Idempotency-Key": options.idempotencyKey },
       body: JSON.stringify({ ...payload, idempotencyKey: options.idempotencyKey })
