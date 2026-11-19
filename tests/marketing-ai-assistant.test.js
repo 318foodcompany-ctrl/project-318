@@ -76,17 +76,27 @@ test("performance prompts allow aggregate measures and exclude identifying or fr
 });
 
 test("the authorized OpenAI advisor stores one private draft from aggregate data", {concurrency:false}, async()=>{
+  const ga=require("../server/google-analytics.js");
+  const previousDashboard=ga.dashboard;
   const originalFetch=global.fetch, previous={...process.env}, requests=[];
   try {
     Object.assign(process.env,{PUBLIC_SUPABASE_URL:"https://fixture.supabase.co",PUBLIC_SUPABASE_ANON_KEY:"public",AI_MODEL:"model",AI_PROVIDER:"openai",OPENAI_API_KEY:"fixture-key"});
     delete process.env.MARKETING_AI_API_URL;
+    const expectedPeriod=assistant.completeReportingPeriod();
+    ga.dashboard=async (_env,_fetch,_identity,period)=>{assert.deepEqual(period,expectedPeriod);return {configured:true,summary:[{dateRange:"current",sessions:3}]};};
     global.fetch=async(url,options={})=>{
       requests.push({url:String(url),options});
       const value=String(url).endsWith("/user")?{id:"owner"}:String(url).includes("crm_is_admin")?true:
+        String(url).includes("/rpc/marketing_quote_funnel")?[{source:"direct",quote_count:1,booked_count:0}]:
+        String(url).includes("/rpc/marketing_spend_summary")?[]:
         String(url).startsWith("https://api.openai.com/")?{output:[{content:[{text:JSON.stringify({summary:"Check sources",suggestions:[{title:"Review spending",rationale:"Only three sessions",confidence:"low"}]})}]}]}:
         options.method==="POST"?[{id:"draft"}]:[];
       return {ok:true,status:200,text:async()=>JSON.stringify(value),json:async()=>value};
     };
+    const stale=responseRecorder();
+    await assistant({method:"POST",headers:{authorization:"Bearer fixture"},body:{analysis_type:"next_actions",context:{period:{start:"2026-08-21",end:"2026-11-19"}}}},stale);
+    assert.equal(stale.statusCode,409);
+    assert.equal(requests.filter(item=>item.url.startsWith("https://api.openai.com/")).length,0);
     const response=responseRecorder();
     await assistant({method:"POST",headers:{authorization:"Bearer fixture"},body:{analysis_type:"next_actions",context:{customer_name:"private",google_analytics:{summary:[{dateRange:"current",sessions:3},{dateRange:"previous",sessions:99}]}}}},response);
     assert.equal(response.statusCode,200);
@@ -99,7 +109,18 @@ test("the authorized OpenAI advisor stores one private draft from aggregate data
     assert.equal(format.schema.additionalProperties, false);
     assert.deepEqual(format.schema.properties.suggestions.items.required, ["title", "rationale", "proposed_value", "confidence"]);
     assert.doesNotMatch(JSON.parse(remote[0].options.body).input,/private|99/);
+    const sent = JSON.parse(JSON.parse(remote[0].options.body).input).context;
+    assert.deepEqual(sent.period,expectedPeriod);
+    assert.deepEqual(sent.totals,{quotes:1,booked:0,spend:0});
+    assert.equal(sent.google_analytics.summary[0].sessions,3);
+    assert.equal(requests.filter(r=>r.url.includes("/rpc/marketing_")).every(r=>JSON.parse(r.options.body).p_start===expectedPeriod.start && JSON.parse(r.options.body).p_end===expectedPeriod.end),true);
     assert.equal(response.body.status,"draft");
     assert.equal(requests.filter(item=>item.url.includes("/marketing_ai_audit") && item.options.method==="POST").length,1);
-  } finally {global.fetch=originalFetch;process.env=previous;}
+  } finally {ga.dashboard=previousDashboard;global.fetch=originalFetch;process.env=previous;}
+});
+test("the production window uses completed Chicago calendar days across the daylight-saving transition",()=>{
+  assert.deepEqual(assistant.completeReportingPeriod(new Date("2026-11-19T12:00:00Z")),{start:"2026-10-20",end:"2026-11-18"});
+  assert.deepEqual(assistant.completeReportingPeriod(new Date("2026-11-19T03:00:00Z")),{start:"2026-10-19",end:"2026-11-17"});
+  const ui=require("../js/admin-marketing-assistant.js");
+  assert.match(ui.periodNote({analysis_type:"next_actions",report_period:{start:"2026-08-21",end:"2026-11-19"}}),/Exclude this draft/);
 });
