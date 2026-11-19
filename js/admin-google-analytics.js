@@ -12,7 +12,7 @@
     if (!source) return "There are no reported sessions by source yet. Share a tagged catering link and check back after visitors have used it.";
     const evidence = source.sessionSourceMedium + " brought " + number(source.sessions) + " sessions in the last 30 complete days.";
     if (!submits) return evidence + " The returned event list does not show a completed quote. Check quote tracking and the sales pipeline before increasing ad spend.";
-    return evidence + " Google recorded " + number(submits.eventCount) + " completed quote events across all sources. Compare source-level bookings and recorded costs in the sales report before changing your budget.";
+    return evidence + " Google recorded " + number(submits.eventCount) + " completed quote " + (number(submits.eventCount) === 1 ? "event" : "events") + " across all sources. Compare source-level bookings and recorded costs in the sales report before changing your budget.";
   }
 
   function create(win) {

@@ -1,7 +1,7 @@
 (function marketingAssistantModule(globalScope) {
   "use strict";
 
-  const PUBLIC_PAGES = ["/", "/catering.html", "/corporate.html", "/about.html", "/gallery.html", "/contact.html", "/quote-builder.html"];
+  const PUBLIC_PAGES = ["/", "/catering.html", "/corporate.html", "/about.html", "/gallery.html", "/contact.html", "/quote-builder.html", "/event-types.html", "/faq.html", "/blog"];
 
   function escapeHtml(value) { return String(value ?? "").replace(/[&<>"']/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[character])); }
   function dateText(value) { const date = new Date(value); return Number.isNaN(date.getTime()) ? "—" : date.toLocaleString(); }
@@ -39,6 +39,7 @@
     const spendRows = spend.data || [];
     return {
       period: { start, end },
+      website_data_status: analyticsReport ? "Available" : "Unavailable. Website traffic and visit-to-quote conversion cannot be assessed.",
       totals: {
         quotes: funnelRows.reduce((sum, row) => sum + safeNumber(row.quote_count), 0),
         booked: funnelRows.reduce((sum, row) => sum + safeNumber(row.booked_count), 0),
@@ -51,6 +52,7 @@
       spend_by_source: spendRows.slice(0, 30),
       google_analytics: analyticsReport ? {
         property_id: analyticsReport.propertyId,
+        period: "Last 30 complete days in the Google Analytics property time zone. Previous refers to the preceding 30 days.",
         generated_at: analyticsReport.generatedAt,
         summary: (analyticsReport.summary || []).slice(0, 2),
         acquisition: (analyticsReport.acquisition || []).slice(0, 20),
@@ -63,7 +65,7 @@
   function recommendationMarkup(record) {
     const draft = record?.draft || record?.structured_output || {};
     const suggestions = Array.isArray(draft.suggestions) ? draft.suggestions : [];
-    return `<article class="marketing-ai-draft" data-ai-record="${escapeHtml(record.id)}"><div class="marketing-ai-draft-head"><div><span>Draft recommendation</span><h4>${escapeHtml(draft.summary || "Marketing analysis")}</h4></div><em>${escapeHtml(record.status || record.review_status || "draft")}</em></div><ol>${suggestions.map(item => `<li><div><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.confidence || "medium")} confidence</small></div><p>${escapeHtml(item.rationale)}</p>${item.proposed_value ? `<blockquote>${escapeHtml(item.proposed_value)}</blockquote>` : ""}</li>`).join("")}</ol>${(record.status || record.review_status) === "draft" ? `<div class="marketing-ai-actions"><button type="button" data-ai-review="approved">Approve draft</button><button type="button" class="secondary" data-ai-review="rejected">Reject draft</button></div><p class="marketing-ai-note">Approval records your decision. It does not publish content or change advertising accounts.</p>` : ""}</article>`;
+    return `<article class="marketing-ai-draft" data-ai-record="${escapeHtml(record.id)}"><div class="marketing-ai-draft-head"><div><span>Draft recommendation</span><h4>${escapeHtml(draft.summary || "Marketing analysis")}</h4></div><em>${escapeHtml(record.status || record.review_status || "draft")}</em></div><ol>${suggestions.map(item => `<li><div><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.confidence || "unrated")} confidence</small></div><p>${escapeHtml(item.rationale)}</p>${item.proposed_value ? `<blockquote>${escapeHtml(item.proposed_value)}</blockquote>` : ""}</li>`).join("")}</ol>${(record.status || record.review_status) === "draft" ? `<div class="marketing-ai-actions"><button type="button" data-ai-review="approved">Approve draft</button><button type="button" class="secondary" data-ai-review="rejected">Reject draft</button></div><p class="marketing-ai-note">Approval records your decision. It does not publish content or change advertising accounts.</p>` : ""}</article>`;
   }
 
   function createAssistant(win) {
@@ -116,8 +118,10 @@
       message.textContent = "Preparing a privacy-safe analysis…";
       try {
         const end = new Date();
-        const start = new Date(end); start.setDate(start.getDate() - 90);
-        const dateValue = date => date.toISOString().slice(0, 10);
+        end.setDate(end.getDate() - 1);
+        const start = new Date(end);
+        start.setDate(start.getDate() - 29);
+        const dateValue = date => [date.getFullYear(), String(date.getMonth() + 1).padStart(2, "0"), String(date.getDate()).padStart(2, "0")].join("-");
         const context = type === "seo" ? { pages: await pageSeoContext(win) } : await performanceContext(client, dateValue(start), dateValue(end), win.Project318GoogleAnalyticsReport || null);
         const { data: sessionData, error: sessionError } = await client.auth.getSession();
         if (sessionError || !sessionData?.session?.access_token) throw sessionError || new Error("Administrator session expired.");

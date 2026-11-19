@@ -58,3 +58,43 @@ test("assistant credentials remain server-only and admin script loads once", () 
   assert.doesNotMatch(runtime, /MARKETING_AI_(API_KEY|API_URL|MODEL)/);
   assert.equal((supabaseLoader.match(/admin-marketing-assistant\.js/g) || []).length, 1);
 });
+
+test("the dashboard uses the existing OpenAI account only at its first-party endpoint",()=>{
+  const env={AI_PROVIDER:"openai",OPENAI_API_KEY:"fixture",AI_MODEL:"fixture-model"};
+  const native=assistant.providerConfig(env);
+  assert.equal(native.url,"https://api.openai.com/v1/responses");
+  assert.equal(native.key,"fixture");
+  assert.equal(assistant.providerConfig({...env,MARKETING_AI_API_URL:"https://example.org"}).key,"");
+});
+
+test("performance prompts allow aggregate measures and exclude identifying or free-form fields",()=>{
+  const output=assistant.reportingContext({period:{start:"2026-11-01"},totals:{quotes:2,revenue:1200},funnel_by_source:[{source:"name@example.org",quote_count:2,notes:"private"}],google_analytics:{acquisition:[{sessionSourceMedium:"google / organic",sessions:3,sessionCampaignName:"private campaign"}],events:[{eventName:"arbitrary_personal_text"}]}});
+  assert.equal(output.google_analytics.acquisition[0].sessions,3);
+  assert.equal(output.funnel_by_source[0].source,"Other source");
+  assert.equal(output.google_analytics.events.length,0);
+  assert.doesNotMatch(JSON.stringify(output),/example.org|private|1200/);
+});
+
+test("the authorized OpenAI advisor stores one private draft from aggregate data", {concurrency:false}, async()=>{
+  const originalFetch=global.fetch, previous={...process.env}, requests=[];
+  try {
+    Object.assign(process.env,{PUBLIC_SUPABASE_URL:"https://fixture.supabase.co",PUBLIC_SUPABASE_ANON_KEY:"public",AI_MODEL:"model",AI_PROVIDER:"openai",OPENAI_API_KEY:"fixture-key"});
+    delete process.env.MARKETING_AI_API_URL;
+    global.fetch=async(url,options={})=>{
+      requests.push({url:String(url),options});
+      const value=String(url).endsWith("/user")?{id:"owner"}:String(url).includes("crm_is_admin")?true:
+        String(url).startsWith("https://api.openai.com/")?{output:[{content:[{text:JSON.stringify({summary:"Check sources",suggestions:[{title:"Review spending",rationale:"Only three sessions",confidence:"low"}]})}]}]}:
+        options.method==="POST"?[{id:"draft"}]:[];
+      return {ok:true,status:200,text:async()=>JSON.stringify(value),json:async()=>value};
+    };
+    const response=responseRecorder();
+    await assistant({method:"POST",headers:{authorization:"Bearer fixture"},body:{analysis_type:"next_actions",context:{customer_name:"private",google_analytics:{summary:[{dateRange:"current",sessions:3},{dateRange:"previous",sessions:99}]}}}},response);
+    assert.equal(response.statusCode,200);
+    const remote=requests.filter(item=>item.url.startsWith("https://api.openai.com/"));
+    assert.equal(remote.length,1);
+    assert.equal(JSON.parse(remote[0].options.body).store,false);
+    assert.doesNotMatch(JSON.parse(remote[0].options.body).input,/private|99/);
+    assert.equal(response.body.status,"draft");
+    assert.equal(requests.filter(item=>item.url.includes("/marketing_ai_audit") && item.options.method==="POST").length,1);
+  } finally {global.fetch=originalFetch;process.env=previous;}
+});
