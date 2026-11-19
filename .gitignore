@@ -1,4 +1,6 @@
 .env
+*service-account*.json
+food-co-analytics-*.json
 .env.*
 !.env.example
 !.env.test.example
