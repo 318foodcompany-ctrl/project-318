@@ -9,10 +9,25 @@ const ui = require("../js/admin-google-analytics.js");
 test("Google Analytics configuration stays disabled without private credentials", () => {
   assert.deepEqual(analytics.configuration({ GA4_PROPERTY_ID: "546356197" }), {
     configured: false,
+    authentication: null,
     propertyId: "546356197",
     clientEmail: "",
-    privateKey: ""
+    privateKey: "",
+    oauthClientId: "",
+    oauthClientSecret: "",
+    oauthRefreshToken: ""
   });
+});
+
+test("OAuth refresh credentials enable reporting without a service-account key", () => {
+  const config = analytics.configuration({
+    GA4_PROPERTY_ID: "546356197",
+    GOOGLE_ANALYTICS_OAUTH_CLIENT_ID: "client-id",
+    GOOGLE_ANALYTICS_OAUTH_CLIENT_SECRET: "client-secret",
+    GOOGLE_ANALYTICS_OAUTH_REFRESH_TOKEN: "refresh-token"
+  });
+  assert.equal(config.configured, true);
+  assert.equal(config.authentication, "oauth");
 });
 
 test("service account assertion is a signed, short-lived JWT", () => {

@@ -37,3 +37,5 @@ The private owner dashboard can read aggregate GA4 reports through the Google An
 - `GOOGLE_ANALYTICS_PRIVATE_KEY` — the service-account JSON private key value. Store it only as an encrypted Vercel environment variable and never commit the JSON key file.
 
 The service identity needs only Viewer access at the property level. It does not need a Google Cloud project IAM role. The owner dashboard endpoint requires an authenticated Project 318 administrator session, uses the `analytics.readonly` scope, returns aggregate reporting data, and does not expose credentials to the browser.
+
+If Google Analytics does not accept a service identity, use owner OAuth instead. Configure `GOOGLE_ANALYTICS_OAUTH_CLIENT_ID`, `GOOGLE_ANALYTICS_OAUTH_CLIENT_SECRET`, and `GOOGLE_ANALYTICS_OAUTH_REFRESH_TOKEN` as encrypted Production variables. The OAuth grant must request only `analytics.readonly` and offline access. When complete OAuth credentials are present they take precedence over the service-account variables.

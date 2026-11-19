@@ -14,11 +14,20 @@ function configuration(environment = process.env) {
   const propertyId = String(environment.GA4_PROPERTY_ID || "").trim();
   const clientEmail = String(environment.GOOGLE_ANALYTICS_CLIENT_EMAIL || "").trim();
   const privateKey = String(environment.GOOGLE_ANALYTICS_PRIVATE_KEY || "").replace(/\\n/g, "\n").trim();
+  const oauthClientId = String(environment.GOOGLE_ANALYTICS_OAUTH_CLIENT_ID || "").trim();
+  const oauthClientSecret = String(environment.GOOGLE_ANALYTICS_OAUTH_CLIENT_SECRET || "").trim();
+  const oauthRefreshToken = String(environment.GOOGLE_ANALYTICS_OAUTH_REFRESH_TOKEN || "").trim();
+  const serviceAccountConfigured = /^[^@\s]+@[^@\s]+\.iam\.gserviceaccount\.com$/.test(clientEmail) && privateKey.includes("BEGIN PRIVATE KEY");
+  const oauthConfigured = Boolean(oauthClientId && oauthClientSecret && oauthRefreshToken);
   return {
-    configured: /^\d{5,20}$/.test(propertyId) && /^[^@\s]+@[^@\s]+\.iam\.gserviceaccount\.com$/.test(clientEmail) && privateKey.includes("BEGIN PRIVATE KEY"),
+    configured: /^\d{5,20}$/.test(propertyId) && (serviceAccountConfigured || oauthConfigured),
+    authentication: oauthConfigured ? "oauth" : serviceAccountConfigured ? "service_account" : null,
     propertyId,
     clientEmail,
-    privateKey
+    privateKey,
+    oauthClientId,
+    oauthClientSecret,
+    oauthRefreshToken
   };
 }
 
@@ -37,10 +46,14 @@ function serviceAccountAssertion(config, now = Math.floor(Date.now() / 1000)) {
 }
 
 async function accessToken(config, fetchImpl = fetch) {
+  const tokenRequest = config.authentication === "oauth"
+    ? new URLSearchParams({ client_id: config.oauthClientId, client_secret: config.oauthClientSecret, refresh_token: config.oauthRefreshToken, grant_type: "refresh_token" })
+    : new URLSearchParams({ grant_type: "urn:ietf:params:oauth-grant-type:jwt-bearer", assertion: serviceAccountAssertion(config) });
+  if (config.authentication !== "oauth") tokenRequest.set("grant_type", "urn:ietf:params:oauth:grant-type:jwt-bearer");
   const response = await fetchImpl(TOKEN_URL, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer", assertion: serviceAccountAssertion(config) }),
+    body: tokenRequest,
     signal: AbortSignal.timeout(10000)
   });
   const body = await response.json().catch(() => ({}));
