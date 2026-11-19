@@ -87,6 +87,7 @@
   if (canLoadAdminDashboard) {
     loadAdminScript("js/admin-quotes-auth-sync.js", "data-admin-quotes-auth-sync")
       .then(() => loadAdminScript("js/admin-marketing.js", "data-admin-marketing"))
+      .then(() => loadAdminScript("js/admin-marketing-dashboard.js", "data-admin-marketing-funnel"))
       .then(() => loadAdminScript("js/admin-google-analytics.js", "data-admin-google-analytics"))
       .then(() => loadAdminScript("js/admin-marketing-spend.js", "data-admin-marketing-spend"))
       .then(() => loadAdminScript("js/admin-campaign-links.js", "data-admin-campaign-links"))

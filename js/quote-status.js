@@ -26,7 +26,6 @@
     "js/admin-booking-enhancements.js",
     "js/admin-invoice-enhancements.js",
     "js/admin-editor-enhancements.js",
-    "js/admin-marketing-dashboard.js",
     "js/admin-experience.js",
     "js/admin-launch-readiness.js"
   ].forEach((src) => {

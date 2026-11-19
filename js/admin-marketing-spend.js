@@ -62,9 +62,9 @@
 
     function reportingValues(){
       return {
-        p_start:doc.getElementById("marketingStart").value,
-        p_end:doc.getElementById("marketingEnd").value,
-        p_model:doc.getElementById("marketingModel").value
+        p_start:(doc.getElementById("marketingStart") || doc.getElementById("mkStart"))?.value || new Date(Date.now() - 90 * 86400000).toISOString().slice(0,10),
+        p_end:(doc.getElementById("marketingEnd") || doc.getElementById("mkEnd"))?.value || new Date().toISOString().slice(0,10),
+        p_model:doc.getElementById("marketingModel")?.value || "last_non_direct"
       };
     }
 
@@ -115,7 +115,10 @@
 
     doc.getElementById("marketingSpendForm").addEventListener("submit",save);
     doc.getElementById("marketingSpendRefresh").addEventListener("click",refresh);
-    doc.getElementById("marketingRefresh").addEventListener("click",refresh);
+    panel.addEventListener("change", event => {
+      if (["mkStart", "mkEnd"].includes(event.target.id)) refresh();
+    });
+    doc.getElementById("marketingRefresh")?.addEventListener("click",refresh);
     refresh();
   }
 

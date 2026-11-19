@@ -59,7 +59,8 @@
       <p id="campaignLinkMessage" class="message" role="status" aria-live="polite"></p>`;
 
     const toolbar=panel.querySelector(".marketing-toolbar");
-    toolbar?.before(section);
+    if (toolbar) toolbar.before(section);
+    else panel.appendChild(section);
     const byId=id=>doc.getElementById(id);
 
     function build(){

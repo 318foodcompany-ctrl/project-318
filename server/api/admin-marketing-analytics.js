@@ -18,7 +18,7 @@ module.exports = async function handler(request, response) {
   }
   try {
     await adminContext(request);
-    const report = await analytics.dashboard(process.env);
+    const report = await analytics.dashboard(process.env, fetch, request.headers["x-vercel-oidc-token"]);
     return reply(response, 200, { ok: true, report });
   } catch (error) {
     console.error("Google Analytics dashboard failed.", { message: error.message });

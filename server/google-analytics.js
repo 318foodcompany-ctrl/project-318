@@ -18,10 +18,13 @@ function configuration(environment = process.env) {
   const oauthClientSecret = String(environment.GOOGLE_ANALYTICS_OAUTH_CLIENT_SECRET || "").trim();
   const oauthRefreshToken = String(environment.GOOGLE_ANALYTICS_OAUTH_REFRESH_TOKEN || "").trim();
   const serviceAccountConfigured = /^[^@\s]+@[^@\s]+\.iam\.gserviceaccount\.com$/.test(clientEmail) && privateKey.includes("BEGIN PRIVATE KEY");
+  const provider = String(environment.GOOGLE_ANALYTICS_WORKLOAD_PROVIDER || "").trim();
+  const federated = /^projects\/\d+\/locations\/global\/workloadIdentityPools\/[a-z0-9-]+\/providers\/[a-z0-9-]+$/.test(provider) && /^[a-z0-9._-]+@[a-z0-9-]+\.iam\.gserviceaccount\.com$/.test(clientEmail);
   const oauthConfigured = Boolean(oauthClientId && oauthClientSecret && oauthRefreshToken);
   return {
-    configured: /^\d{5,20}$/.test(propertyId) && (serviceAccountConfigured || oauthConfigured),
-    authentication: oauthConfigured ? "oauth" : serviceAccountConfigured ? "service_account" : null,
+    configured: /^\d{5,20}$/.test(propertyId) && (federated || serviceAccountConfigured || oauthConfigured),
+    ...(federated ? { provider } : {}),
+    authentication: federated ? "workload_identity" : oauthConfigured ? "oauth" : serviceAccountConfigured ? "service_account" : null,
     propertyId,
     clientEmail,
     privateKey,
@@ -82,15 +85,40 @@ function rows(report) {
   }));
 }
 
-async function dashboard(environment = process.env, fetchImpl = fetch) {
+async function federatedAccessToken(config, identity, fetchImpl) {
+  if (typeof identity !== "string" || !identity.trim()) throw new Error("Hosting identity unavailable.");
+  const exchange = await fetchImpl("https://sts.googleapis.com/v1/token", {
+    method:"POST",headers:{"Content-Type":"application/json"},signal:AbortSignal.timeout(10000),
+    body:JSON.stringify({
+      audience:"//iam.googleapis.com/" + config.provider,
+      grantType:"urn:ietf:params:oauth:grant-type:token-exchange",
+      requestedTokenType:"urn:ietf:params:oauth:token-type:access_token",
+      scope:"https://www.googleapis.com/auth/cloud-platform",
+      subjectTokenType:"urn:ietf:params:oauth:token-type:jwt",subjectToken:identity
+    })
+  });
+  if (!exchange.ok) throw new Error("Hosting identity exchange failed (" + exchange.status + ").");
+  const grant = await exchange.json();
+  if (!grant.access_token) throw new Error("Hosting identity exchange returned no credential.");
+  const result = await fetchImpl("https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/" + encodeURIComponent(config.clientEmail) + ":generateAccessToken", {
+    method:"POST",headers:{Authorization:"Bearer " + grant.access_token,"Content-Type":"application/json"},signal:AbortSignal.timeout(10000),
+    body:JSON.stringify({scope:[SCOPE],lifetime:"600s"})
+  });
+  if (!result.ok) throw new Error("Analytics reader authorization failed (" + result.status + ").");
+  const credential = await result.json();
+  if (!credential.accessToken) throw new Error("Analytics reader authorization returned no credential.");
+  return credential.accessToken;
+}
+
+async function dashboard(environment = process.env, fetchImpl = fetch, identity) {
   const config = configuration(environment);
   if (!config.configured) return { configured: false, propertyId: config.propertyId || null };
-  const token = await accessToken(config, fetchImpl);
+  const token = config.authentication === "workload_identity" ? await federatedAccessToken(config, identity || environment.VERCEL_OIDC_TOKEN, fetchImpl) : await accessToken(config, fetchImpl);
   const dateRanges = [{ startDate: "30daysAgo", endDate: "yesterday", name: "current" }, { startDate: "60daysAgo", endDate: "31daysAgo", name: "previous" }];
   const [summary, acquisition, pages, events] = await Promise.all([
     runReport(config, token, { dateRanges, metrics: ["activeUsers", "sessions", "screenPageViews", "engagedSessions", "keyEvents"] .map(name => ({ name })) }, fetchImpl),
     runReport(config, token, { dateRanges: [dateRanges[0]], dimensions: ["sessionSourceMedium", "sessionCampaignName"].map(name => ({ name })), metrics: ["sessions", "activeUsers", "engagedSessions", "keyEvents"].map(name => ({ name })), orderBys: [{ metric: { metricName: "sessions" }, desc: true }], limit: 20 }, fetchImpl),
-    runReport(config, token, { dateRanges: [dateRanges[0]], dimensions: [{ name: "landingPagePlusQueryString" }], metrics: ["sessions", "screenPageViews", "engagedSessions", "keyEvents"].map(name => ({ name })), orderBys: [{ metric: { metricName: "sessions" }, desc: true }], limit: 15 }, fetchImpl),
+    runReport(config, token, { dateRanges: [dateRanges[0]], dimensions: [{ name: "landingPage" }], metrics: ["sessions", "screenPageViews", "engagedSessions", "keyEvents"].map(name => ({ name })), orderBys: [{ metric: { metricName: "sessions" }, desc: true }], limit: 15 }, fetchImpl),
     runReport(config, token, { dateRanges: [dateRanges[0]], dimensions: [{ name: "eventName" }], metrics: [{ name: "eventCount" }], orderBys: [{ metric: { metricName: "eventCount" }, desc: true }], limit: 30 }, fetchImpl)
   ]);
   return {
@@ -104,4 +132,4 @@ async function dashboard(environment = process.env, fetchImpl = fetch) {
   };
 }
 
-module.exports = { configuration, serviceAccountAssertion, accessToken, runReport, rows, dashboard };
+module.exports = { configuration, serviceAccountAssertion, accessToken, federatedAccessToken, runReport, rows, dashboard };

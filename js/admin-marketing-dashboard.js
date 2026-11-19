@@ -41,7 +41,7 @@
     const panel = document.createElement("section");
     panel.id = panelId;
     panel.className = "panel";
-    panel.innerHTML = '<div class="mk-loading">Loading marketing dashboard…</div>';
+
     content.appendChild(panel);
   }
 
@@ -74,7 +74,7 @@
   }
 
   function render() {
-    const panel = document.getElementById(panelId);
+    const panel = funnelHost;
     const leads = filteredLeads();
     const bookings = filteredBookings(leads);
     const proposals = leads.filter((lead) => ["Proposal Sent", "Booked"].includes(normalizedStatus(lead.status)));
@@ -93,7 +93,10 @@
       sourceMap.set(key, row);
     });
     const rows = [...sourceMap.values()].sort((a, b) => b.leads - a.leads);
-    const adSpend = Number(localStorage.getItem("318_marketing_spend") || 0);
+    const collected = state.revenue?.filter(row => (!state.source || row.source === state.source) && (!state.campaign || row.campaign === state.campaign))
+      .reduce((sum, row) => sum + Number(row.revenue || 0), 0);
+    const spendKey = "318_marketing_plan:" + JSON.stringify([state.start,state.end,state.source,state.campaign]);
+    const adSpend = Number(localStorage.getItem(spendKey) || 0);
     const cpl = leads.length && adSpend ? adSpend / leads.length : 0;
 
     panel.innerHTML = `<div class="mk-shell">
@@ -108,7 +111,7 @@
       <section class="mk-metrics">
         <div class="mk-card"><span>Quote requests</span><strong>${leads.length}</strong><small>Within the selected period</small></div>
         <div class="mk-card"><span>Booking conversion</span><strong>${pct(conversion)}</strong><small>${booked.length} booked opportunities</small></div>
-        <div class="mk-card"><span>Pipeline value</span><strong>${money(pipelineValue)}</strong><small>Open quoted opportunity value</small></div>
+        <div class="mk-card"><span>Pipeline value</span><strong>${money(pipelineValue)}</strong><small>Customer budget estimates</small></div>
         <div class="mk-card"><span>Booked revenue</span><strong>${money(bookedRevenue)}</strong><small>Calendar quote amounts, excluding cancelled</small></div>
       </section>
       <section class="mk-funnel" aria-label="Sales funnel">
@@ -116,27 +119,29 @@
         <div class="mk-stage"><b>${proposals.length}</b><span>Proposal reached</span><small>${leads.length ? pct(proposals.length / leads.length * 100) : "0%"}</small></div>
         <div class="mk-stage"><b>${booked.length}</b><span>Booked</span><small>${leads.length ? pct(booked.length / leads.length * 100) : "0%"}</small></div>
         <div class="mk-stage"><b>${completed.length}</b><span>Completed</span><small>${booked.length ? pct(completed.length / booked.length * 100) : "0%"}</small></div>
-        <div class="mk-stage"><b>${money(state.revenue.reduce((sum, row) => sum + Number(row.revenue || 0), 0))}</b><span>Collected</span><small>Attributed payments</small></div>
+        <div class="mk-stage"><b>${collected == null ? "Unavailable" : money(collected)}</b><span>Collected</span><small>Payments received in this period</small></div>
       </section>
       <section class="mk-grid">
         <div class="mk-panel"><h3>Source and campaign performance</h3>${rows.length ? `<div class="mk-table-wrap"><table class="mk-table"><thead><tr><th>Source</th><th>Campaign</th><th>Leads</th><th>Booked</th><th>Conversion</th><th>Quoted value</th></tr></thead><tbody>${rows.map((row) => `<tr><td><strong>${escapeHTML(row.source)}</strong><br><small>${escapeHTML(row.medium)}</small></td><td>${escapeHTML(row.campaign || "—")}</td><td>${row.leads}</td><td>${row.booked}</td><td>${pct(row.leads ? row.booked / row.leads * 100 : 0)}</td><td>${money(row.value)}</td></tr>`).join("")}</tbody></table></div>` : '<div class="mk-empty">No attributed quote requests match these filters yet.<br>Use UTM-tagged campaign links to begin separating Facebook, Google, email, and other sources.</div>'}</div>
-        <div class="mk-panel"><h3>Ad spend planning</h3><div class="mk-spend"><label>Ad spend for this selected period<input id="mkSpend" type="number" min="0" step="0.01" value="${adSpend || ""}" placeholder="0.00"></label><div class="mk-card"><span>Estimated cost per lead</span><strong>${adSpend && leads.length ? money(cpl) : "—"}</strong><small>Spend ÷ quote requests</small></div></div><div class="mk-note">This spend field is a private browser planning value and is not imported from Meta or Google Ads yet. It does not change accounting records.</div></div>
+        <div class="mk-panel"><h3>Ad spend planning</h3><div class="mk-spend"><label>Ad spend for this selected period<input id="mkSpend" type="number" min="0" step="0.01" value="${adSpend || ""}" placeholder="0.00"></label><div class="mk-card"><span>Estimated cost per lead</span><strong>${adSpend && leads.length ? money(cpl) : "—"}</strong><small>Spend ÷ quote requests</small></div></div><div class="mk-note">This spend field is a private browser planning value for these filters and is not imported from Meta or Google Ads yet. It does not change accounting records.</div></div>
       </section>
       <div class="mk-note"><strong>What the data means:</strong> first-party attribution is saved when someone submits a quote. Anonymous visitors who never submit are not permanently stored here, so complete visit-to-lead conversion requires GA4. Direct and unattributed leads remain visible instead of being hidden.</div>
     </div>`;
 
     [["mkStart", "start"], ["mkEnd", "end"], ["mkSource", "source"], ["mkCampaign", "campaign"]].forEach(([id, key]) => document.getElementById(id).addEventListener("change", (event) => { state[key] = event.target.value; loadRevenue().then(render); }));
     document.getElementById("mkReset").addEventListener("click", () => { dateRangeDefaults(); state.source = ""; state.campaign = ""; loadRevenue().then(render); });
-    document.getElementById("mkSpend").addEventListener("input", (event) => { localStorage.setItem("318_marketing_spend", event.target.value); const value = Number(event.target.value || 0); event.target.closest(".mk-panel").querySelector(".mk-card strong").textContent = value && leads.length ? money(value / leads.length) : "—"; });
+    document.getElementById("mkSpend").addEventListener("input", (event) => { localStorage.setItem(spendKey, event.target.value); const value = Number(event.target.value || 0); event.target.closest(".mk-panel").querySelector(".mk-card strong").textContent = value && leads.length ? money(value / leads.length) : "—"; });
   }
 
+  let revenueRequest = 0;
   async function loadRevenue() {
+    const request = ++revenueRequest;
     const { data, error } = await supabaseClient.rpc("marketing_revenue_attribution", { p_start: state.start, p_end: state.end, p_model: "last_non_direct" });
-    state.revenue = error ? [] : (data || []);
+    if (request === revenueRequest) state.revenue = error ? null : (data || []);
   }
 
   async function load() {
-    const panel = document.getElementById(panelId);
+    const panel = funnelHost;
     panel.innerHTML = '<div class="mk-loading">Loading marketing and sales data…</div>';
     try {
       const [leadResult, bookingResult] = await Promise.all([
@@ -155,8 +160,17 @@
     }
   }
 
-  addStyles();
-  installPanel();
-  dateRangeDefaults();
-  load();
+  let funnelHost;
+  function start() {
+    if (document.getElementById("marketingSalesFunnel")) return;
+    addStyles();
+    installPanel();
+    funnelHost = document.createElement("div");
+    funnelHost.id = "marketingSalesFunnel";
+    document.getElementById(panelId).prepend(funnelHost);
+    dateRangeDefaults();
+    load();
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start, { once: true });
+  else start();
 })();

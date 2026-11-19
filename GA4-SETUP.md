@@ -39,3 +39,9 @@ The private owner dashboard can read aggregate GA4 reports through the Google An
 The service identity needs only Viewer access at the property level. It does not need a Google Cloud project IAM role. The owner dashboard endpoint requires an authenticated Project 318 administrator session, uses the `analytics.readonly` scope, returns aggregate reporting data, and does not expose credentials to the browser.
 
 If Google Analytics does not accept a service identity, use owner OAuth instead. Configure `GOOGLE_ANALYTICS_OAUTH_CLIENT_ID`, `GOOGLE_ANALYTICS_OAUTH_CLIENT_SECRET`, and `GOOGLE_ANALYTICS_OAUTH_REFRESH_TOKEN` as encrypted Production variables. The OAuth grant must request only `analytics.readonly` and offline access. When complete OAuth credentials are present they take precedence over the service-account variables.
+
+## Project-scoped Google reporting
+
+The server also supports a Google workload identity provider restricted to this Vercel project's Production environment. Set the private Production variable `GOOGLE_ANALYTICS_WORKLOAD_PROVIDER` to the Google resource path starting with `projects/`. Set `GOOGLE_ANALYTICS_CLIENT_EMAIL` to the dedicated Analytics Viewer and `GA4_PROPERTY_ID` to the GA4 property number. These identifiers contain no private keys. The authenticated reporting endpoint exchanges Vercel's request identity for an Analytics-only credential that lasts ten minutes. Federation takes priority when configured.
+
+Google's trust condition must match the Vercel project ID and Production environment. Bind impersonation on the dedicated Analytics Viewer service account only. Retire unused OAuth grants and old keys. Confirm the dashboard renders a dated report as an administrator and that an anonymous request is denied.
