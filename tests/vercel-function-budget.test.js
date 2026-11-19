@@ -40,7 +40,7 @@ test("consolidated routers expose only explicit allowlisted handlers", () => {
   const admin = require("../api/admin-marketing.js");
   const publicContent = require("../api/public-content.js");
   assert.deepEqual(Object.keys(admin.handlers).sort(), [
-    "assistant", "autopilot-action", "autopilot-bulk", "autopilot-executive",
+    "analytics", "assistant", "autopilot-action", "autopilot-bulk", "autopilot-executive",
     "autopilot-learning", "autopilot-publish", "autopilot-queue", "autopilot-run-now", "content", "test-email"
   ]);
   assert.deepEqual(Object.keys(publicContent.handlers).sort(), ["blog-index", "blog-post", "sitemap"]);

@@ -27,3 +27,13 @@ Use the measurement ID from the correct GA4 web data stream. Do not use a Measur
 5. Reset Privacy settings, accept analytics, and verify the GA4 script loads.
 6. Confirm `page_view` and a test CTA event in GA4 DebugView or Realtime.
 7. Do not include test customer information in analytics event properties.
+
+## Owner dashboard reporting
+
+The private owner dashboard can read aggregate GA4 reports through the Google Analytics Data API. Configure these server-only Production variables in Vercel:
+
+- `GA4_PROPERTY_ID` — the numeric GA4 property ID, not the `G-` measurement ID.
+- `GOOGLE_ANALYTICS_CLIENT_EMAIL` — the dedicated service-account email granted Viewer access to this GA4 property.
+- `GOOGLE_ANALYTICS_PRIVATE_KEY` — the service-account JSON private key value. Store it only as an encrypted Vercel environment variable and never commit the JSON key file.
+
+The service identity needs only Viewer access at the property level. It does not need a Google Cloud project IAM role. The owner dashboard endpoint requires an authenticated Project 318 administrator session, uses the `analytics.readonly` scope, returns aggregate reporting data, and does not expose credentials to the browser.

@@ -1,5 +1,6 @@
 {
   "rewrites": [
+    { "source": "/api/admin-marketing-analytics", "destination": "/api/admin-marketing?route=analytics" },
     { "source": "/api/admin-marketing-assistant", "destination": "/api/admin-marketing?route=assistant" },
     { "source": "/api/admin-marketing-autopilot-action", "destination": "/api/admin-marketing?route=autopilot-action" },
     { "source": "/api/admin-marketing-autopilot-bulk", "destination": "/api/admin-marketing?route=autopilot-bulk" },

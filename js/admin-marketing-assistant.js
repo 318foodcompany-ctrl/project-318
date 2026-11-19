@@ -26,7 +26,7 @@
     }));
   }
 
-  async function performanceContext(client, start, end) {
+  async function performanceContext(client, start, end, analyticsReport = null) {
     const args = { p_start: start, p_end: end, p_model: "last_non_direct" };
     const [funnel, revenue, spend] = await Promise.all([
       client.rpc("marketing_quote_funnel", args),
@@ -48,7 +48,15 @@
       },
       funnel_by_source: funnelRows.slice(0, 30),
       revenue_by_source: revenueRows.slice(0, 30),
-      spend_by_source: spendRows.slice(0, 30)
+      spend_by_source: spendRows.slice(0, 30),
+      google_analytics: analyticsReport ? {
+        property_id: analyticsReport.propertyId,
+        generated_at: analyticsReport.generatedAt,
+        summary: (analyticsReport.summary || []).slice(0, 2),
+        acquisition: (analyticsReport.acquisition || []).slice(0, 20),
+        landing_pages: (analyticsReport.landingPages || []).slice(0, 15),
+        events: (analyticsReport.events || []).filter(row => /page_view|quote|cta|phone|email|direction/i.test(row.eventName)).slice(0, 20)
+      } : null
     };
   }
 
@@ -110,7 +118,7 @@
         const end = new Date();
         const start = new Date(end); start.setDate(start.getDate() - 90);
         const dateValue = date => date.toISOString().slice(0, 10);
-        const context = type === "seo" ? { pages: await pageSeoContext(win) } : await performanceContext(client, dateValue(start), dateValue(end));
+        const context = type === "seo" ? { pages: await pageSeoContext(win) } : await performanceContext(client, dateValue(start), dateValue(end), win.Project318GoogleAnalyticsReport || null);
         const { data: sessionData, error: sessionError } = await client.auth.getSession();
         if (sessionError || !sessionData?.session?.access_token) throw sessionError || new Error("Administrator session expired.");
         const response = await win.fetch("/api/admin-marketing-assistant", { method: "POST", headers: { Authorization: `Bearer ${sessionData.session.access_token}`, "Content-Type": "application/json" }, body: JSON.stringify({ analysis_type: type, context }) });

@@ -1,6 +1,7 @@
 "use strict";
 
 const handlers = Object.freeze({
+  analytics: require("../server/api/admin-marketing-analytics.js"),
   assistant: require("../server/api/admin-marketing-assistant.js"),
   "autopilot-action": require("../server/api/admin-marketing-autopilot-action.js"),
   "autopilot-bulk": require("../server/api/admin-marketing-autopilot-bulk.js"),
