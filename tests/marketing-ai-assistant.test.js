@@ -93,6 +93,11 @@ test("the authorized OpenAI advisor stores one private draft from aggregate data
     const remote=requests.filter(item=>item.url.startsWith("https://api.openai.com/"));
     assert.equal(remote.length,1);
     assert.equal(JSON.parse(remote[0].options.body).store,false);
+    const format = JSON.parse(remote[0].options.body).text.format;
+    assert.equal(format.type, "json_schema");
+    assert.equal(format.strict, true);
+    assert.equal(format.schema.additionalProperties, false);
+    assert.deepEqual(format.schema.properties.suggestions.items.required, ["title", "rationale", "proposed_value", "confidence"]);
     assert.doesNotMatch(JSON.parse(remote[0].options.body).input,/private|99/);
     assert.equal(response.body.status,"draft");
     assert.equal(requests.filter(item=>item.url.includes("/marketing_ai_audit") && item.options.method==="POST").length,1);

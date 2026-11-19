@@ -75,6 +75,34 @@ function providerConfig(environment) {
   return {url:"https://api.openai.com/v1/responses",key:openai.mode==="send"?openai.key:"",model:openai.model,custom:false,maxTokens:openai.maxTokens};
 }
 
+const recommendationFormat = {
+  type: "json_schema",
+  name: "owner_marketing_recommendation",
+  strict: true,
+  schema: {
+    type: "object",
+    additionalProperties: false,
+    required: ["summary", "suggestions"],
+    properties: {
+      summary: { type: "string" },
+      suggestions: {
+        type: "array",
+        items: {
+          type: "object",
+          additionalProperties: false,
+          required: ["title", "rationale", "proposed_value", "confidence"],
+          properties: {
+            title: { type: "string" },
+            rationale: { type: "string" },
+            proposed_value: { type: "string" },
+            confidence: { type: "string", enum: ["low", "medium", "high"] }
+          }
+        }
+      }
+    }
+  }
+};
+
 async function supabaseRequest(url, options) {
   const response = await fetch(url, options);
   const text = await response.text();
@@ -152,13 +180,18 @@ async function handler(request, response) {
     const prompt = JSON.stringify({analysis_type:analysisType,context});
     const body = providerSettings.custom
       ? {model,temperature:0.2,messages:[{role:"system",content:system},{role:"user",content:prompt}],response_format:{type:"json_object"}}
-      : {model,instructions:system,input:prompt,store:false,max_output_tokens:providerSettings.maxTokens,text:{format:{type:"json_object"}}};
+      : {model,instructions:system,input:prompt,store:false,max_output_tokens:providerSettings.maxTokens,text:{format:recommendationFormat}};
     const providerResponse = await fetch(providerUrl, {
       method: "POST",
       headers: { Authorization: `Bearer ${providerKey}`, "Content-Type": "application/json" },
       body:JSON.stringify(body), signal:AbortSignal.timeout(25000), redirect:"error"
     });
-    if (!providerResponse.ok) throw new Error(`AI provider request failed (${providerResponse.status}).`);
+    if (!providerResponse.ok) {
+      const details = await providerResponse.json().catch(() => ({}));
+      const diagnostic = [details?.error?.code, details?.error?.param]
+        .filter(value => typeof value === "string" && /^[a-z][a-z_0-9.]{0,63}$/.test(value));
+      throw new Error(["AI provider request failed", providerResponse.status, ...diagnostic].join(" "));
+    }
     const providerPayload = await providerResponse.json();
     const draft = providerSettings.custom ? parseProviderOutput(providerPayload) : validateDraft(JSON.parse(sharedAi.responseText(providerPayload)));
     const provider = new URL(providerUrl).hostname.slice(0, 120);
