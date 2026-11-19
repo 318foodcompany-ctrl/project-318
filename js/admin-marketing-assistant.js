@@ -5,7 +5,6 @@
 
   function escapeHtml(value) { return String(value ?? "").replace(/[&<>"']/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[character])); }
   function dateText(value) { const date = new Date(value); return Number.isNaN(date.getTime()) ? "—" : date.toLocaleString(); }
-  function safeNumber(value) { const number = Number(value); return Number.isFinite(number) ? number : 0; }
 
   async function pageSeoContext(win) {
     return Promise.all(PUBLIC_PAGES.map(async path => {
@@ -26,46 +25,20 @@
     }));
   }
 
-  async function performanceContext(client, start, end, analyticsReport = null) {
-    const args = { p_start: start, p_end: end, p_model: "last_non_direct" };
-    const [funnel, revenue, spend] = await Promise.all([
-      client.rpc("marketing_quote_funnel", args),
-      client.rpc("marketing_revenue_attribution", args),
-      client.rpc("marketing_spend_summary", args)
-    ]);
-    for (const result of [funnel, revenue, spend]) if (result.error) throw result.error;
-    const funnelRows = funnel.data || [];
-    const revenueRows = revenue.data || [];
-    const spendRows = spend.data || [];
-    return {
-      period: { start, end },
-      website_data_status: analyticsReport ? "Available" : "Unavailable. Website traffic and visit-to-quote conversion cannot be assessed.",
-      totals: {
-        quotes: funnelRows.reduce((sum, row) => sum + safeNumber(row.quote_count), 0),
-        booked: funnelRows.reduce((sum, row) => sum + safeNumber(row.booked_count), 0),
-        booked_value: funnelRows.reduce((sum, row) => sum + safeNumber(row.booked_budget), 0),
-        revenue: revenueRows.reduce((sum, row) => sum + safeNumber(row.revenue), 0),
-        spend: spendRows.reduce((sum, row) => sum + safeNumber(row.spend), 0)
-      },
-      funnel_by_source: funnelRows.slice(0, 30),
-      revenue_by_source: revenueRows.slice(0, 30),
-      spend_by_source: spendRows.slice(0, 30),
-      google_analytics: analyticsReport ? {
-        property_id: analyticsReport.propertyId,
-        period: "Last 30 complete days in the Google Analytics property time zone. Previous refers to the preceding 30 days.",
-        generated_at: analyticsReport.generatedAt,
-        summary: (analyticsReport.summary || []).slice(0, 2),
-        acquisition: (analyticsReport.acquisition || []).slice(0, 20),
-        landing_pages: (analyticsReport.landingPages || []).slice(0, 15),
-        events: (analyticsReport.events || []).filter(row => /page_view|quote|cta|phone|email|direction/i.test(row.eventName)).slice(0, 20)
-      } : null
-    };
+  function periodNote(record) {
+    if (!["performance","next_actions"].includes(record.analysis_type)) return "";
+    const period = record.report_period || record.request_context?.period;
+    const start = Date.parse(period?.start), end = Date.parse(period?.end);
+    if (!Number.isFinite(start) || !Number.isFinite(end) || end - start !== 29 * 86400000) {
+      return "Reporting dates do not match the 30-day Analytics window. Exclude this draft from advertising decisions.";
+    }
+    return "Reporting period: " + period.start + " through " + period.end + ".";
   }
 
   function recommendationMarkup(record) {
     const draft = record?.draft || record?.structured_output || {};
     const suggestions = Array.isArray(draft.suggestions) ? draft.suggestions : [];
-    return `<article class="marketing-ai-draft" data-ai-record="${escapeHtml(record.id)}"><div class="marketing-ai-draft-head"><div><span>Draft recommendation</span><h4>${escapeHtml(draft.summary || "Marketing analysis")}</h4></div><em>${escapeHtml(record.status || record.review_status || "draft")}</em></div><ol>${suggestions.map(item => `<li><div><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.confidence || "unrated")} confidence</small></div><p>${escapeHtml(item.rationale)}</p>${item.proposed_value ? `<blockquote>${escapeHtml(item.proposed_value)}</blockquote>` : ""}</li>`).join("")}</ol>${(record.status || record.review_status) === "draft" ? `<div class="marketing-ai-actions"><button type="button" data-ai-review="approved">Approve draft</button><button type="button" class="secondary" data-ai-review="rejected">Reject draft</button></div><p class="marketing-ai-note">Approval records your decision. It does not publish content or change advertising accounts.</p>` : ""}</article>`;
+    return `<article class="marketing-ai-draft" data-ai-record="${escapeHtml(record.id)}"><div class="marketing-ai-draft-head"><div><span>Draft recommendation</span><p>${escapeHtml(periodNote(record))}</p><h4>${escapeHtml(draft.summary || "Marketing analysis")}</h4></div><em>${escapeHtml(record.status || record.review_status || "draft")}</em></div><ol>${suggestions.map(item => `<li><div><strong>${escapeHtml(item.title)}</strong><small>${escapeHtml(item.confidence || "unrated")} confidence</small></div><p>${escapeHtml(item.rationale)}</p>${item.proposed_value ? `<blockquote>${escapeHtml(item.proposed_value)}</blockquote>` : ""}</li>`).join("")}</ol>${(record.status || record.review_status) === "draft" ? `<div class="marketing-ai-actions"><button type="button" data-ai-review="approved">Approve draft</button><button type="button" class="secondary" data-ai-review="rejected">Reject draft</button></div><p class="marketing-ai-note">Approval records your decision. It does not publish content or change advertising accounts.</p>` : ""}</article>`;
   }
 
   function createAssistant(win) {
@@ -105,9 +78,9 @@
 
     async function loadHistory() {
       history.innerHTML = '<div class="marketing-empty">Loading recommendation history…</div>';
-      const { data, error } = await client.from("marketing_ai_audit").select("id,analysis_type,structured_output,review_status,created_at,reviewed_at").order("created_at", { ascending: false }).limit(20);
+      const { data, error } = await client.from("marketing_ai_audit").select("id,analysis_type,structured_output,review_status,created_at,reviewed_at,report_period:request_context->period").order("created_at", { ascending: false }).limit(20);
       if (error) { history.innerHTML = `<div class="marketing-empty">History unavailable: ${escapeHtml(error.message)}</div>`; return; }
-      history.innerHTML = data?.length ? `<div class="marketing-ai-history-list">${data.map(item => `<button type="button" data-ai-history="${escapeHtml(item.id)}"><span><strong>${escapeHtml(item.analysis_type.replace("_", " "))}</strong><small>${escapeHtml(item.structured_output?.summary || "Recommendation draft")}</small></span><em>${escapeHtml(item.review_status)} · ${escapeHtml(dateText(item.created_at))}</em></button>`).join("")}</div>` : '<div class="marketing-empty">No recommendation records yet.</div>';
+      history.innerHTML = data?.length ? `<div class="marketing-ai-history-list">${data.map(item => `<button type="button" data-ai-history="${escapeHtml(item.id)}"><span><strong>${escapeHtml(item.analysis_type.replace("_", " "))}</strong><small>${escapeHtml(periodNote(item))}</small><small>${escapeHtml(item.structured_output?.summary || "Recommendation draft")}</small></span><em>${escapeHtml(item.review_status)} · ${escapeHtml(dateText(item.created_at))}</em></button>`).join("")}</div>` : '<div class="marketing-empty">No recommendation records yet.</div>';
       history.querySelectorAll("[data-ai-history]").forEach(button => button.addEventListener("click", () => { const item = data.find(row => row.id === button.dataset.aiHistory); current.innerHTML = recommendationMarkup({ ...item, draft: item.structured_output, status: item.review_status }); bindReviewButtons(); current.scrollIntoView({ behavior: "smooth", block: "nearest" }); }));
     }
 
@@ -117,12 +90,7 @@
       button.disabled = true;
       message.textContent = "Preparing a privacy-safe analysis…";
       try {
-        const end = new Date();
-        end.setDate(end.getDate() - 1);
-        const start = new Date(end);
-        start.setDate(start.getDate() - 29);
-        const dateValue = date => [date.getFullYear(), String(date.getMonth() + 1).padStart(2, "0"), String(date.getDate()).padStart(2, "0")].join("-");
-        const context = type === "seo" ? { pages: await pageSeoContext(win) } : await performanceContext(client, dateValue(start), dateValue(end), win.Project318GoogleAnalyticsReport || null);
+        const context = type === "seo" ? { pages: await pageSeoContext(win) } : {};
         const { data: sessionData, error: sessionError } = await client.auth.getSession();
         if (sessionError || !sessionData?.session?.access_token) throw sessionError || new Error("Administrator session expired.");
         const response = await win.fetch("/api/admin-marketing-assistant", { method: "POST", headers: { Authorization: `Bearer ${sessionData.session.access_token}`, "Content-Type": "application/json" }, body: JSON.stringify({ analysis_type: type, context }) });
@@ -141,7 +109,7 @@
     loadHistory();
   }
 
-  const api = { PUBLIC_PAGES, escapeHtml, safeNumber, pageSeoContext, performanceContext, recommendationMarkup, createAssistant };
+  const api = { PUBLIC_PAGES, escapeHtml, pageSeoContext, periodNote, recommendationMarkup, createAssistant };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (globalScope?.document) {
     if (globalScope.document.readyState === "loading") globalScope.document.addEventListener("DOMContentLoaded", () => createAssistant(globalScope));

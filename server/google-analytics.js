@@ -110,11 +110,11 @@ async function federatedAccessToken(config, identity, fetchImpl) {
   return credential.accessToken;
 }
 
-async function dashboard(environment = process.env, fetchImpl = fetch, identity) {
+async function dashboard(environment = process.env, fetchImpl = fetch, identity, period) {
   const config = configuration(environment);
   if (!config.configured) return { configured: false, propertyId: config.propertyId || null };
   const token = config.authentication === "workload_identity" ? await federatedAccessToken(config, identity || environment.VERCEL_OIDC_TOKEN, fetchImpl) : await accessToken(config, fetchImpl);
-  const dateRanges = [{ startDate: "30daysAgo", endDate: "yesterday", name: "current" }, { startDate: "60daysAgo", endDate: "31daysAgo", name: "previous" }];
+  const dateRanges = period ? [{startDate:period.start,endDate:period.end,name:"current"}] : [{ startDate: "30daysAgo", endDate: "yesterday", name: "current" }, { startDate: "60daysAgo", endDate: "31daysAgo", name: "previous" }];
   const [summary, acquisition, pages, events] = await Promise.all([
     runReport(config, token, { dateRanges, metrics: ["activeUsers", "sessions", "screenPageViews", "engagedSessions", "keyEvents"] .map(name => ({ name })) }, fetchImpl),
     runReport(config, token, { dateRanges: [dateRanges[0]], dimensions: ["sessionSourceMedium", "sessionCampaignName"].map(name => ({ name })), metrics: ["sessions", "activeUsers", "engagedSessions", "keyEvents"].map(name => ({ name })), orderBys: [{ metric: { metricName: "sessions" }, desc: true }], limit: 20 }, fetchImpl),
@@ -125,7 +125,7 @@ async function dashboard(environment = process.env, fetchImpl = fetch, identity)
     configured: true,
     propertyId: config.propertyId,
     generatedAt: new Date().toISOString(),
-    summary: rows(summary),
+    summary: period ? rows(summary).map(row => ({...row,dateRange:"current"})) : rows(summary),
     acquisition: rows(acquisition),
     landingPages: rows(pages),
     events: rows(events)
