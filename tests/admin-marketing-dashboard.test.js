@@ -4,7 +4,7 @@ const assert = require("assert");
 
 const root = path.resolve(__dirname, "..");
 const dashboard = fs.readFileSync(path.join(root, "js/admin-marketing-dashboard.js"), "utf8");
-const loader = fs.readFileSync(path.join(root, "js/quote-status.js"), "utf8");
+const loader = fs.readFileSync(path.join(root, "js/supabase.js"), "utf8");
 
 assert.match(loader, /admin-marketing-dashboard\.js/, "admin loader should include the marketing dashboard");
 assert.match(dashboard, /Marketing & Sales Funnel/, "dashboard should identify the marketing funnel");

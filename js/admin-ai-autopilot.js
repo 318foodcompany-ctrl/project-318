@@ -66,12 +66,31 @@
   }
   function parsed(id){const task=state.tasks.find(t=>t.id===id),original=state.content.get(task?.ai_content_id)?.structured_output||{},value={...original};document.querySelectorAll(`[data-editor="${CSS.escape(id)}"] [data-field]`).forEach(field=>{value[field.dataset.field]=field.dataset.field==="hashtags"?field.value.split(/[\s,]+/).filter(Boolean):field.value;});return value;}
   async function session(){const s=(await client().auth.getSession()).data.session;if(!s)throw new Error("Session expired.");return s;}
-  async function action(taskId,action){try{const task=state.tasks.find(t=>t.id===taskId),s=await session(),body={task_id:taskId,action};if(action==="edit")body.structured_output=parsed(taskId);if(action==="reject")body.reason="Rejected by administrator";const r=await fetch("/api/admin-marketing-autopilot-action",{method:"POST",headers:{Authorization:`Bearer ${s.access_token}`,"Content-Type":"application/json"},body:JSON.stringify(body)}),payload=await r.json();if(!r.ok)throw new Error(payload.error||"Action failed.");if(action==="approve"&&AUTO_PUBLISHABLE.has(task?.content_type)){msg("Approved. Publishing now…");const published=await publish(taskId,false);msg(`${published.already_published?"Already published":"Approved and published"}${published.destination?` to ${published.destination}`:""}.`);}else if(action==="approve")msg("Approved. This channel will post automatically after its account connector is enabled.");else msg(`${pretty(action)} completed.`);await load();}catch(error){msg(`AI task action failed: ${error.message}`,true);await load();}}
+  async function action(taskId, action) {
+    try {
+      const s = await session();
+      const body = {task_id:taskId, action};
+      if (action === "edit") body.structured_output = parsed(taskId);
+      if (action === "reject") body.reason = "Rejected by administrator";
+      const response = await fetch("/api/admin-marketing-autopilot-action", {
+        method:"POST", headers:{Authorization:`Bearer ${s.access_token}`, "Content-Type":"application/json"}, body:JSON.stringify(body)
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "Review failed.");
+      await load();
+      msg(action === "approve" ? "Draft approved. Nothing was published or sent." : `${pretty(action)} completed.`);
+    } catch (error) {
+      msg(`Review could not be confirmed: ${error.message}`, true);
+    }
+  }
   async function publish(taskId,reload=true){const s=await session(),r=await fetch("/api/admin-marketing-autopilot-publish",{method:"POST",headers:{Authorization:`Bearer ${s.access_token}`,"Content-Type":"application/json"},body:JSON.stringify({task_id:taskId})}),payload=await r.json();if(!r.ok)throw new Error(payload.error||"Publish failed.");if(reload){msg(`${payload.already_published?"Already published":"Published successfully"}${payload.destination?` to ${payload.destination}`:""}.`);await load();}return payload;}
   async function copyTask(taskId){try{await navigator.clipboard.writeText(JSON.stringify(state.content.get(state.tasks.find(t=>t.id===taskId)?.ai_content_id)?.structured_output||{},null,2));msg("Approved draft copied.");}catch(error){msg("Could not copy the approved draft.",true);}}
   async function saveBrain(){try{const value={mission:$("mission").value.trim(),business_facts:JSON.parse($("businessFacts").value||"{}"),voice_preferences:JSON.parse($("voicePreferences").value||"{}"),seasonal_rules:JSON.parse($("seasonalRules").value||"{}"),growth_priorities:JSON.parse($("growthPriorities").value||"[]"),prohibited_claims:JSON.parse($("prohibitedClaims").value||"[]")};await unwrap(client().from("marketing_ai_brand_brain").update(value).eq("id",1).select("*"));msg("Business Brain saved.");await load();}catch(error){msg(`Business Brain was not saved: ${error.message}`,true);}}
   function tabs(){document.querySelectorAll("[data-view]").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("[data-view]").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v.id===b.dataset.view));if(b.dataset.view==="learningView")loadLearning();}));}
   async function protect(){const r=await client().auth.getSession(),s=r.data?.session;if(!s){location.replace("login.html");return false;}const a=await client().rpc("crm_is_admin");if(a.error||a.data!==true){location.replace("login.html?error=unauthorized");return false;}$("signedIn").textContent=s.user.email||"Administrator";return true;}
-  document.addEventListener("click",e=>{const setting=e.target.closest("[data-save-setting]");if(setting)saveSetting(setting.dataset.saveSetting);const toggle=e.target.closest("[data-toggle-editor]");if(toggle){const editor=document.querySelector(`[data-editor="${CSS.escape(toggle.dataset.toggleEditor)}"]`);if(editor){editor.hidden=!editor.hidden;toggle.textContent=editor.hidden?"Edit draft":"Hide editor";}}const a=e.target.closest("[data-action]");if(a)action(a.dataset.taskId,a.dataset.action);const p=e.target.closest("[data-publish-task]");if(p)publish(p.dataset.publishTask);const c=e.target.closest("[data-copy-task]");if(c)copyTask(c.dataset.copyTask);});
+  document.addEventListener("click",e=>{const setting=e.target.closest("[data-save-setting]");if(setting)saveSetting(setting.dataset.saveSetting);const toggle=e.target.closest("[data-toggle-editor]");if(toggle){const editor=document.querySelector(`[data-editor="${CSS.escape(toggle.dataset.toggleEditor)}"]`);if(editor){editor.hidden=!editor.hidden;toggle.textContent=editor.hidden?"Edit draft":"Hide editor";}}const a=e.target.closest("[data-action]");if(a)action(a.dataset.taskId,a.dataset.action);const p=e.target.closest("[data-publish-task]");if(p && !p.disabled && window.confirm(p.textContent.trim() + " now? This action can reach customers.")) {
+      p.disabled = true;
+      publish(p.dataset.publishTask).catch(error => msg("Could not complete this action. " + error.message, true)).finally(() => { p.disabled = false; });
+    }const c=e.target.closest("[data-copy-task]");if(c)copyTask(c.dataset.copyTask);});
   $("saveBrain").addEventListener("click",saveBrain);$("refreshQueue").addEventListener("click",load);$("refreshLearning").addEventListener("click",loadLearning);tabs();protect().then(ok=>ok&&load());
 })();
