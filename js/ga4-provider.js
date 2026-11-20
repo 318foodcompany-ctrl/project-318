@@ -25,13 +25,16 @@
     const deliveredEventIds = new Set();
     let initialized = false;
     let loading = null;
+    let consentVersion = 0;
+    let lastConsent = analyticsAllowed();
 
     function analyticsAllowed() {
       return Boolean(win.Project318Consent && win.Project318Consent.permits("analytics"));
     }
 
     function configure() {
-      if (initialized || !validMeasurementId(measurementId)) return false;
+      if (!analyticsAllowed()) return false;
+      if (initialized) return true;
       win.dataLayer = win.dataLayer || [];
       win.gtag = win.gtag || function gtag() { win.dataLayer.push(arguments); };
       win.gtag("js", new Date());
@@ -47,12 +50,13 @@
     function load() {
       if (!validMeasurementId(measurementId) || !analyticsAllowed()) return Promise.resolve(false);
       if (initialized) return Promise.resolve(true);
-      if (loading) return loading;
+      if (loading) return loading.then(ready => ready && configure());
 
       loading = new Promise((resolve, reject) => {
         const existing = doc.getElementById(SCRIPT_ID);
         if (existing) {
-          existing.addEventListener("load", () => resolve(configure()), { once: true });
+          if (existing.dataset.loaded === "true") return resolve(true);
+          existing.addEventListener("load", () => { existing.dataset.loaded = "true"; resolve(true); }, { once: true });
           existing.addEventListener("error", reject, { once: true });
           return;
         }
@@ -60,16 +64,17 @@
         script.id = SCRIPT_ID;
         script.async = true;
         script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(measurementId)}`;
-        script.onload = () => resolve(configure());
+        script.onload = () => { script.dataset.loaded = "true"; resolve(true); };
         script.onerror = reject;
         doc.head.appendChild(script);
       }).catch((error) => {
+        doc.getElementById(SCRIPT_ID)?.remove();
         loading = null;
         console.error("GA4 could not be loaded:", error);
         return false;
       });
 
-      return loading;
+      return loading.then(ready => ready && configure());
     }
 
     async function send(detail) {
@@ -77,8 +82,9 @@
       const eventId = String(detail.event_id || "").trim();
       if (eventId && deliveredEventIds.has(eventId)) return false;
       if (eventId) deliveredEventIds.add(eventId);
+      const version = consentVersion;
       const ready = await load();
-      if (!ready || typeof win.gtag !== "function") {
+      if (!ready || version !== consentVersion || !analyticsAllowed() || typeof win.gtag !== "function") {
         if (eventId) deliveredEventIds.delete(eventId);
         return false;
       }
@@ -90,15 +96,17 @@
       send(event.detail);
     }
 
-    function onConsentChanged(event) {
-      if (event.detail?.analytics !== true) return;
-      load().then((ready) => {
-        if (!ready) return;
-        send({
-          event: "page_view",
-          page_path: win.location?.pathname || "/",
-          page_title: doc.title
-        });
+    function onConsentChanged() {
+      const allowed = analyticsAllowed();
+      if (allowed === lastConsent) return;
+      lastConsent = allowed;
+      consentVersion++;
+      win["ga-disable-" + measurementId] = !allowed;
+      if (!allowed) return;
+      return send({
+        event: "page_view",
+        page_path: win.location?.pathname || "/",
+        page_title: doc.title
       });
     }
 

@@ -76,7 +76,9 @@
 
   function createBrowserManager(win) {
     const doc = win.document;
-    const storage = win.localStorage;
+    let storage;
+    let pageConsent;
+    try { storage = win.localStorage; } catch { /* Storage can be disabled by browser policy. */ }
 
     function applyConsent(value) {
       const signals = consentSignals(value);
@@ -88,12 +90,12 @@
       return signals;
     }
 
-    function get() { return readConsent(storage); }
+    function get() { return pageConsent ? normalize(pageConsent) : readConsent(storage); }
 
     function write(preferences) {
       const value = buildConsent(preferences);
-      try { storage.setItem(STORAGE_KEY, JSON.stringify(value)); }
-      catch (_error) { /* Current-page consent still applies. */ }
+      try { storage.setItem(STORAGE_KEY, JSON.stringify(value)); pageConsent = null; }
+      catch { pageConsent = value; }
       applyConsent(value);
       win.dispatchEvent(new win.CustomEvent("318:consent-changed", { detail: { ...value } }));
       return value;
@@ -128,7 +130,7 @@
           <div class="consent-option consent-option-required"><div><strong>Necessary</strong><small>Required for core website functions and security.</small></div><span>Always on</span></div>
           <label class="consent-option"><div><strong>Analytics</strong><small>Anonymous website usage and performance measurement.</small></div><input type="checkbox" name="analytics" ${current.analytics ? "checked" : ""}></label>
           <label class="consent-option"><div><strong>Advertising</strong><small>Advertising measurement, personalization, and campaign reporting.</small></div><input type="checkbox" name="advertising" ${current.advertising ? "checked" : ""}></label>
-          <p class="consent-policy-note">You can change or withdraw consent at any time. See our <a href="privacy.html">Privacy Policy</a>.</p>
+          <p class="consent-policy-note">You can change or withdraw consent at any time. See our <a href="/privacy.html">Privacy Policy</a>.</p>
           <div class="consent-actions"><button class="btn alt" type="button" data-consent-reject>Reject optional</button><button class="btn" type="button" data-consent-save>Save choices</button></div>
         </section>`;
       doc.body.appendChild(overlay);
@@ -150,7 +152,7 @@
       banner.className = "consent-banner";
       banner.dataset.consentBanner = "";
       banner.setAttribute("aria-label", "Privacy choices");
-      banner.innerHTML = `<div class="consent-banner-copy"><strong>Your privacy choices</strong><p>We use necessary storage to run this site. With your permission, we may also use analytics and advertising tools. <a href="privacy.html">Learn more</a>.</p></div><div class="consent-banner-actions"><button type="button" class="consent-text-button" data-consent-customize>Customize</button><button type="button" class="btn alt" data-consent-reject>Reject optional</button><button type="button" class="btn" data-consent-accept>Accept all</button></div>`;
+      banner.innerHTML = `<div class="consent-banner-copy"><strong>Your privacy choices</strong><p>We use necessary storage to run this site. With your permission, we may also use analytics and advertising tools. <a href="/privacy.html">Learn more</a>.</p></div><div class="consent-banner-actions"><button type="button" class="consent-text-button" data-consent-customize>Customize</button><button type="button" class="btn alt" data-consent-reject>Reject optional</button><button type="button" class="btn" data-consent-accept>Accept all</button></div>`;
       doc.body.appendChild(banner);
       banner.querySelector("[data-consent-customize]").addEventListener("click", openPreferences);
       banner.querySelector("[data-consent-reject]").addEventListener("click", () => saveAndClose({ analytics: false, advertising: false }));
@@ -158,7 +160,7 @@
     }
 
     function addFooterControl() {
-      const copyright = doc.querySelector(".footer .copyright");
+      const copyright = doc.querySelector(".footer .copyright, footer, .trust-close");
       if (!copyright || copyright.querySelector("[data-privacy-settings]")) return;
       const button = doc.createElement("button");
       button.type = "button";
@@ -197,14 +199,17 @@
       version: CONSENT_VERSION
     });
     win.Project318Consent = api;
-    doc.addEventListener("DOMContentLoaded", () => {
+    function displayChoices() {
       addFooterControl();
-      if (!initial.decided) showBanner();
-    });
+      if (!get().decided) showBanner();
+    }
+    if (doc.readyState === "loading") doc.addEventListener("DOMContentLoaded", displayChoices, {once:true});
+    else displayChoices();
+    win.dispatchEvent(new win.CustomEvent("318:consent-ready"));
     return api;
   }
 
   const api = { STORAGE_KEY, CONSENT_VERSION, MAX_AGE_DAYS, DEFAULTS, safeParse, normalize, readConsent, buildConsent, consentSignals, permits, createBrowserManager };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
-  if (globalScope && globalScope.document && globalScope.localStorage) createBrowserManager(globalScope);
+  if (globalScope && globalScope.document) createBrowserManager(globalScope);
 })(typeof window !== "undefined" ? window : globalThis);
