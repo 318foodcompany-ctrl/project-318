@@ -32,13 +32,14 @@
     const deliveredEventIds = new Set();
     let initialized = false;
     let loading = null;
+    let consentVersion = 0;
+    let lastConsent = advertisingAllowed();
 
     function advertisingAllowed() {
       return Boolean(win.Project318Consent && win.Project318Consent.permits("advertising"));
     }
 
-    function configure() {
-      if (initialized || !validPixelId(pixelId)) return false;
+    function installQueue() {
       if (!win.fbq) {
         const fbq = function fbq() { fbq.callMethod ? fbq.callMethod.apply(fbq, arguments) : fbq.queue.push(arguments); };
         fbq.push = fbq;
@@ -48,6 +49,11 @@
         win.fbq = fbq;
         win._fbq = fbq;
       }
+    }
+
+    function configure() {
+      if (!advertisingAllowed()) return false;
+      if (initialized) return true;
       win.fbq("init", pixelId);
       initialized = true;
       return true;
@@ -56,9 +62,9 @@
     function load() {
       if (!validPixelId(pixelId) || !advertisingAllowed()) return Promise.resolve(false);
       if (initialized) return Promise.resolve(true);
-      if (loading) return loading;
+      if (loading) return loading.then(ready => ready && configure());
 
-      configure();
+      installQueue();
       loading = new Promise((resolve, reject) => {
         const existing = doc.getElementById(SCRIPT_ID);
         if (existing) {
@@ -75,11 +81,12 @@
         script.onerror = reject;
         doc.head.appendChild(script);
       }).catch((error) => {
+        doc.getElementById(SCRIPT_ID)?.remove();
         loading = null;
         console.error("Meta Pixel could not be loaded:", error);
         return false;
       });
-      return loading;
+      return loading.then(ready => ready && configure());
     }
 
     async function send(detail) {
@@ -87,8 +94,9 @@
       const eventId = String(detail.event_id || "").trim();
       if (eventId && deliveredEventIds.has(eventId)) return false;
       if (eventId) deliveredEventIds.add(eventId);
+      const version = consentVersion;
       const ready = await load();
-      if (!ready || typeof win.fbq !== "function") {
+      if (!ready || version !== consentVersion || !advertisingAllowed() || typeof win.fbq !== "function") {
         if (eventId) deliveredEventIds.delete(eventId);
         return false;
       }
@@ -103,11 +111,13 @@
     }
 
     function onAnalyticsEvent(event) { send(event.detail); }
-    function onConsentChanged(event) {
-      if (event.detail?.advertising !== true) return;
-      load().then((ready) => {
-        if (ready) win.fbq("track", "PageView", { page_path: win.location?.pathname || "/" });
-      });
+    function onConsentChanged() {
+      const allowed = advertisingAllowed();
+      if (allowed === lastConsent) return;
+      lastConsent = allowed;
+      consentVersion++;
+      if (win.fbq) win.fbq("consent", allowed ? "grant" : "revoke");
+      if (allowed) send({ event: "page_view", page_path: win.location?.pathname || "/" });
     }
 
     win.addEventListener("318:analytics-event", onAnalyticsEvent);

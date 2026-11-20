@@ -36,6 +36,14 @@
     return "cta_click";
   }
 
+  function linkDestination(href, base) {
+    try {
+      const url = new URL(href, base);
+      if (["mailto:", "tel:"].includes(url.protocol)) return url.protocol;
+      return ["http:", "https:"].includes(url.protocol) ? url.origin + url.pathname : "";
+    } catch { return ""; }
+  }
+
   function createEventId(cryptoObject) {
     if (cryptoObject && typeof cryptoObject.randomUUID === "function") return cryptoObject.randomUUID();
     return `evt_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 12)}`;
@@ -74,7 +82,7 @@
       const kind = linkKind(anchor);
       return track(kind, {
         link_text: safeText(anchor.textContent || anchor.getAttribute("aria-label"), 120),
-        link_url: safeText(anchor.getAttribute("href"), 500),
+        link_url: linkDestination(anchor.getAttribute("href"), win.location.href),
         location: safeText(anchor.dataset.analyticsLocation || anchor.closest("header,main,footer")?.tagName || "page", 40).toLowerCase()
       });
     }
@@ -88,7 +96,7 @@
       const customEvent = anchor.dataset.analyticsEvent;
       track(customEvent || linkKind(anchor), {
         link_text: safeText(anchor.textContent || anchor.getAttribute("aria-label"), 120),
-        link_url: safeText(href, 500),
+        link_url: linkDestination(href, win.location.href),
         location: safeText(anchor.dataset.analyticsLocation || anchor.closest("header,main,footer")?.tagName || "page", 40).toLowerCase()
       });
     }
@@ -135,7 +143,7 @@
     return api;
   }
 
-  const api = { safeText, cleanProperties, eventName, linkKind, createEventId, createTracker };
+  const api = { safeText, cleanProperties, eventName, linkKind, linkDestination, createEventId, createTracker };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (globalScope && globalScope.document) createTracker(globalScope);
 })(typeof window !== "undefined" ? window : globalThis);

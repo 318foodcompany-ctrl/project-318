@@ -7,23 +7,6 @@
   const LAST_TOUCH_KEY = "p318_marketing_last_non_direct_v1";
   const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
 
-  function loadConsentControls() {
-    if (!globalScope || !globalScope.document) return;
-    if (!globalScope.document.querySelector('link[data-318-consent-styles]')) {
-      const stylesheet = globalScope.document.createElement('link');
-      stylesheet.rel = 'stylesheet';
-      stylesheet.href = 'css/consent-manager.css';
-      stylesheet.dataset.consentStyles = '';
-      globalScope.document.head.appendChild(stylesheet);
-    }
-    if (!globalScope.document.querySelector('script[data-318-consent-script]')) {
-      const script = globalScope.document.createElement('script');
-      script.src = 'js/consent-manager.js';
-      script.defer = true;
-      script.dataset.consentScript = '';
-      globalScope.document.head.appendChild(script);
-    }
-  }
 
   function safeText(value, maximum) {
     return String(value || "").trim().slice(0, maximum);
@@ -95,10 +78,18 @@
     const now = options.now instanceof Date ? options.now : new Date(options.now || Date.now());
     const nowIso = now.toISOString();
     const currentTouch = classifyTouch(options.location, options.referrer || "", nowIso);
+    if (options.advertising === false) for (const key of ["gclid","gbraid","wbraid","fbclid"]) delete currentTouch[key];
     let visitor = readJson(storage, VISITOR_KEY);
     let session = readJson(storage, SESSION_KEY);
     let firstTouch = readJson(storage, FIRST_TOUCH_KEY);
     let lastNonDirectTouch = readJson(storage, LAST_TOUCH_KEY);
+    if (options.advertising === false) {
+      for (const [key,touch] of [[FIRST_TOUCH_KEY,firstTouch],[LAST_TOUCH_KEY,lastNonDirectTouch]]) {
+        if (!touch) continue;
+        for (const id of ["gclid","gbraid","wbraid","fbclid"]) delete touch[id];
+        writeJson(storage,key,touch);
+      }
+    }
     if (!visitor || !visitor.id) {
       visitor = { id: createId(options.crypto), first_seen_at: nowIso };
       writeJson(storage, VISITOR_KEY, visitor);
@@ -119,9 +110,25 @@
 
   const api = { classifyTouch, createId, initialize, isDirect, SESSION_TIMEOUT_MS };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
-  if (globalScope && globalScope.document && globalScope.location && globalScope.localStorage) {
-    loadConsentControls();
-    const state = initialize({ storage: globalScope.localStorage, location: globalScope.location, referrer: globalScope.document.referrer, crypto: globalScope.crypto, now: new Date() });
-    globalScope.Project318Attribution = { snapshot() { return JSON.parse(JSON.stringify(state)); } };
+  if (globalScope?.document && globalScope.location && !globalScope.Project318Attribution) {
+    let state = null;
+    let storage;
+    try { storage = globalScope.localStorage; } catch { /* The guest can still request a quote. */ }
+    function refresh() {
+      const consent=globalScope.Project318Consent;
+      if (!consent) return;
+      if (!consent.permits("analytics")) {
+        state=null;
+        for (const key of [VISITOR_KEY,SESSION_KEY,FIRST_TOUCH_KEY,LAST_TOUCH_KEY]) {
+          try { storage?.removeItem(key); } catch { /* Storage unavailable. */ }
+        }
+        return;
+      }
+      state=initialize({ storage, location:globalScope.location, referrer:globalScope.document.referrer, crypto:globalScope.crypto, advertising:consent.permits("advertising") });
+    }
+    globalScope.Project318Attribution = { snapshot() { return state && globalScope.Project318Consent?.permits("analytics") ? JSON.parse(JSON.stringify(state)) : {}; } };
+    globalScope.addEventListener("318:consent-ready",refresh);
+    globalScope.addEventListener("318:consent-changed",refresh);
+    refresh();
   }
 })(typeof window !== "undefined" ? window : globalThis);
