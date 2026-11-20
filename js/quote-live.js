@@ -2,14 +2,13 @@
   "use strict";
 
   function calculateEstimate(form) {
-    const guests = Math.max(15, Number(form.elements.guestCount.value || 15));
+    const count = form.elements.guestCount;
     const menu = form.querySelector('input[name="menu"]:checked');
-    let total = guests * Number(menu?.dataset.price || 0);
-    form.querySelectorAll('input[name="addons"]:checked').forEach(addon => {
-      total += guests * Number(addon.dataset.flat || 0);
-      total += Number(addon.dataset.once || 0);
-    });
-    return Math.round(total * 100) / 100;
+    const addons = Array.from(form.querySelectorAll('input[name="addons"]:checked'));
+    const calculator = globalScope.Project318QuoteEstimate || (typeof require === "function" && require("./quote-estimate.js"));
+    return calculator.estimate(Number(count.value), Number(count.min || 15),
+      [menu?.dataset.price || 0, ...addons.map(input => input.dataset.flat || 0)],
+      addons.map(input => input.dataset.once || 0));
   }
 
   function payload(form) {
@@ -73,6 +72,7 @@
   const api = { calculateEstimate, payload, handleSubmit, initialize };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   if (globalScope.document) {
+    globalScope.Project318QuoteLive = api;
     if (globalScope.document.readyState === "loading") globalScope.document.addEventListener("DOMContentLoaded", initialize);
     else initialize();
   }

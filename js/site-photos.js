@@ -2,10 +2,9 @@ document.addEventListener('DOMContentLoaded', () => {
   if (typeof SUPABASE_URL === 'undefined') return;
 
   const bucket = 'website-images';
-  const cacheVersion = Date.now();
 
   function photoUrl(fileName) {
-    return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${fileName}?v=${cacheVersion}`;
+    return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${encodeURIComponent(fileName)}`;
   }
 
   function loadRemote(fileName, onLoad) {
