@@ -15,7 +15,7 @@
 <label class="choice-card"><input type="radio" name="eventType" value="Private Party"><span>🎉</span><strong>Private Party</strong></label>
 <label class="choice-card"><input type="radio" name="eventType" value="Other"><span>✦</span><strong>Other</strong></label>
 </div></div>
-<div class="builder-step" data-step="2"><h2>How many guests?</h2><p class="step-help">Our catering minimum is 15 people.</p><div class="guest-control"><button type="button" id="minusGuest" aria-label="Decrease guest count">−</button><input id="guestCount" name="guestCount" type="number" min="15" value="25" required aria-label="Guest count"><button type="button" id="plusGuest" aria-label="Increase guest count">+</button></div><div class="quick-counts"><button type="button" data-count="25">25</button><button type="button" data-count="50">50</button><button type="button" data-count="100">100</button><button type="button" data-count="250">250</button><button type="button" data-count="500">500+</button></div></div>
+<div class="builder-step" data-step="2"><h2>How many guests?</h2><p class="step-help">Our catering minimum is 15 people.</p><div class="guest-control"><button type="button" id="minusGuest" aria-label="Decrease guest count">−</button><input id="guestCount" name="guestCount" type="number" min="15" max="10000" value="25" required aria-label="Guest count"><button type="button" id="plusGuest" aria-label="Increase guest count">+</button></div><div class="quick-counts"><button type="button" data-count="25">25</button><button type="button" data-count="50">50</button><button type="button" data-count="100">100</button><button type="button" data-count="250">250</button><button type="button" data-count="500">500+</button></div></div>
 <div class="builder-step" data-step="3"><h2>Choose a catering menu</h2><p class="step-help">Pricing shown is an estimate and can be adjusted after review.</p><div class="menu-choice-grid">
 <label class="menu-choice"><input type="radio" name="menu" value="Taco Bar" data-price="15.99" required><img src="assets/images/taco-professional.jpg" alt="Taco bar"><span><strong>Taco Bar</strong><small>From $15.99/person</small></span></label>
 <label class="menu-choice"><input type="radio" name="menu" value="Fajita Bar — Chicken" data-price="18.99"><img src="assets/images/fajita-professional.jpg" alt="Chicken fajita bar"><span><strong>Fajita Bar — Chicken</strong><small>$18.99/person</small></span></label>
@@ -49,5 +49,6 @@
 <script src="js/site-settings.js"></script>
 <script src="js/conversion-content.js"></script>
 <script src="js/lead-submission.js"></script>
+<script src="js/quote-estimate.js"></script>
 <script src="js/quote-live.js"></script>
 <script src="script.js?v=consent-2"></script><script src="js/quote-builder-ui.js"></script><script src="js/quote-draft.js"></script></body></html>

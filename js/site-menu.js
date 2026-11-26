@@ -17,7 +17,7 @@ function safeLink(value = "") {
 }
 
 function menuImageUrl(fileName) {
-  return `${SUPABASE_URL}/storage/v1/object/public/website-images/${encodeURIComponent(fileName)}?v=${Date.now()}`;
+  return `${SUPABASE_URL}/storage/v1/object/public/website-images/${encodeURIComponent(fileName)}`;
 }
 
 const menuDetails = {

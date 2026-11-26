@@ -9,20 +9,7 @@
     "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;"
   })[character]);
   function calculateEstimate() {
-    const sharedCalculator = globalScope.Project318QuoteLive?.calculateEstimate;
-    if (typeof sharedCalculator === "function") {
-      const sharedTotal = Number(sharedCalculator(form));
-      if (Number.isFinite(sharedTotal) && sharedTotal > 0) return sharedTotal;
-    }
-
-    const guests = Math.max(15, Number(form.elements.guestCount?.value || 15));
-    const menu = form.querySelector('input[name="menu"]:checked');
-    let total = guests * Number(menu?.dataset.price || 0);
-    form.querySelectorAll('input[name="addons"]:checked').forEach(addon => {
-      total += guests * Number(addon.dataset.flat || 0);
-      total += Number(addon.dataset.once || 0);
-    });
-    return Math.round(total * 100) / 100;
+    return globalScope.Project318QuoteLive.calculateEstimate(form);
   }
   let step = 1;
   const steps = [...document.querySelectorAll(".builder-step")];
@@ -48,13 +35,8 @@
   }
   function valid() {
     const active = steps[step - 1];
-    for (const control of active.querySelectorAll("[required]")) {
-      if (control.type === "radio") {
-        if (!active.querySelector(`input[name="${control.name}"]:checked`)) return false;
-      } else if (!control.value) {
-        control.focus();
-        return false;
-      }
+    for (const control of active.querySelectorAll("input,select,textarea")) {
+      if (!control.reportValidity()) return false;
     }
     return true;
   }
