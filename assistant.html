@@ -42,7 +42,7 @@
       function add(t,c){var d=document.createElement('div');d.className='bubble '+c;d.textContent=t;box.appendChild(d);box.scrollTop=box.scrollHeight;}
       function reply(t){
         var x=t.toLowerCase(),n=(t.match(/\d+/)||[])[0];
-        if(n){var g=Number(n);return g<15?'Our catering minimum is 15 guests. For a smaller group, please contact us and we will tell you what is available.':g<=50?'For '+g+' guests, Pizza & Salad, Taco Bar, or Deli Buffet are easy crowd-pleasers. Would you like to compare those?':g<=125?'For '+g+' guests, Taco Bar, Pasta Bar, BBQ Bar, and Pizza & Salad all work well. Tell me your event type or approximate budget.':'For '+g+' guests, BBQ Bar or Taco Bar are strong buffet options. We can also discuss staffing, setup, and delivery in your quote.';}
+        if(n){var g=Number(n);return g<=50?'For '+g+' guests, Pizza & Salad, Taco Bar, or Deli Buffet are easy crowd-pleasers. Check the guest minimum in Plan My Event.':g<=125?'For '+g+' guests, Taco Bar, Pasta Bar, BBQ Bar, and Pizza & Salad all work well. Tell me your event type or approximate budget.':'For '+g+' guests, BBQ Bar or Taco Bar are strong buffet options. We can also discuss staffing, setup, and delivery in your quote.';}
         if(x.indexOf('dessert')>=0)return 'For now, dessert choices are cookies or brownies.';
         if(x.indexOf('menu')>=0)return 'Current options include Taco Bar, Fajita Bar, BBQ Bar, Deli Buffet, Pasta Bar, and Pizza & Salad.';
         if(x.indexOf('price')>=0||x.indexOf('budget')>=0)return 'Pricing depends on menu, guest count, delivery, setup, and add-ons. Use Plan My Event for a preliminary estimate, then 318 Food Co. will confirm the final quote.';

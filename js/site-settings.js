@@ -6,7 +6,8 @@
     address: "Northwest Louisiana",
     hours: "By appointment",
     facebook_url: "",
-    instagram_url: ""
+    instagram_url: "",
+    primary_navigation: ""
   };
 
   function isMissingSettingsTable(error) {

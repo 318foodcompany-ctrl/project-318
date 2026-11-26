@@ -180,7 +180,17 @@ async function handler(request, response) {
     return;
   }
 
-  const requestHash = stableHash(lead);
+  const revision = body.pricingRevision ?? null;
+  const priced = lead.source === "guided_quote" || revision !== null;
+  // Previously loaded planners send the selected add-ons in the first notes line.
+  const legacyExtras = /^Add-ons: ([^\r\n]*)/.exec(lead.notes)?.[1];
+  const extras = body.addons ?? (legacyExtras && legacyExtras !== "None" ? legacyExtras.split(", ") : []);
+  if (priced && ((revision !== null && (!Number.isSafeInteger(revision) || revision < 1)) ||
+      !Array.isArray(extras) || extras.length > 6 || extras.some(item => typeof item !== "string" || item.length > 100))) {
+    json(response, 400, {ok:false,code:"INVALID_PRICING_SELECTION",message:"Review your catering package and add-ons."});
+    return;
+  }
+  const requestHash = stableHash(priced && (body.addons !== undefined || revision !== null) ? {...lead,extras,revision} : lead);
   const notes = [
     lead.eventTime ? `Time: ${lead.eventTime}` : "",
     lead.address ? `Address: ${lead.address}` : "",
@@ -188,31 +198,32 @@ async function handler(request, response) {
   ].filter(Boolean).join("\n");
 
   try {
-    const rpc = await supabaseRequest(configuration, "/rest/v1/rpc/submit_release1_lead", {
+    const submission = {
+      p_idempotency_key: idempotencyKey,
+      p_request_hash: requestHash,
+      p_rate_limit_key: rateLimitHash(request, rateSecret),
+      p_rate_limit_max: Number(environment.LEAD_RATE_LIMIT_MAX || 5),
+      p_rate_limit_window_seconds: Number(environment.LEAD_RATE_LIMIT_WINDOW_SECONDS || 900),
+      p_submission_source: lead.source,
+      p_name: lead.name,
+      p_company: lead.company,
+      p_email: lead.email,
+      p_phone: lead.phone,
+      p_event_date: lead.eventDate,
+      p_guests: lead.guests,
+      p_menu: lead.menu,
+      p_event_type: lead.eventType,
+      p_budget: lead.budget,
+      p_notes: notes,
+      p_attribution: lead.attribution,
+      p_marketing_consent: lead.marketingConsent,
+      p_disclosure_version: DISCLOSURE_VERSION,
+      p_disclosure_id: DISCLOSURE_ID,
+      p_disclosure_text: DISCLOSURE_TEXT
+    };
+    const rpc = await supabaseRequest(configuration, "/rest/v1/rpc/" + (priced ? "submit_priced_catering_quote" : "submit_release1_lead"), {
       method: "POST",
-      body: JSON.stringify({
-        p_idempotency_key: idempotencyKey,
-        p_request_hash: requestHash,
-        p_rate_limit_key: rateLimitHash(request, rateSecret),
-        p_rate_limit_max: Number(environment.LEAD_RATE_LIMIT_MAX || 5),
-        p_rate_limit_window_seconds: Number(environment.LEAD_RATE_LIMIT_WINDOW_SECONDS || 900),
-        p_submission_source: lead.source,
-        p_name: lead.name,
-        p_company: lead.company,
-        p_email: lead.email,
-        p_phone: lead.phone,
-        p_event_date: lead.eventDate,
-        p_guests: lead.guests,
-        p_menu: lead.menu,
-        p_event_type: lead.eventType,
-        p_budget: lead.budget,
-        p_notes: notes,
-        p_attribution: lead.attribution,
-        p_marketing_consent: lead.marketingConsent,
-        p_disclosure_version: DISCLOSURE_VERSION,
-        p_disclosure_id: DISCLOSURE_ID,
-        p_disclosure_text: DISCLOSURE_TEXT
-      })
+      body: JSON.stringify(priced ? {p_request:submission,p_revision:revision,p_extras:extras} : submission)
     });
     const result = Array.isArray(rpc) ? rpc[0] : rpc;
     const leadId = Number(result?.lead_id);
@@ -225,11 +236,13 @@ async function handler(request, response) {
       json(response, 200, publicResult(leadId, true, saved?.customer_confirmation_status || "not_attempted", saved?.owner_notification_status || "not_attempted"));
       return;
     }
+    if (priced) lead.budget = Number(result.quoted_total);
 
     const ownerEmail = clean(environment.LEAD_NOTIFICATION_TO, 320);
     const adminBase = clean(environment.ADMIN_BASE_URL, 1000).replace(/\/$/, "");
     const businessPhone = clean(environment.BUSINESS_PHONE || "(318) 572-0137", 100);
-    const businessEmail = clean(environment.BUSINESS_EMAIL || ownerEmail, 320);
+    const publicEmail = clean(environment.BUSINESS_EMAIL, 320);
+    const businessEmail = EMAIL_PATTERN.test(publicEmail) ? publicEmail : "";
     const responseExpectation = clean(environment.LEAD_RESPONSE_EXPECTATION, 300);
     const customerFooter = [
       "This request is not a confirmed booking.",
@@ -241,12 +254,14 @@ async function handler(request, response) {
 
     const customerDelivery = await sendTransactionalEmail({
       to: lead.email,
+      replyTo: businessEmail,
       subject: "318 Food Co. received your catering request",
       ...customerBody,
       messageKey: `lead-${leadId}-customer`
     });
     const ownerDelivery = ownerEmail ? await sendTransactionalEmail({
       to: ownerEmail,
+      replyTo: lead.email,
       subject: `New 318 Food Co. catering request #${leadId}`,
       ...ownerBody,
       messageKey: `lead-${leadId}-owner`
@@ -275,6 +290,10 @@ async function handler(request, response) {
 
     json(response, 201, publicResult(leadId, false, customerDelivery.status, ownerDelivery.status));
   } catch (error) {
+    if (error.code === "P3181" || error.code === "P3182") {
+      json(response, 409, {ok:false,code:"QUOTE_PRICING_CHANGED",message:"Pricing or the guest minimum has changed. Review the updated estimate before submitting."});
+      return;
+    }
     const rateLimited = /rate limit/i.test(error.message || "");
     console.error("Lead submission failed.", { code: error.code || "LEAD_SUBMISSION_FAILED", status: error.status || 500 });
     json(response, rateLimited ? 429 : 502, {

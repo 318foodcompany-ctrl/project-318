@@ -27,6 +27,7 @@ test("consolidated routers preserve all existing marketing and public URLs", () 
     "/api/admin-marketing-autopilot-run-now": "/api/admin-marketing?route=autopilot-run-now",
     "/api/admin-marketing-content": "/api/admin-marketing?route=content",
     "/api/admin-marketing-test-email": "/api/admin-marketing?route=test-email",
+    "/media/:id": "/api/public-content?route=website-media&id=:id",
     "/sitemap.xml": "/api/public-content?route=sitemap",
     "/blog": "/api/public-content?route=blog-index",
     "/blog/:slug": "/api/public-content?route=blog-post&slug=:slug"
@@ -43,6 +44,6 @@ test("consolidated routers expose only explicit allowlisted handlers", () => {
     "analytics", "assistant", "autopilot-action", "autopilot-bulk", "autopilot-executive",
     "autopilot-learning", "autopilot-publish", "autopilot-queue", "autopilot-run-now", "content", "test-email"
   ]);
-  assert.deepEqual(Object.keys(publicContent.handlers).sort(), ["blog-index", "blog-post", "sitemap"]);
+  assert.deepEqual(Object.keys(publicContent.handlers).sort(), ["blog-index", "blog-post", "landing-page", "sitemap", "website-media"]);
 });
 

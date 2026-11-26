@@ -1,0 +1,11 @@
+/* Keep owner-written labels readable in both public header designs. */
+.managed-navigation a { overflow-wrap: anywhere; }
+.topbar .links.managed-navigation, .cin-nav nav.managed-navigation { min-width: 0; gap: clamp(8px, 1.4vw, 22px); }
+.topbar .links.managed-navigation a, .cin-nav nav.managed-navigation a { white-space: normal; line-height: 1.2; }
+nav[data-website-menu].managed-navigation { display: flex; flex-wrap: wrap; gap: .6rem 1rem; align-items: center; margin-block: .75rem; font-size: .95rem; }
+@media (max-width: 900px) {
+  .topbar .links.open.managed-navigation { max-height: calc(100dvh - 70px); overflow: auto; }
+}
+@media (max-width: 760px) {
+  .cin-nav .cin-mobile-nav.managed-navigation:not([hidden]) { max-height: calc(100dvh - 72px); overflow: auto; }
+}

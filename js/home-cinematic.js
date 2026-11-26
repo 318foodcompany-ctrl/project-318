@@ -20,5 +20,19 @@
   addEventListener('scroll',update,{passive:true});addEventListener('resize',()=>{if(innerWidth!==lastWidth){lastWidth=innerWidth;update()}},{passive:true});render();
   document.querySelectorAll('[data-jump]').forEach(button=>button.addEventListener('click',()=>{const distance=Math.max(1,journey.offsetHeight-document.documentElement.clientHeight);scrollTo({top:journey.offsetTop+distance*(.22+Number(button.dataset.jump)*.22),behavior:'smooth'})}));
   const menu=document.querySelector('.cin-menu'),mobile=document.querySelector('.cin-mobile-nav');
-  menu?.addEventListener('click',()=>{const open=mobile.hasAttribute('hidden');mobile.toggleAttribute('hidden',!open);menu.setAttribute('aria-expanded',String(open))});
+  if (menu && mobile) {
+    mobile.id = 'home-mobile-menu';
+    menu.setAttribute('aria-controls', mobile.id);
+    const openMenu = open => {
+      mobile.hidden = !open;
+      menu.setAttribute('aria-expanded', String(open));
+      menu.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
+    };
+    menu.addEventListener('click', () => openMenu(mobile.hidden));
+    mobile.addEventListener('click', event => { if (event.target.closest('a')) openMenu(false); });
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && !mobile.hidden) { openMenu(false); menu.focus(); }
+    });
+    matchMedia('(max-width:760px)').addEventListener('change', () => openMenu(false));
+  }
 })();

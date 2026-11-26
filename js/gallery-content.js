@@ -11,6 +11,7 @@
 
   function safeImage(value) {
     const url = String(value || "").trim();
+    if (globalScope.Project318MediaPath?.isPath(url)) return url;
     return /^(?:https:\/\/|assets\/images\/)/i.test(url) ? url : "";
   }
 

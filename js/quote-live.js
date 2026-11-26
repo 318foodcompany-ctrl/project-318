@@ -19,6 +19,7 @@
       email: data.get("email"), phone: data.get("phone"),
       eventDate: data.get("eventDate") || null, eventTime: data.get("eventTime") || "",
       guests: Number(data.get("guestCount")), menu: data.get("menu"),
+      pricingRevision: Number(form.dataset.pricingRevision), addons,
       eventType: data.get("eventType"), budget: calculateEstimate(form),
       address: data.get("eventAddress") || "",
       notes: [`Add-ons: ${addons.join(", ") || "None"}`, data.get("notes") || ""].filter(Boolean).join("\n"),
@@ -28,11 +29,33 @@
     };
   }
 
+  async function refreshPricing(form) {
+    delete form.dataset.pricingRevision;
+    const notice = document.getElementById("pricingNotice");
+    const retry = document.getElementById("retryPricing");
+    notice.textContent = "Loading catering prices…";
+    retry.hidden = true;
+    form.dispatchEvent(new Event("pricingchange"));
+    try {
+      const pricing = await globalScope.Project318Pricing.published(true);
+      globalScope.Project318Pricing.applyToForm(form, pricing);
+      notice.textContent = "";
+      return true;
+    } catch (error) {
+      notice.textContent = error.message;
+      retry.hidden = false;
+      return false;
+    } finally {
+      form.dispatchEvent(new Event("pricingchange"));
+    }
+  }
+
   async function handleSubmit(event) {
     const form = event.currentTarget;
     event.preventDefault();
     event.stopImmediatePropagation();
-    if (!form.reportValidity()) return;
+    if (!form.dataset.pricingRevision || form.dataset.submitting || !form.reportValidity()) return;
+    form.dataset.submitting = "true";
     const service = globalScope.Project318LeadSubmission;
     const submitButton = document.getElementById("submitQuote");
     const status = service.statusElement(form);
@@ -56,9 +79,12 @@
       }
       globalScope.scrollTo({ top: 0, behavior: "smooth" });
     } catch (error) {
+      if (error.code === "QUOTE_PRICING_CHANGED") await refreshPricing(form);
       status.classList.add("error");
       status.textContent = error.message || "Your request was not saved. Please try again or call 318 Food Co.";
-      submitButton.disabled = false;
+    } finally {
+      delete form.dataset.submitting;
+      submitButton.disabled = !form.dataset.pricingRevision;
     }
   }
 
@@ -67,6 +93,8 @@
     if (!form || form.dataset.liveSubmissionReady === "true") return;
     form.dataset.liveSubmissionReady = "true";
     form.addEventListener("submit", handleSubmit, true);
+    document.getElementById("retryPricing").addEventListener("click", () => refreshPricing(form));
+    refreshPricing(form);
   }
 
   const api = { calculateEstimate, payload, handleSubmit, initialize };

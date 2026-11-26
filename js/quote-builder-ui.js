@@ -49,17 +49,27 @@
     previous.hidden = step === 1;
     next.hidden = step === totalSteps;
     submit.hidden = step !== totalSteps;
-    if (step === totalSteps) review();
+    next.disabled = !form.dataset.pricingRevision;
+    submit.disabled = !form.dataset.pricingRevision || Boolean(form.dataset.submitting);
+    if (step === totalSteps && form.dataset.pricingRevision) review();
   }
+  form.addEventListener("pricingchange", () => {
+    const count = form.elements.guestCount;
+    for (const button of form.querySelectorAll("[data-count]")) {
+      button.disabled = Number(button.dataset.count) < Number(count.min);
+    }
+    if (step > 2 && form.dataset.pricingRevision && !count.checkValidity()) step = 2;
+    show();
+  });
   next.addEventListener("click", () => { if (valid() && step < totalSteps) { step += 1; show(); } });
   previous.addEventListener("click", () => { if (step > 1) { step -= 1; show(); } });
   document.getElementById("minusGuest").addEventListener("click", () => {
     const input = document.getElementById("guestCount");
-    input.value = Math.max(15, Number(input.value) - 5);
+    input.value = Math.max(Number(input.min), Number(input.value) - 5);
   });
   document.getElementById("plusGuest").addEventListener("click", () => {
     const input = document.getElementById("guestCount");
-    input.value = Number(input.value) + 5;
+    input.value = Math.min(Number(input.max), Math.max(Number(input.min), Number(input.value) + 5));
   });
   document.querySelectorAll("[data-count]").forEach(button => button.addEventListener("click", () => {
     document.getElementById("guestCount").value = button.dataset.count;
