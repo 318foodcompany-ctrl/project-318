@@ -2,7 +2,7 @@
   "use strict";
   const fallback = [
     { category: "Planning", question: "How far in advance should I request catering?", answer: "Send your request as soon as your date is known. We will confirm availability after reviewing your event details." },
-    { category: "Menus", question: "What is the catering minimum?", answer: "Most catering packages begin with a 15-person minimum." },
+    { category: "Menus", question: "What is the catering minimum?", answer: "Open Plan My Event to see the current guest minimum for catering." },
     { category: "Service", question: "Do you offer delivery and setup?", answer: "Delivery and setup options are available based on the event location, schedule, and service needs." }
   ];
 

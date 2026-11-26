@@ -67,7 +67,7 @@ test("unified server handler persists a lead and records both accepted emails", 
   const originalFetch = global.fetch;
   global.fetch = async (url, options) => {
     calls.push({ url, body: options?.body ? JSON.parse(options.body) : null });
-    if (String(url).includes("submit_release1_lead")) return responseObject(200, [{ lead_id: 42, deduplicated: false }]);
+    if (String(url).includes("submit_priced_catering_quote")) return responseObject(200, [{ lead_id: 42, deduplicated: false, quoted_total: 800 }]);
     if (String(url).includes("record_lead_email_delivery")) return responseObject(200, null);
     throw new Error(`Unexpected request: ${url}`);
   };
@@ -76,8 +76,10 @@ test("unified server handler persists a lead and records both accepted emails", 
     assert.equal(result.status, 201);
     assert.equal(result.body.code, "LEAD_SAVED_EMAILS_ACCEPTED");
     assert.equal(calls.filter(call => call.url.includes("record_lead_email_delivery")).length, 2);
-    assert.equal(calls[0].body.p_marketing_consent, true);
-    assert.equal(calls[0].body.p_submission_source, "guided_quote");
+    assert.equal(calls[0].body.p_revision, null);
+    assert.deepEqual(calls[0].body.p_extras, []);
+    assert.equal(calls[0].body.p_request.p_marketing_consent, true);
+    assert.equal(calls[0].body.p_request.p_submission_source, "guided_quote");
   } finally {
     global.fetch = originalFetch;
     process.env = { ...savedEnvironment };
@@ -97,7 +99,7 @@ test("idempotent retry returns the original result without sending duplicate ema
   const originalFetch = global.fetch;
   global.fetch = async (url, options) => {
     calls.push(String(url));
-    if (String(url).includes("submit_release1_lead")) return responseObject(200, [{ lead_id: 42, deduplicated: true }]);
+    if (String(url).includes("submit_priced_catering_quote")) return responseObject(200, [{ lead_id: 42, deduplicated: true }]);
     if (String(url).includes("/leads?")) return responseObject(200, [{ customer_confirmation_status: "accepted", owner_notification_status: "accepted" }]);
     throw new Error(`Unexpected request: ${url}`);
   };
@@ -109,6 +111,38 @@ test("idempotent retry returns the original result without sending duplicate ema
   } finally {
     global.fetch = originalFetch;
     process.env = { ...savedEnvironment };
+  }
+});
+
+test("changed rates require a fresh review before the service records a lead or attempts email", async () => {
+  Object.assign(process.env, {
+    PUBLIC_SUPABASE_URL: "https://example.supabase.co",
+    SUPABASE_SERVICE_ROLE_KEY: "test-only", LEAD_RATE_LIMIT_SECRET: "a".repeat(32)
+  });
+  const calls = [];
+  const originalFetch = global.fetch;
+  global.fetch = async (url, options) => {
+    calls.push({url,body:JSON.parse(options.body)});
+    return responseObject(400, {code:"P3181",message:"Review the current rates"});
+  };
+  try {
+    const result = await invokeHandler({...validPayload(),pricingRevision:2,addons:["Cookies"]});
+    assert.equal(result.status,409);
+    assert.equal(result.body.code,"QUOTE_PRICING_CHANGED");
+    assert.equal(calls.length,1);
+    assert.match(calls[0].url,/submit_priced_catering_quote$/);
+    assert.equal(calls[0].body.p_revision,2);
+    assert.deepEqual(calls[0].body.p_extras,["Cookies"]);
+    const legacy = await invokeHandler({...validPayload(),notes:"Add-ons: Cookies, Drinks\nTest"});
+    assert.equal(legacy.status,409);
+    assert.deepEqual(calls[1].body.p_extras,["Cookies","Drinks"]);
+    await invokeHandler({...validPayload("contact_form"),budget:null});
+    assert.match(calls[2].url,/submit_release1_lead$/);
+    await invokeHandler({...validPayload("contact_form"),pricingRevision:2,addons:["Drinks"]});
+    assert.match(calls[3].url,/submit_priced_catering_quote$/);
+  } finally {
+    global.fetch=originalFetch;
+    process.env={...savedEnvironment};
   }
 });
 

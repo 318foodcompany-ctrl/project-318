@@ -9,7 +9,6 @@ const homepageContentFields = [
   { key: "hero_button_link", label: "Primary Button Link", fallback: "quote-builder.html", type: "url-path", required: true },
   { key: "hero_secondary_button", label: "Secondary Button Text", fallback: "View Catering Menus", required: true },
   { key: "hero_secondary_button_link", label: "Secondary Button Link", fallback: "catering.html", type: "url-path", required: true },
-  { key: "minimum_order", label: "Minimum Order Text", fallback: "15-person minimum" },
 
   { group: "Welcome Section", key: "feature_heading", label: "Welcome Section Heading", fallback: "Made for Your Next Event", required: true },
   { key: "feature_text", label: "Welcome Section Body Text", fallback: "Tell us your guest count, budget, and service needs. We will help you build the right catering plan.", multiline: true, required: true },

@@ -57,48 +57,6 @@ if (menuBtn && links) {
   });
 }
 
-const quote = document.querySelector('#quoteForm');
-
-if (quote) {
-  const prices = {
-    'Taco Bar': 15.99,
-    'Fajita Bar': 18.99,
-    'BBQ Bar': 16.99,
-    'Deli Sandwich Buffet': 15.99,
-    'Pasta Bar': 15.99,
-    'Pizza & Salad Bar': 15.99,
-  };
-
-  const guests = document.querySelector('#guests');
-  const menu = document.querySelector('#menuChoice');
-  const extras = document.querySelector('#extras');
-  const total = document.querySelector('#estimateTotal');
-  const summary = document.querySelector('#estimateSummary');
-
-  function calc() {
-    if (!guests || !menu || !extras || !total || !summary) return;
-
-    const guestCount = Math.max(15, Number(guests.value) || 15);
-    const menuPrice = prices[menu.value] || 15.99;
-    const extrasPrice = Number(extras.value) || 0;
-    const subtotal = guestCount * (menuPrice + extrasPrice);
-
-    total.textContent = subtotal.toLocaleString('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    });
-
-    summary.textContent = `Estimated for ${guestCount} guests at $${(menuPrice + extrasPrice).toFixed(2)} per person.`;
-  }
-
-  [guests, menu, extras].filter(Boolean).forEach((field) => {
-    field.addEventListener('input', calc);
-  });
-
-  calc();
-
-}
-
 document.addEventListener("DOMContentLoaded", () => {
   if (/\/(?:admin|login)\.html$/i.test(location.pathname) || document.querySelector(".final-book-cta")) return;
   const cta = document.createElement("a");

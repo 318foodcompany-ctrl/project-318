@@ -29,7 +29,7 @@
       const article = document.createElement("article");
       article.id = item.slug;
       article.className = "event-type-card";
-      if (/^(?:https:\/\/|assets\/images\/)/i.test(item.hero_image_url || "")) {
+      if (globalScope.Project318MediaPath?.isPath(item.hero_image_url) || /^(?:https:\/\/|assets\/images\/)/i.test(item.hero_image_url || "")) {
         const image = document.createElement("img");
         image.src = item.hero_image_url;
         image.alt = item.hero_alt_text || item.title;

@@ -59,9 +59,9 @@
 <div class="field"><label for="contactEmail">Email</label><input id="contactEmail" name="Email" type="email" required></div>
 <div class="field"><label for="contactEventDate">Event Date</label><input id="contactEventDate" name="Event Date" type="date" required></div>
 <div class="field"><label for="contactEventTime">Event Time</label><input id="contactEventTime" name="Event Time" type="time"></div>
-<div class="field"><label for="guests">Guest Count</label><input id="guests" name="Guest Count" type="number" min="15" value="25" required></div>
+<div class="field"><label for="guests">Guest Count</label><input id="guests" name="Guest Count" type="number" min="1" max="10000" value="25" required></div>
 <div class="field"><label for="menuChoice">Menu</label><select id="menuChoice" name="Menu"><option>Taco Bar</option><option>Fajita Bar</option><option>BBQ Bar</option><option>Deli Sandwich Buffet</option><option>Pasta Bar</option><option>Pizza & Salad Bar</option></select></div>
-<div class="field"><label for="extras">Optional Add-On Estimate</label><select id="extras" name="Add-On Estimate"><option value="0">No add-on</option><option value="2">Drinks (+$2/person)</option><option value="3">Enhanced dessert (+$3/person)</option><option value="5">Drinks + enhanced dessert (+$5/person)</option></select></div>
+<div class="field"><label for="extras">Optional add-on</label><select id="extras" name="Add-On Estimate"><option value="">No add-on</option><option value="Drinks">Drinks</option><option value="Enhanced dessert">Enhanced dessert</option><option value="Drinks + enhanced dessert">Drinks + enhanced dessert</option></select></div>
 <div class="field"><label for="contactServiceStyle">Service Style</label><select id="contactServiceStyle" name="Service Style"><option>Delivery only</option><option>Delivery and setup</option><option>Full service requested</option></select></div>
 <div class="field full"><label for="contactAddress">Event Address</label><input id="contactAddress" name="Event Address"></div>
 <div class="field full"><label for="contactDetails">Event Details / Special Requests</label><textarea id="contactDetails" name="Details" maxlength="5000"></textarea></div>
@@ -73,7 +73,7 @@
 
         <aside class="estimate">
           <h3>Starting Estimate</h3>
-          <div class="estimate-total" id="estimateTotal">$0.00</div>
+          <div class="estimate-total" id="estimateTotal" aria-live="polite">Loading prices…</div>
           <p id="estimateSummary"></p>
           <p class="fine">This estimate is for planning only. Delivery, setup, staffing, taxes, distance, substitutions and custom requests may affect the final quote.</p>
           <hr style="border-color:#444">
@@ -102,10 +102,11 @@
   <script src="/api/runtime-config"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase.js"></script>
-  <script src="js/site-settings.js"></script>
+  <script src="js/site-settings.js"></script><script src="/js/website-navigation.js" data-use-settings></script>
   <script src="js/site-content-loader.js"></script>
   <script src="js/site-contact-content.js"></script>
   <script src="js/lead-submission.js"></script>
+  <script src="js/quote-pricing.js"></script>
   <script src="js/contact-live.js"></script>
 </body>
 </html>

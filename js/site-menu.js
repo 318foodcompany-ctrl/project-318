@@ -17,6 +17,7 @@ function safeLink(value = "") {
 }
 
 function menuImageUrl(fileName) {
+  if (window.Project318MediaPath?.isPath(fileName)) return fileName;
   return `${SUPABASE_URL}/storage/v1/object/public/website-images/${encodeURIComponent(fileName)}`;
 }
 
@@ -29,9 +30,7 @@ const menuDetails = {
   ],
   fajita: [
     ["Protein Options", [
-      "Chicken fajitas — $18.99 per person",
-      "Steak fajitas — $20.99 per person",
-      "Chicken and steak combo — $21.99 per person"
+      "Chicken fajitas", "Steak fajitas", "Chicken and steak combo"
     ]],
     ["Sides", ["Mexican rice", "Charro beans"]],
     ["Extras", ["Flour tortillas", "Chips, salsa and queso"]],
@@ -60,12 +59,16 @@ const menuDetails = {
   ]
 };
 
-function detailsHtml(slug) {
+function detailsHtml(slug, card) {
   return (menuDetails[slug] || [])
     .map(([heading, items]) => `
       <div>
         <h3>${escapeHtml(heading)}</h3>
-        <ul>${items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+        <ul>${items.map((item, index) => {
+          const name = slug === "fajita" && heading === "Protein Options" && window.Project318Pricing.packageGroups.fajita[index];
+          const rate = card && name ? " — " + window.Project318Pricing.dollars(card.packages[name]) + " per person" : "";
+          return `<li>${escapeHtml(item + rate)}</li>`;
+        }).join("")}</ul>
       </div>
     `)
     .join("");
@@ -73,6 +76,10 @@ function detailsHtml(slug) {
 
 async function loadMenuItems() {
   if (!menuContainer) return;
+  if (!window.supabaseClient) {
+    menuContainer.textContent = "Menus are temporarily unavailable. Call 318 Food Co. for current options.";
+    return;
+  }
 
   const { data, error } = await supabaseClient
     .from("menu_items")
@@ -81,6 +88,7 @@ async function loadMenuItems() {
     .order("sort_order");
 
   if (error) {
+    menuContainer.textContent = "Menus are temporarily unavailable. Call 318 Food Co. for current options.";
     console.error("Menu load failed:", error);
     return;
   }
@@ -90,20 +98,24 @@ async function loadMenuItems() {
     return;
   }
 
+  const pricing = window.Project318Pricing;
+  const card = (await pricing.published().catch(() => null))?.card;
   menuContainer.innerHTML = data
     .map((item, index) => {
       const slug = escapeHtml(item.slug);
       const imageFile = item.image_file || `menu-${item.slug}.jpg`;
       const fallbackImage = `assets/images/${encodeURIComponent(item.slug)}-professional.jpg`;
       const buttonText = item.button_text || `Request ${item.name}`;
-      const displayPrice = item.slug === "fajita" ? "$18.99 per person" : item.price;
+      const linked = Object.hasOwn(pricing.packageGroups, item.slug);
+      const rate = pricing.startingPrice(card, item.slug);
+      const displayPrice = linked ? (rate === null ? "" : pricing.dollars(rate) + " per person") : item.price;
 
       return `
         <section class="catering-package${index % 2 ? " alt-package" : ""}" id="${slug}">
           <div class="wrap package-grid">
             <div class="package-photo">
               <img
-                data-photo-image="${escapeHtml(imageFile)}"
+                ${window.Project318MediaPath?.isPath(imageFile) ? "" : `data-photo-image="${escapeHtml(imageFile)}"`}
                 src="${menuImageUrl(imageFile)}"
                 alt="${escapeHtml(item.name)} catering package"
                 loading="lazy"
@@ -115,9 +127,9 @@ async function loadMenuItems() {
               <span class="menu-number">${String(index + 1).padStart(2, "0")}</span>
               <p class="kicker">${escapeHtml(item.subtitle)}</p>
               <h2>${escapeHtml(item.name)}</h2>
-              <p class="package-price">Starting at <strong>${escapeHtml(displayPrice)}</strong></p>
+              <p class="package-price">${displayPrice ? "Starting at <strong>" + escapeHtml(displayPrice) + "</strong>" : "Ask about current pricing"}</p>
               <div class="package-details">
-                ${detailsHtml(item.slug)}
+                ${detailsHtml(item.slug, card)}
               </div>
               <a class="btn" href="${safeLink(item.button_link)}">
                 ${escapeHtml(buttonText)}
